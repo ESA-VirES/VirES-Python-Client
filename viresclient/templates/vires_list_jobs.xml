@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<wps:Execute xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" version="1.0.0" service="WPS">
+  <ows:Identifier>listJobs</ows:Identifier>
+  <wps:DataInputs>
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput>
+      <ows:Identifier>job_list</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<wps:Execute xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" version="1.0.0" service="WPS">
+  <ows:Identifier>vires:fetch_data</ows:Identifier>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier>collection_ids</ows:Identifier>
+      <wps:Data>
+        <wps:ComplexData mimeType="application/json"><![CDATA[{{ collection_ids|o2j }}]]></wps:ComplexData>
+      </wps:Data>
+    </wps:Input>
+    {% if model_ids -%}
+    <wps:Input>
+      <ows:Identifier>model_ids</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ model_ids|l2s }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    <wps:Input>
+      <ows:Identifier>begin_time</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ begin_time|d2s }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>end_time</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ end_time|d2s }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>variables</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ variables|l2s }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>csv_time_format</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>MJD2000</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput mimeType="{{ response_type }}">
+      <ows:Identifier>output</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>
