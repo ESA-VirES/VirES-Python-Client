@@ -36,12 +36,16 @@ from contextlib import closing
 from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 from jinja2 import Environment, FileSystemLoader
-from time_util import parse_datetime
+from .time_util import parse_datetime
+
+from os.path import dirname, join
+_DIRNAME = dirname(__file__)
+_TEMPLATESDIR = join(_DIRNAME,"templates")
 
 # SERVICE_URL = "http://127.0.0.1:8300/ows"
 SERVICE_URL = "https://staging.viresdisc.vires.services/openows"
 
-JINJA2_ENVIRONMENT = Environment(loader=FileSystemLoader("./templates"))
+JINJA2_ENVIRONMENT = Environment(loader=FileSystemLoader(_TEMPLATESDIR))
 JINJA2_ENVIRONMENT.filters.update(
     d2s=lambda d: d.isoformat("T") + "Z",
     l2s=lambda l: ", ".join(str(v) for v in l),

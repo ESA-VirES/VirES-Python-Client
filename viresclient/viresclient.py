@@ -1,10 +1,40 @@
+#-------------------------------------------------------------------------------
+#
+# Handles the WPS requests to the VirES server
+#
+# Authors: Ashley Smith <ashley.smith@ed.ac.uk>
+#          Martin Paces <martin.paces@eox.at>
+#
+#-------------------------------------------------------------------------------
+# Copyright (C) 2018 EOX IT Services GmbH
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies of this Software or works derived from this Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#-------------------------------------------------------------------------------
+
+
 from datetime import timedelta
 from numpy import array
 
-from wps_util import (
+from .wps_util import (
     WpsPostRequestMixIn, WpsAsyncPostRequestMixIn, CsvRequestMixIn,
 )
-from time_util import parse_datetime
+from .time_util import parse_datetime
 
 
 # START_TIME = parse_datetime("2016-01-01T00:00:00Z")
@@ -28,7 +58,7 @@ class GetMeasurementsAndModel(object):
             for measurement in self.measurements:
                 variables += ["%s_%s"%(measurement,model_name)]
         return variables
-        
+
     @property
     def residual_variables(self):
 #         return ["F_res_%s"%self.model_name, "B_NEC_res_%s"%self.model_name]
@@ -71,7 +101,7 @@ class GetMeasurementsAndModel(object):
 
 #         measurement = array(response[self.measurement])
 #         model = array(response[self.residual_variables])
-        
+
 #         output = dict.fromkeys(response.keys())
         output = {}
         for key in response.keys():
@@ -89,14 +119,14 @@ class AsyncFetchMeasurementsAndModel(GetMeasurementsAndModel, AsyncFetchFiltered
 #     filters = "SunZenithAngle:0,90"
 #     begin_time = parse_datetime("2016-01-01T00:00:00Z")
 #     end_time = begin_time + timedelta(hours=1)
-    
+
 
 class ClientRequest(AsyncFetchMeasurementsAndModel):
-    
+
     def __init__(self,url,username,password):
         self.service_url = url
         # NOT YET IMPLEMENTED
-    
+
 #     def query_avail_collections():
 
     def set_collections(self,spacecraft, collections):
@@ -112,14 +142,9 @@ class ClientRequest(AsyncFetchMeasurementsAndModel):
 
     def set_range_filter(self,parameter, minimum, maximum):
         self.filters = parameter+":"+str(minimum)+","+str(maximum)
-        
+
     def get_between(self,start_time,end_time):
         self.begin_time = start_time
         self.end_time = end_time
-        
+
         return self.get_measurements()
-        
-
-
-# DataRequest = AsyncFetchMeasurementsAndModel()
-# Data = DataRequest.get_measurements()
