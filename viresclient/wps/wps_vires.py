@@ -33,8 +33,8 @@ except ImportError:
     from urlparse import urlparse
 
 import re
-from wps import WPS10Service
-from environment import JINJA2_ENVIRONMENT
+from .wps import WPS10Service
+from .environment import JINJA2_ENVIRONMENT
 
 
 RE_MATCH_JOB_ID = re.compile(

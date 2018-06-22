@@ -37,7 +37,7 @@ from time import sleep
 from logging import getLogger, LoggerAdapter
 from contextlib import closing
 from xml.etree import ElementTree
-from time_util import Timer
+from .time_util import Timer
 
 NS_OWS11 = "http://www.opengis.net/ows/1.1"
 NS_OWS20 = "http://www.opengis.net/ows/2.0"

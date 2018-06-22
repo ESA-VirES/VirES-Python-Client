@@ -29,13 +29,13 @@
 
 
 from os.path import join, dirname
-from wps_vires import ViresWPS10Service
-from time_util import parse_datetime
-from http_util import encode_basic_auth
+from .wps.wps_vires import ViresWPS10Service
+from .wps.time_util import parse_datetime
+from .wps.http_util import encode_basic_auth
 from logging import getLogger, DEBUG
-from log_util import set_stream_handler
+from .wps.log_util import set_stream_handler
 from jinja2 import Environment, FileSystemLoader
-from environment import JINJA2_ENVIRONMENT
+from .wps.environment import JINJA2_ENVIRONMENT
 import json
 
 
