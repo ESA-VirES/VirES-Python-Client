@@ -29,10 +29,11 @@
 #-------------------------------------------------------------------------------
 
 from setuptools import setup, find_packages
+import viresclient
 
 setup(
     name='viresclient',
-    version='0.0.1',
+    version=viresclient.__version__,
     license='EOX licence (MIT style)',
     description='A Python client for interacting with the VirES server',
     author='EOX IT Services GmbH',
