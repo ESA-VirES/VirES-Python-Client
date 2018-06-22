@@ -28,6 +28,7 @@
 
 import re
 from datetime import date, datetime, timedelta, tzinfo
+from time import time
 
 RE_ISO_8601_DATETIME_LONG = re.compile(
     r"^(\d{4,4})-(\d{2,2})-(\d{2,2})(?:"
@@ -202,3 +203,19 @@ def encode_duration(value):
         elif seconds != 0:
             items.append('%dS'%seconds)
     return "".join(items)
+
+
+class Timer(object):
+    """ Timer class measuring elapsed amount of time.
+    """
+    def __init__(self):
+        self._start = time()
+
+    def restart(self):
+        """ Restart the timer. """
+        self._start = time()
+
+    @property
+    def elapsed_time(self):
+        """ Get time time in seconds elapsed since the last timer restart. """
+        return time() - self._start
