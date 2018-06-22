@@ -98,28 +98,29 @@ class WPS10Service(object):
         """
         timer = Timer()
         status, status_url, execute_response = self.submit_async(request)
-        self.logger.info("%s %s %.3fs", status, status_url, timer.elapsed_time)
-        if status_handler:
-            status_handler(status, status_url, execute_response)
 
-        while status not in ("FINISHED", "FAILED"):
-            sleep(polling_interval)
-
-            last_status = status
-            status, status_url, execute_response = self.poll_status(status_url)
-
-            if status != last_status:
-                self.logger.info(
-                    "%s %s %.3fs", status, status_url, timer.elapsed_time
-                )
-            else:
-                self.logger.debug(
-                    "%s %s %.3fs", status, status_url, timer.elapsed_time
-                )
+        try:
+            self.logger.info("%s %s %.3fs", status, status_url, timer.elapsed_time)
             if status_handler:
                 status_handler(status, status_url, execute_response)
 
-        try:
+            while status not in ("FINISHED", "FAILED"):
+                sleep(polling_interval)
+
+                last_status = status
+                status, status_url, execute_response = self.poll_status(status_url)
+
+                if status != last_status:
+                    self.logger.info(
+                        "%s %s %.3fs", status, status_url, timer.elapsed_time
+                    )
+                else:
+                    self.logger.debug(
+                        "%s %s %.3fs", status, status_url, timer.elapsed_time
+                    )
+                if status_handler:
+                    status_handler(status, status_url, execute_response)
+
 
             if status == "FAILED":
                 ows_exception, namespace = self.find_exception(execute_response)
@@ -130,13 +131,15 @@ class WPS10Service(object):
             )
 
         finally:
-            if cleanup_handler:
-                cleanup_handler(status_url)
+            (cleanup_handler or self._default_cleanup_handler)(status_url)
 
         return output
 
     def retrieve_async_output(self, status_url, output_name, handler=None):
         """ Retrieve asynchronous job output reference. """
+        self.logger.debug(
+            "Retrieving asynchronous job output '%s'.", output_name
+        )
         output_url = self.parse_output_reference(status_url, output_name)
         return self._retrieve(Request(output_url, None, self.headers), handler)
 
@@ -158,6 +161,7 @@ class WPS10Service(object):
         """ Send a POST WPS asynchronous request to a server and retrieve
         the status URL.
         """
+        self.logger.debug("Submitting asynchronous job.")
         return self._retrieve(
             Request(self.url, request, self.headers),
             self.parse_status, self.error_handler
@@ -165,6 +169,7 @@ class WPS10Service(object):
 
     def poll_status(self, status_url):
         """ Poll status of an asynchronous WPS job. """
+        self.logger.debug("Polling asynchronous job status.")
         return self._retrieve(
             Request(status_url, None, self.headers), self.parse_status
         )
@@ -244,6 +249,9 @@ class WPS10Service(object):
             if error_handler:
                 return error_handler(error)
             raise
+
+    def _default_cleanup_handler(self, status_url):
+        pass
 
     @staticmethod
     def _default_handler(file_obj):
