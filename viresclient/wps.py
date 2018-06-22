@@ -30,7 +30,7 @@ try:
     from urllib.request import urlopen, Request
     from urllib.error import HTTPError
 except ImportError:
-    # Pyhton 2 backward compatibility
+    # Python 2 backward compatibility
     from urllib2 import urlopen, Request, HTTPError
 
 from time import sleep
