@@ -28,15 +28,15 @@
 #-------------------------------------------------------------------------------
 
 
-from os.path import join, dirname
+# from os.path import join, dirname
 from .wps.wps_vires import ViresWPS10Service
-from .wps.time_util import parse_datetime
+# from .wps.time_util import parse_datetime
 from .wps.http_util import encode_basic_auth
 from logging import getLogger, DEBUG
 from .wps.log_util import set_stream_handler
-from jinja2 import Environment, FileSystemLoader
+# from jinja2 import Environment, FileSystemLoader
 from .wps.environment import JINJA2_ENVIRONMENT
-import json
+# import json
 
 
 class ClientRequest:
@@ -96,16 +96,18 @@ class ClientRequest:
         self.filters = parameter+":"+str(minimum)+","+str(maximum)
 
     def get_between(self,start_time,end_time):
-        self.start_time = parse_datetime(start_time)
-        self.end_time = parse_datetime(end_time)
+        self.start_time = start_time
+        self.end_time = end_time
 
         self.request = self.template.render(
             begin_time=self.start_time,
             end_time=self.end_time,
+            model_ids=self.models,
             variables=self.variables,
             collection_ids={self.spacecraft: self.collections},
             filters = self.filters,
             response_type="text/csv",
+            # response_type="application/x-cdf",
         ).encode('UTF-8')
 
         if self.async:
@@ -114,8 +116,3 @@ class ClientRequest:
             response = self.wps.retrieve(self.request)
 
         return response
-        # output = {}
-        # for key in response.keys():
-        #     output[key] = array(response[key])
-        #
-        # return output
