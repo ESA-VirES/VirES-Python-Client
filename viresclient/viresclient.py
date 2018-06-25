@@ -38,17 +38,65 @@ from .wps.log_util import set_stream_handler
 from .wps.environment import JINJA2_ENVIRONMENT
 # import json
 
-class ReturnedData:
 
-    def __init__(self,data,filetype):
+class ReturnedData:
+    """Holds the data returned from the server and the data type.
+    Provides output to different file types.
+    """
+
+    def __init__(self,data=bytes(),filetype=str()):
         self.data = data
         self.filetype = filetype
 
     def __str__(self):
-        return "viresclient ReturnedData object of type " + self.filetype
+        return "viresclient ReturnedData object of type " + self.filetype + \
+            "\nSave it to a file with .to_file('filename')"
+
+    def data():
+        doc = "The data property."
+        def fget(self):
+            return self._data
+        def fset(self, value):
+            try:
+                assert isinstance(value,bytes)
+            except AssertionError as e:
+                e.args += ("data must be of type bytes",)
+                raise
+            self._data = value
+        def fdel(self):
+            del self._data
+        return locals()
+    data = property(**data())
+
+    def filetype():
+        doc = "The filetype property."
+        def fget(self):
+            return self._filetype
+        def fset(self, value):
+            try:
+                value = value.lower()
+                assert value in ("csv","cdf")
+            except AttributeError as e:
+                e.args += ("filetype must be a string",)
+                raise
+            except AssertionError as e:
+                e.args += ("Chosen filetype must be one of: 'csv', 'cdf'",)
+                raise
+            self._filetype = value
+        def fdel(self):
+            del self._filetype
+        return locals()
+    filetype = property(**filetype())
 
     def to_file(self,filename,overwrite=False):
-        # Only write to file if it does not yet exist, or if overwrite=True
+        """Saves the data to the specified file.
+        Only write to file if it does not yet exist, or if overwrite=True
+        """
+        try:
+            assert isinstance(filename,str)
+        except AssertionError as e:
+            e.args += ("filename must be a string",)
+            raise
         if not isfile(filename) or overwrite:
             with open(filename, 'wb') as f:
                 f.write(self.data)
@@ -56,34 +104,40 @@ class ReturnedData:
         else:
             print("File not written as it already exists and overwrite=False")
 
+
 class ClientRequest:
+    """Handles the requests to the server.
+    """
 
-    def __init__(self,url,username,password,async=True):
+    def __init__(self,url,username,password):
 
-        self.async = async
+        try:
+            assert isinstance(url,str)
+            assert isinstance(username,str)
+            assert isinstance(password,str)
+        except AssertionError as e:
+            e.args += ("url, username, and password must all be strings",)
+            raise
+
+        self.spacecraft = ''
+        self.collections = []
+        self.models = []
+        self.variables = []
+        self.filters = []
 
         # setting up console logging (optional)
-        self.logger = getLogger()
-        set_stream_handler(self.logger, DEBUG)
-        self.logger.debug("TEST LOG MESSAGE")
+        self._logger = getLogger()
+        set_stream_handler(self._logger, DEBUG)
+        self._logger.debug("TEST LOG MESSAGE")
 
         # service proxy with basic HTTP authentication
-        self.wps = ViresWPS10Service(
+        self._wps = ViresWPS10Service(
             url,
             encode_basic_auth(username, password),
-            logger=self.logger
+            logger=self._logger
         )
 
-        if async:
-            # asynchronous WPS request
-            self.template = JINJA2_ENVIRONMENT.get_template(
-                "test_vires_fetch_filtered_data_async.xml"
-            )
-        else:
-            # synchronous WPS request
-            self.template = JINJA2_ENVIRONMENT.get_template(
-                "test_vires_fetch_filtered_data.xml"
-            )
+        # TODO: connect to the server and get a list of available products
 
     def set_collections(self,spacecraft, collections):
         self.spacecraft = spacecraft
@@ -93,7 +147,6 @@ class ClientRequest:
         self.measurements = measurements
         self.models = models
         self.auxiliaries = auxiliaries
-
         # Set up the variables that actually get passed to the WPS request
         variables = []
         variables += self.measurements
@@ -108,20 +161,36 @@ class ClientRequest:
                 variables += ["%s_res_%s"%(measurement,model_name)]
         self.variables = variables
 
-
     def set_range_filter(self,parameter, minimum, maximum):
         self.filters = parameter+":"+str(minimum)+","+str(maximum)
 
-    def get_between(self,start_time,end_time,filetype="csv"):
+    def get_between(self,start_time,end_time,filetype="csv",async=True):
         self.start_time = start_time
         self.end_time = end_time
 
-        assert filetype in ("csv","cdf")
-        self.filetype=filetype
+        try:
+            assert async in [True,False]
+        except AssertionError as e:
+            e.args += ("async must be set to either True or False",)
+            raise
+
+        retdata = ReturnedData(filetype=filetype)
+        self.filetype = retdata.filetype
+
         if self.filetype == "csv":
             self.response_type = "text/csv"
         elif self.filetype == "cdf":
             self.response_type = "application/x-cdf"
+
+        if async:
+            # asynchronous WPS request
+            templatefile = "test_vires_fetch_filtered_data_async.xml"
+        else:
+            # synchronous WPS request
+            templatefile = "test_vires_fetch_filtered_data.xml"
+        self.template = JINJA2_ENVIRONMENT.get_template(
+            templatefile
+        )
 
         self.request = self.template.render(
             begin_time=self.start_time,
@@ -133,9 +202,10 @@ class ClientRequest:
             response_type=self.response_type,
         ).encode('UTF-8')
 
-        if self.async:
-            response = self.wps.retrieve_async(self.request)
+        if async:
+            response = self._wps.retrieve_async(self.request)
         else:
-            response = self.wps.retrieve(self.request)
+            response = self._wps.retrieve(self.request)
 
-        return ReturnedData(response,self.filetype)
+        retdata.data = response
+        return retdata
