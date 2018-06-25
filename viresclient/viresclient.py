@@ -28,7 +28,7 @@
 #-------------------------------------------------------------------------------
 
 
-# from os.path import join, dirname
+from os.path import isfile#, join, dirname
 from .wps.wps_vires import ViresWPS10Service
 # from .wps.time_util import parse_datetime
 from .wps.http_util import encode_basic_auth
@@ -38,6 +38,23 @@ from .wps.log_util import set_stream_handler
 from .wps.environment import JINJA2_ENVIRONMENT
 # import json
 
+class ReturnedData:
+
+    def __init__(self,data,filetype):
+        self.data = data
+        self.filetype = filetype
+
+    def __str__(self):
+        return "viresclient ReturnedData object of type " + self.filetype
+
+    def to_file(self,filename,overwrite=False):
+        # Only write to file if it does not yet exist, or if overwrite=True
+        if not isfile(filename) or overwrite:
+            with open(filename, 'wb') as f:
+                f.write(self.data)
+            print("Data written to",filename)
+        else:
+            print("File not written as it already exists and overwrite=False")
 
 class ClientRequest:
 
@@ -95,9 +112,16 @@ class ClientRequest:
     def set_range_filter(self,parameter, minimum, maximum):
         self.filters = parameter+":"+str(minimum)+","+str(maximum)
 
-    def get_between(self,start_time,end_time):
+    def get_between(self,start_time,end_time,filetype="csv"):
         self.start_time = start_time
         self.end_time = end_time
+
+        assert filetype in ("csv","cdf")
+        self.filetype=filetype
+        if self.filetype == "csv":
+            self.response_type = "text/csv"
+        elif self.filetype == "cdf":
+            self.response_type = "application/x-cdf"
 
         self.request = self.template.render(
             begin_time=self.start_time,
@@ -106,8 +130,7 @@ class ClientRequest:
             variables=self.variables,
             collection_ids={self.spacecraft: self.collections},
             filters = self.filters,
-            response_type="text/csv",
-            # response_type="application/x-cdf",
+            response_type=self.response_type,
         ).encode('UTF-8')
 
         if self.async:
@@ -115,4 +138,4 @@ class ClientRequest:
         else:
             response = self.wps.retrieve(self.request)
 
-        return response
+        return ReturnedData(response,self.filetype)
