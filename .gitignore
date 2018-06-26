@@ -9,4 +9,8 @@ __pycache__/
 .ipynb_checkpoints
 
 # Distribution / packaging
+.eggs/
 *.egg-info/
+
+# Unit test / coverage reports
+.pytest_cache/
