@@ -37,6 +37,7 @@ from logging import getLogger, DEBUG
 from .wps.log_util import set_stream_handler
 # from jinja2 import Environment, FileSystemLoader
 from .wps.environment import JINJA2_ENVIRONMENT
+from .wps import time_util
 # import json
 import pandas
 try:
@@ -45,6 +46,8 @@ except ImportError:
     # Python 2 backward compatibility
     import StringIO as BytesIO
 import cdflib
+
+CDF_EPOCH_1970 = 62167219200000.0
 
 
 class ReturnedData:
@@ -116,17 +119,28 @@ class ReturnedData:
         """Convert the data to a pandas DataFrame
         """
         if self.filetype == 'csv':
-            return pandas.read_csv(BytesIO(self.data))
+            df = pandas.read_csv(BytesIO(self.data))
+            df['Timestamp'] = df['Timestamp'].apply(
+                time_util.mjd2000_to_datetime
+                )
+            # Rounded because the MJD2000 fractions are not precise enough(?)
+            df['Timestamp'] = df['Timestamp'].dt.round('1s')
         elif self.filetype == 'cdf':
-            self.to_file('cdftempfile.CDF')
+            self.to_file('cdftempfile.CDF', overwrite=True)
             cdf = cdflib.CDF('cdftempfile.CDF')
             keys = cdf.cdf_info()['zVariables']
             vals = [cdf.varget(key) for key in keys]
             d = {key: list(value) for key, value in zip(keys, vals)}
             df = pandas.DataFrame.from_dict(d)
+            df['Timestamp'] = df['Timestamp'].apply(
+                lambda x: time_util.unix_epoch_to_datetime(
+                    (x-CDF_EPOCH_1970)*1e-3
+                    )
+                )
             remove('cdftempfile.CDF')
             print("Removed cdftempfile.CDF")
-            return df
+        df.set_index('Timestamp', inplace=True)
+        return df
 
 
 class ClientRequest:
@@ -169,26 +183,39 @@ class ClientRequest:
                 encode_basic_auth(username, password)
             )
 
+    def __str__(self):
+        return "Request details:\n"\
+            "Collections: {}, {}\nModels: {}\nVariables: {}\nFilters: {}"\
+            .format(self.spacecraft, self.collections, self.models,
+                    self.variables, self.filters
+                    )
+
     def set_collections(self, spacecraft, collections):
         self.spacecraft = spacecraft
         self.collections = collections
 
-    def set_products(self, measurements, models, auxiliaries):
+    def set_products(self, measurements, models, auxiliaries, residuals=False):
+        """Set the combination of products to retrieve.
+        If residuals=True then just get the measurement-model residuals,
+        otherwise get both measurement and model values
+        """
         self.measurements = measurements
         self.models = models
         self.auxiliaries = auxiliaries
         # Set up the variables that actually get passed to the WPS request
         variables = []
-        variables += self.measurements
+        if not residuals:
+            variables += self.measurements
+            # Model values
+            for model_name in self.models:
+                for measurement in self.measurements:
+                    variables += ["%s_%s" % (measurement, model_name)]
+        elif residuals:
+            # Model residuals
+            for model_name in self.models:
+                for measurement in self.measurements:
+                    variables += ["%s_res_%s" % (measurement, model_name)]
         variables += self.auxiliaries
-        # Model values
-        for model_name in self.models:
-            for measurement in self.measurements:
-                variables += ["%s_%s" % (measurement, model_name)]
-        # Model residuals
-        for model_name in self.models:
-            for measurement in self.measurements:
-                variables += ["%s_res_%s" % (measurement, model_name)]
         self.variables = variables
 
     def set_range_filter(self, parameter, minimum, maximum):

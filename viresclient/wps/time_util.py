@@ -29,6 +29,7 @@
 import re
 from datetime import date, datetime, timedelta, tzinfo
 from time import time
+import math
 
 RE_ISO_8601_DATETIME_LONG = re.compile(
     r"^(\d{4,4})-(\d{2,2})-(\d{2,2})(?:"
@@ -203,6 +204,50 @@ def encode_duration(value):
         elif seconds != 0:
             items.append('%dS'%seconds)
     return "".join(items)
+
+
+def day2k_to_date(day2k):
+    """ Convert integer day number since 2000-01-01 to date as (year, month, day)
+    tuple.
+    """
+    # ref: https://en.wikipedia.org/wiki/Julian_day#Julian_or_Gregorian_calendar_from_Julian_day_number
+    # Gregorian date formula applied since 1582-10-15
+    # Julian date formula applied until 1582-10-04
+    d__ = int(day2k) + 2451545
+    f__ = d__ + 1401 # Julian calender
+    if d__ > 2299160: # Gregorian calender
+        f__ += (((4*d__ + 274277)//146097)*3)//4 - 38
+    e__ = 4*f__ + 3
+    h__ = 5*((e__ % 1461)//4) + 2
+    day = (h__%153)//5 + 1
+    month = (h__//153 + 2)%12 + 1
+    year = e__//1461 - 4716 + (14 - month)//12
+    return year, month, day
+
+
+def day_fraction_to_time(fraction):
+    """ Convert day fraction to to time as (hour, min, sec, usec) tuple. """
+    subsec, sec = math.modf(round(fraction * 86400.0, 6)) # round to usec
+    sec, usec = int(sec), int(subsec * 1e6)
+    min_, sec = sec / 60, sec % 60,
+    hour, min_ = min_ / 60, min_ % 60,
+    hour, min_ = int(hour), int(min_)   # Added for Python 3
+    return hour, min_, sec, usec
+
+
+def mjd2000_to_datetime(mjd2k):
+    """ Convert Modified Julian Date 2000 to `datetime.datetime` object. """
+    day2k = math.floor(mjd2k)
+    year, month, day = day2k_to_date(day2k)
+    hour, min_, sec, usec = day_fraction_to_time(mjd2k - day2k)
+    return datetime(year, month, day, hour, min_, sec, usec)
+
+
+def unix_epoch_to_datetime(ux_epoch):
+    """ Convert number of seconds since 1970-01-01 to `datetime.datetime`
+    object.
+    """
+    return datetime.utcfromtimestamp(ux_epoch)
 
 
 class Timer(object):
