@@ -38,7 +38,7 @@ from .wps.log_util import set_stream_handler
 # from jinja2 import Environment, FileSystemLoader
 from .wps.environment import JINJA2_ENVIRONMENT
 from .wps import time_util
-# import json
+import json
 import pandas
 try:
     from io import BytesIO
@@ -162,7 +162,7 @@ class ClientRequest:
         self.models = []
         self.variables = []
         self.auxiliaries = []
-        self.filters = []
+        self.filterlist = []
 
         if log:
             # setting up console logging (optional)
@@ -187,7 +187,7 @@ class ClientRequest:
         return "Request details:\n"\
             "Collections: {}, {}\nModels: {}\nVariables: {}\nFilters: {}"\
             .format(self.spacecraft, self.collections, self.models,
-                    self.variables, self.filters
+                    self.variables, self.filterlist
                     )
 
     def set_collections(self, spacecraft, collections):
@@ -219,11 +219,33 @@ class ClientRequest:
         self.variables = variables
 
     def set_range_filter(self, parameter, minimum, maximum):
-        self.filters = parameter+":"+str(minimum)+","+str(maximum)
+        self.filterlist += [parameter+":"+str(minimum)+","+str(maximum)]
+
+    def get_times_for_orbits(self, spacecraft, start_orbit, end_orbit):
+        """Translate a pair of orbit numbers to a time interval
+        NB: have to use spacecraft = 'A', not 'Alpha'
+        """
+        templatefile = "vires_times_from_orbits.xml"
+        template = JINJA2_ENVIRONMENT.get_template(templatefile)
+        request = template.render(
+            spacecraft=spacecraft,
+            start_orbit=start_orbit,
+            end_orbit=end_orbit
+        ).encode('UTF-8')
+        response = self._wps.retrieve(request)
+        responsedict = json.loads(response.decode('UTF-8'))
+        start_time = time_util.parse_datetime(responsedict['start_time'])
+        end_time = time_util.parse_datetime(responsedict['end_time'])
+        return start_time, end_time
 
     def get_between(self, start_time, end_time, filetype="csv", async=True):
         self.start_time = start_time
         self.end_time = end_time
+
+        if len(self.filterlist) == 1:
+            self.filters = self.filterlist[0]
+        else:
+            self.filters = ';'.join(self.filterlist)
 
         try:
             assert async in [True, False]
@@ -246,9 +268,7 @@ class ClientRequest:
         else:
             # synchronous WPS request
             templatefile = "test_vires_fetch_filtered_data.xml"
-        self.template = JINJA2_ENVIRONMENT.get_template(
-            templatefile
-        )
+        self.template = JINJA2_ENVIRONMENT.get_template(templatefile)
 
         self.request = self.template.render(
             begin_time=self.start_time,

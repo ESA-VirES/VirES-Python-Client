@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<wps:Execute xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" version="1.0.0" service="WPS">
+  <ows:Identifier>vires:get_orbit_timerange</ows:Identifier>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier>spacecraft</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ spacecraft }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>start_orbit</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ start_orbit }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>end_orbit</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ end_orbit }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput mimeType="application/json">
+      <ows:Identifier>orbit_timerange</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>
