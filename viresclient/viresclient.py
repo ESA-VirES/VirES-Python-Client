@@ -28,6 +28,7 @@
 #-------------------------------------------------------------------------------
 
 
+from os import remove
 from os.path import isfile#, join, dirname
 from .wps.wps_vires import ViresWPS10Service
 # from .wps.time_util import parse_datetime
@@ -37,6 +38,13 @@ from .wps.log_util import set_stream_handler
 # from jinja2 import Environment, FileSystemLoader
 from .wps.environment import JINJA2_ENVIRONMENT
 # import json
+import pandas
+try:
+    from io import BytesIO
+except ImportError:
+    # Python 2 backward compatibility
+    import StringIO as BytesIO
+import cdflib
 
 
 class ReturnedData:
@@ -44,7 +52,7 @@ class ReturnedData:
     Provides output to different file types.
     """
 
-    def __init__(self,data=bytes(),filetype=str()):
+    def __init__(self, data=bytes(), filetype=str()):
         self.data = data
         self.filetype = filetype
 
@@ -75,7 +83,7 @@ class ReturnedData:
         def fset(self, value):
             try:
                 value = value.lower()
-                assert value in ("csv","cdf")
+                assert value in ("csv", "cdf")
             except AttributeError as e:
                 e.args += ("filetype must be a string",)
                 raise
@@ -88,33 +96,49 @@ class ReturnedData:
         return locals()
     filetype = property(**filetype())
 
-    def to_file(self,filename,overwrite=False):
+    def to_file(self, filename, overwrite=False):
         """Saves the data to the specified file.
         Only write to file if it does not yet exist, or if overwrite=True
         """
         try:
-            assert isinstance(filename,str)
+            assert isinstance(filename, str)
         except AssertionError as e:
             e.args += ("filename must be a string",)
             raise
         if not isfile(filename) or overwrite:
             with open(filename, 'wb') as f:
                 f.write(self.data)
-            print("Data written to",filename)
+            print("Data written to", filename)
         else:
             print("File not written as it already exists and overwrite=False")
 
+    def as_dataframe(self):
+        """Convert the data to a pandas DataFrame
+        """
+        if self.filetype == 'csv':
+            return pandas.read_csv(BytesIO(self.data))
+        elif self.filetype == 'cdf':
+            self.to_file('cdftempfile.CDF')
+            cdf = cdflib.CDF('cdftempfile.CDF')
+            keys = cdf.cdf_info()['zVariables']
+            vals = [cdf.varget(key) for key in keys]
+            d = {key: list(value) for key, value in zip(keys, vals)}
+            df = pandas.DataFrame.from_dict(d)
+            remove('cdftempfile.CDF')
+            print("Removed cdftempfile.CDF")
+            return df
+
 
 class ClientRequest:
-    """Handles the requests to the server.
+    """Handles the requests to and downloads from the server.
     """
 
-    def __init__(self,url,username,password):
+    def __init__(self, url=None, username=None, password=None, log=False):
 
         try:
-            assert isinstance(url,str)
-            assert isinstance(username,str)
-            assert isinstance(password,str)
+            assert isinstance(url, str)
+            assert isinstance(username, str)
+            assert isinstance(password, str)
         except AssertionError as e:
             e.args += ("url, username, and password must all be strings",)
             raise
@@ -123,27 +147,33 @@ class ClientRequest:
         self.collections = []
         self.models = []
         self.variables = []
+        self.auxiliaries = []
         self.filters = []
 
-        # setting up console logging (optional)
-        self._logger = getLogger()
-        set_stream_handler(self._logger, DEBUG)
-        self._logger.debug("TEST LOG MESSAGE")
+        if log:
+            # setting up console logging (optional)
+            self._logger = getLogger()
+            set_stream_handler(self._logger, DEBUG)
+            self._logger.debug("TEST LOG MESSAGE")
 
-        # service proxy with basic HTTP authentication
-        self._wps = ViresWPS10Service(
-            url,
-            encode_basic_auth(username, password),
-            logger=self._logger
-        )
+            # service proxy with basic HTTP authentication
+            self._wps = ViresWPS10Service(
+                url,
+                encode_basic_auth(username, password),
+                logger=self._logger
+            )
+        else:
+            # service proxy with basic HTTP authentication
+            self._wps = ViresWPS10Service(
+                url,
+                encode_basic_auth(username, password)
+            )
 
-        # TODO: connect to the server and get a list of available products
-
-    def set_collections(self,spacecraft, collections):
+    def set_collections(self, spacecraft, collections):
         self.spacecraft = spacecraft
         self.collections = collections
 
-    def set_products(self,measurements, models, auxiliaries):
+    def set_products(self, measurements, models, auxiliaries):
         self.measurements = measurements
         self.models = models
         self.auxiliaries = auxiliaries
@@ -154,26 +184,27 @@ class ClientRequest:
         # Model values
         for model_name in self.models:
             for measurement in self.measurements:
-                variables += ["%s_%s"%(measurement,model_name)]
+                variables += ["%s_%s" % (measurement, model_name)]
         # Model residuals
         for model_name in self.models:
             for measurement in self.measurements:
-                variables += ["%s_res_%s"%(measurement,model_name)]
+                variables += ["%s_res_%s" % (measurement, model_name)]
         self.variables = variables
 
-    def set_range_filter(self,parameter, minimum, maximum):
+    def set_range_filter(self, parameter, minimum, maximum):
         self.filters = parameter+":"+str(minimum)+","+str(maximum)
 
-    def get_between(self,start_time,end_time,filetype="csv",async=True):
+    def get_between(self, start_time, end_time, filetype="csv", async=True):
         self.start_time = start_time
         self.end_time = end_time
 
         try:
-            assert async in [True,False]
+            assert async in [True, False]
         except AssertionError as e:
             e.args += ("async must be set to either True or False",)
             raise
 
+        # Initialise the ReturnedData so that filetype checking is done there
         retdata = ReturnedData(filetype=filetype)
         self.filetype = retdata.filetype
 
@@ -198,12 +229,12 @@ class ClientRequest:
             model_ids=self.models,
             variables=self.variables,
             collection_ids={self.spacecraft: self.collections},
-            filters = self.filters,
+            filters=self.filters,
             response_type=self.response_type,
         ).encode('UTF-8')
 
         if async:
-            response = self._wps.retrieve_async(self.request)
+            response = self._wps.retrieve_async(self.request) #(self.request, handler= ...)
         else:
             response = self._wps.retrieve(self.request)
 
