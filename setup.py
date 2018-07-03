@@ -29,11 +29,18 @@
 #-------------------------------------------------------------------------------
 
 from setuptools import setup, find_packages
-import viresclient
+
+with open('viresclient/__init__.py') as f:
+    for line in f:
+        if line.find("__version__") >= 0:
+            version = line.split("=")[1].strip()
+            version = version.strip('"')
+            version = version.strip("'")
+            continue
 
 setup(
     name='viresclient',
-    version=viresclient.__version__,
+    version=version,
     license='EOX licence (MIT style)',
     description='A Python client for interacting with the VirES server',
     author='EOX IT Services GmbH',
