@@ -40,6 +40,7 @@ from .wps.environment import JINJA2_ENVIRONMENT
 from .wps import time_util
 import json
 import pandas
+import datetime
 try:
     from io import BytesIO
 except ImportError:
@@ -223,8 +224,10 @@ class ClientRequest:
 
     def get_times_for_orbits(self, spacecraft, start_orbit, end_orbit):
         """Translate a pair of orbit numbers to a time interval
-        NB: have to use spacecraft = 'A', not 'Alpha'
         """
+        # Change to spacecraft = "A" etc. for this request
+        if spacecraft in ("Alpha", "Bravo", "Charlie"):
+            spacecraft = spacecraft[0]
         templatefile = "vires_times_from_orbits.xml"
         template = JINJA2_ENVIRONMENT.get_template(templatefile)
         request = template.render(
@@ -237,6 +240,26 @@ class ClientRequest:
         start_time = time_util.parse_datetime(responsedict['start_time'])
         end_time = time_util.parse_datetime(responsedict['end_time'])
         return start_time, end_time
+
+    def get_orbit_number(self, spacecraft, input_time):
+        """Translate a time to an orbit number
+        """
+        assert spacecraft in ("Alpha", "Bravo", "Charlie")
+        collections = ["SW_OPER_MAG{}_LR_1B".format(spacecraft[0])]
+        templatefile = "test_vires_fetch_filtered_data.xml"
+        template = JINJA2_ENVIRONMENT.get_template(templatefile)
+        request = template.render(
+            begin_time=input_time,
+            end_time=input_time+datetime.timedelta(seconds=1),
+            model_ids=[],
+            variables=["OrbitNumber"],
+            collection_ids={spacecraft: collections},
+            filters=[],
+            response_type="text/csv",
+        ).encode('UTF-8')
+        response = self._wps.retrieve(request)
+        retdata = ReturnedData(data=response, filetype="csv")
+        return retdata.as_dataframe()["OrbitNumber"][0]
 
     def get_between(self, start_time, end_time, filetype="csv", async=True):
         self.start_time = start_time
