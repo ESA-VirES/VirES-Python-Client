@@ -27,16 +27,15 @@ Import the package and set up the connection to the server:
   username = ""
   password = ""
 
-  request = ClientRequest(url, username, password, log=True)
+  request = ClientRequest(url, username, password)
 
 Choose which collection to access:
 
 .. code-block:: python
 
-  spacecraft = "Alpha"
-  collections = ["SW_OPER_MAGA_LR_1B"]
+  collection = "SW_OPER_MAGA_LR_1B"
 
-  request.set_collections(spacecraft, collections)
+  request.set_collection(collection)
 
 Choose measurements and models to evaluate:
 
@@ -52,7 +51,7 @@ Set a parameter range filter to apply. You can add multiple filters in sequence
 
 .. code-block:: python
 
-  parameter = "Latitude"
+  parameter = "Kp"
   minimum = 0
   maximum = 100
 
@@ -65,7 +64,7 @@ Specify the time range from which to retrieve data, make the request to the serv
 .. code-block:: python
 
   start_time = dt.datetime(2016,1,1)
-  end_time = start_time + dt.timedelta(hours=2)
+  end_time = dt.datetime(2016,1,2)
 
   data = request.get_between(start_time, end_time, filetype="cdf", async=True)
 
@@ -74,7 +73,16 @@ Transfer your data to a (``pandas``) dataframe or save it:
 .. code-block:: python
 
   df = data.as_dataframe()
-  data.to_file('outfile.cdf', overwrite=True)
+  data.to_file('outfile.cdf', overwrite=False)
+
+Convert to an HDF5 file:
+
+.. code-block:: python
+
+  data.to_file('outfile.h5', hdf=True, overwrite=False)
+
+  import pandas as pd
+  df = pd.read_hdf('outfile.h5')
 
 The returned data has columns for:
  - ``Spacecraft, Timestamp, Latitude, Longitude, Radius``
@@ -88,13 +96,6 @@ The returned data has columns for:
 Available parameters for Swarm data
 -----------------------------------
 
-``spacecraft``::
-
-  Alpha
-  Bravo
-  Charlie
-  NSC
-
 ``collections``: (replace x with A, B, or C for Alpha, Bravo, or Charlie)::
 
   SW_OPER_MAGx_LR_1B
@@ -104,9 +105,11 @@ Available parameters for Swarm data
   SW_OPER_FACxTMS_2F
   SW_OPER_EEFxTMS_2F
 
-For Alpha-Charlie FAC: use ``spacecraft="NSC"`` and ``collections=["SW_OPER_FAC_TMS_2F"]``
+For Alpha-Charlie FAC: ``collection="SW_OPER_FAC_TMS_2F"``
 
 ``measurements``:
+
+Choose from one of the following sets, corresponding to the collection chosen above.
 
 For MAG::
 

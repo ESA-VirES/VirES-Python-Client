@@ -31,9 +31,10 @@
 from os import remove
 from os.path import isfile#, join, dirname
 from .wps.wps_vires import ViresWPS10Service
+from .wps.wps import WPSStatus
 # from .wps.time_util import parse_datetime
 from .wps.http_util import encode_basic_auth
-from logging import getLogger, DEBUG, INFO
+from logging import getLogger, DEBUG, INFO, WARNING, ERROR, CRITICAL
 from .wps.log_util import set_stream_handler
 # from jinja2 import Environment, FileSystemLoader
 from .wps.environment import JINJA2_ENVIRONMENT
@@ -49,6 +50,21 @@ except ImportError:
 import cdflib
 
 CDF_EPOCH_1970 = 62167219200000.0
+
+LEVELS = {
+    "DEBUG": DEBUG,
+    "INFO": INFO,
+    "WARNING": WARNING,
+    "ERROR": ERROR,
+    "NO_LOGGING": CRITICAL + 1,
+}
+
+
+def get_log_level(level):
+    if isinstance(level, str):
+        return LEVELS[level]
+    else:
+        return level
 
 
 class ReturnedData:
@@ -118,13 +134,13 @@ class ReturnedData:
                         ))
                 with open(filename, "wb") as f:
                     f.write(self.data)
-                print("Data written to", filename)
             elif hdf:
                 if filename[-3:] != ".h5":
                     raise Exception("Filename extension should be .h5")
                 # Convert to dataframe.
                 df = self.as_dataframe()
                 df.to_hdf(filename, "data", mode="w")
+            print("Data written to", filename)
         else:
             raise Exception(
                 "File not written as it already exists and overwrite=False"
@@ -167,11 +183,33 @@ class ReturnedData:
         return df
 
 
+class ProgressBar(WPSStatus):
+    """Generates a progress bar from the WPS status
+    """
+    def output(self):
+        print('{:2d}%%'.format(self.percentCompleted))
+
+
+def WPS_status_handler(wpsstatus):
+    percent = wpsstatus.percentCompleted
+    if wpsstatus.status == "ACCEPTED":
+        percent = 0
+        print("Accepted...")
+    if wpsstatus.status == "STARTED":
+        print('{:2d}%'.format(percent))
+    elif wpsstatus.status == "FINISHED":
+        percent = 100
+        print("Request completed. Downloading...")
+    elif wpsstatus.status == "FAILED":
+        print("FAILED")
+
+
 class ClientRequest:
     """Handles the requests to and downloads from the server.
     """
 
-    def __init__(self, url=None, username=None, password=None, log=0):
+    def __init__(self, url=None, username=None, password=None,
+                 logging_level="NO_LOGGING"):
 
         try:
             assert isinstance(url, str)
@@ -181,75 +219,61 @@ class ClientRequest:
             e.args += ("url, username, and password must all be strings",)
             raise
 
-        self.spacecraft = ''
-        self.collections = []
-        self.models = []
-        self.variables = []
-        self.auxiliaries = []
-        self.filterlist = []
+        self._tag = []
+        self._collections = []
+        self._models = []
+        self._variables = []
+        self._auxiliaries = []
+        self._filterlist = []
 
-        if log == 0:
-            # service proxy with basic HTTP authentication
-            self._wps = ViresWPS10Service(
-                url,
-                encode_basic_auth(username, password)
-            )
-        else:
-            if log == 1:
-                loglevel = INFO
-            elif log == 2:
-                loglevel = DEBUG
-            else:
-                raise Exception("log must be set to 0, 1, or 2")
-            # setting up console logging (optional)
-            self._logger = getLogger()
-            set_stream_handler(self._logger, loglevel)
-            self._logger.debug("TEST LOG MESSAGE")
+        logging_level = get_log_level(logging_level)
+        self._logger = getLogger()
+        set_stream_handler(self._logger, logging_level)
 
-            # service proxy with basic HTTP authentication
-            self._wps = ViresWPS10Service(
-                url,
-                encode_basic_auth(username, password),
-                logger=self._logger
-            )
+        # service proxy with basic HTTP authentication
+        self._wps = ViresWPS10Service(
+            url,
+            encode_basic_auth(username, password),
+            logger=self._logger
+        )
 
     def __str__(self):
         return "Request details:\n"\
-            "Collections: {}, {}\nModels: {}\nVariables: {}\nFilters: {}"\
-            .format(self.spacecraft, self.collections, self.models,
-                    self.variables, self.filterlist
+            "Collections: {}\nModels: {}\nVariables: {}\nFilters: {}"\
+            .format(self._collections, self._models,
+                    self._variables, self._filterlist
                     )
 
-    def set_collections(self, spacecraft, collections):
-        self.spacecraft = spacecraft
-        self.collections = collections
+    def set_collection(self, collection):
+        self._tag = "X"
+        self._collections = [collection]
 
     def set_products(self, measurements, models, auxiliaries, residuals=False):
         """Set the combination of products to retrieve.
         If residuals=True then just get the measurement-model residuals,
         otherwise get both measurement and model values
         """
-        self.measurements = measurements
-        self.models = models
-        self.auxiliaries = auxiliaries
+        self._measurements = measurements
+        self._models = models
+        self._auxiliaries = auxiliaries
         # Set up the variables that actually get passed to the WPS request
         variables = []
         if not residuals:
-            variables += self.measurements
+            variables += self._measurements
             # Model values
-            for model_name in self.models:
-                for measurement in self.measurements:
+            for model_name in self._models:
+                for measurement in self._measurements:
                     variables += ["%s_%s" % (measurement, model_name)]
         elif residuals:
             # Model residuals
-            for model_name in self.models:
-                for measurement in self.measurements:
+            for model_name in self._models:
+                for measurement in self._measurements:
                     variables += ["%s_res_%s" % (measurement, model_name)]
-        variables += self.auxiliaries
-        self.variables = variables
+        variables += self._auxiliaries
+        self._variables = variables
 
     def set_range_filter(self, parameter, minimum, maximum):
-        self.filterlist += [parameter+":"+str(minimum)+","+str(maximum)]
+        self._filterlist += [parameter+":"+str(minimum)+","+str(maximum)]
 
     def get_times_for_orbits(self, spacecraft, start_orbit, end_orbit):
         """Translate a pair of orbit numbers to a time interval
@@ -294,10 +318,10 @@ class ClientRequest:
         self.start_time = start_time
         self.end_time = end_time
 
-        if len(self.filterlist) == 1:
-            self.filters = self.filterlist[0]
+        if len(self._filterlist) == 1:
+            self._filters = self._filterlist[0]
         else:
-            self.filters = ';'.join(self.filterlist)
+            self._filters = ';'.join(self._filterlist)
 
         try:
             assert async in [True, False]
@@ -307,12 +331,12 @@ class ClientRequest:
 
         # Initialise the ReturnedData so that filetype checking is done there
         retdata = ReturnedData(filetype=filetype)
-        self.filetype = retdata.filetype
+        self._filetype = retdata.filetype
 
-        if self.filetype == "csv":
-            self.response_type = "text/csv"
-        elif self.filetype == "cdf":
-            self.response_type = "application/x-cdf"
+        if self._filetype == "csv":
+            self._response_type = "text/csv"
+        elif self._filetype == "cdf":
+            self._response_type = "application/x-cdf"
 
         if async:
             # asynchronous WPS request
@@ -320,20 +344,23 @@ class ClientRequest:
         else:
             # synchronous WPS request
             templatefile = "test_vires_fetch_filtered_data.xml"
-        self.template = JINJA2_ENVIRONMENT.get_template(templatefile)
+        self._template = JINJA2_ENVIRONMENT.get_template(templatefile)
 
-        self.request = self.template.render(
+        self.request = self._template.render(
             begin_time=self.start_time,
             end_time=self.end_time,
-            model_ids=self.models,
-            variables=self.variables,
-            collection_ids={self.spacecraft: self.collections},
-            filters=self.filters,
-            response_type=self.response_type,
+            model_ids=self._models,
+            variables=self._variables,
+            collection_ids={self._tag: self._collections},
+            filters=self._filters,
+            response_type=self._response_type,
         ).encode('UTF-8')
 
         if async:
-            response = self._wps.retrieve_async(self.request) #(self.request, handler= ...)
+            progressbar = ProgressBar()
+            response = self._wps.retrieve_async(self.request,
+                status_handler=WPS_status_handler
+                ) #(self.request, handler= ...)
         else:
             response = self._wps.retrieve(self.request)
 

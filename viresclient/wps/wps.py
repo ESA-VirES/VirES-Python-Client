@@ -2,7 +2,8 @@
 #
 # WPS 1.0 service proxy
 #
-# Author: Martin Paces <martin.paces@eox.at>
+# Authors: Martin Paces <martin.paces@eox.at>
+#          Ashley Smith <ashley.smith@ed.ac.uk>
 #
 #-------------------------------------------------------------------------------
 # Copyright (C) 2018 EOX IT Services GmbH
@@ -41,6 +42,23 @@ from .time_util import Timer
 
 NS_OWS11 = "http://www.opengis.net/ows/1.1"
 NS_OWS20 = "http://www.opengis.net/ows/2.0"
+
+
+class WPSStatus(object):
+    """ WPS status information.
+    Matches output from WPS10Service.poll_status()
+    """
+    def __init__(self):
+        self.status = None
+        self.percentCompleted = 0
+        self.url = None
+        self.execute_response = None
+
+    def update(self, status, percentCompleted, url, execute_response):
+        self.status = status
+        self.percentCompleted = percentCompleted
+        self.url = url
+        self.execute_response = execute_response
 
 
 class WPSError(Exception):
@@ -97,37 +115,47 @@ class WPS10Service(object):
         the output.
         """
         timer = Timer()
-        status, status_url, execute_response = self.submit_async(request)
+        status, percentCompleted, status_url, execute_response = self.submit_async(request)
+        wpsstatus = WPSStatus()
+        wpsstatus.update(status, percentCompleted, status_url, execute_response)
+
+        def log_wpsstatus(wpsstatus):
+            self.logger.info(
+                "%s %s %.3fs",
+                wpsstatus.status, wpsstatus.url, timer.elapsed_time
+                )
+
+        def log_wpsstatus_percentCompleted(wpsstatus):
+            self.logger.info(
+                "{:.3f}s elapsed: Percent Completed: {}\n".format(
+                    timer.elapsed_time, wpsstatus.percentCompleted)
+            )
 
         try:
-            self.logger.info("%s %s %.3fs", status, status_url, timer.elapsed_time)
+            log_wpsstatus(wpsstatus)
             if status_handler:
-                status_handler(status, status_url, execute_response)
+                status_handler(wpsstatus)
 
-            while status not in ("FINISHED", "FAILED"):
+            while wpsstatus.status not in ("FINISHED", "FAILED"):
                 sleep(polling_interval)
 
-                last_status = status
-                status, status_url, execute_response = self.poll_status(status_url)
+                last_status = wpsstatus.status
+                last_percentCompleted = wpsstatus.percentCompleted
+                wpsstatus.update(*self.poll_status(wpsstatus.url))
 
-                if status != last_status:
-                    self.logger.info(
-                        "%s %s %.3fs", status, status_url, timer.elapsed_time
-                    )
-                else:
-                    self.logger.debug(
-                        "%s %s %.3fs", status, status_url, timer.elapsed_time
-                    )
+                if wpsstatus.status != last_status:
+                    log_wpsstatus(wpsstatus)
+                if wpsstatus.percentCompleted != last_percentCompleted:
+                    log_wpsstatus_percentCompleted(wpsstatus)
                 if status_handler:
-                    status_handler(status, status_url, execute_response)
+                    status_handler(wpsstatus)
 
-
-            if status == "FAILED":
-                ows_exception, namespace = self.find_exception(execute_response)
+            if wpsstatus.status == "FAILED":
+                ows_exception, namespace = self.find_exception(wpsstatus.execute_response)
                 raise self.parse_ows_exception(ows_exception, namespace)
 
             output = self.retrieve_async_output(
-                execute_response, output_name, handler
+                wpsstatus.execute_response, output_name, handler
             )
 
         finally:
@@ -180,6 +208,7 @@ class WPS10Service(object):
         xml = ElementTree.parse(response)
         return (
             cls.parse_process_status(xml),
+            cls.parse_process_percentCompleted(xml),
             cls.parse_status_location(xml),
             xml
         )
@@ -199,6 +228,21 @@ class WPS10Service(object):
             return None
         for elm in elm_status:
             return cls.STATUS[elm.tag]
+
+    @classmethod
+    def parse_process_percentCompleted(cls, xml):
+        """ Parse percentCompleted from an asynchronous WPS execute response. """
+        root = xml.getroot()
+        elm_status = root.find("{http://www.opengis.net/wps/1.0.0}Status")
+        if elm_status is None:
+            # status not found
+            return None
+        for elm in elm_status:
+            if cls.STATUS[elm.tag] == "STARTED":
+                if "percentCompleted" in elm.attrib.keys():
+                    return int(elm.attrib["percentCompleted"])
+                else:
+                    return None
 
     @classmethod
     def error_handler(cls, http_error):
