@@ -33,7 +33,7 @@ from os.path import isfile#, join, dirname
 from .wps.wps_vires import ViresWPS10Service
 # from .wps.time_util import parse_datetime
 from .wps.http_util import encode_basic_auth
-from logging import getLogger, DEBUG
+from logging import getLogger, DEBUG, INFO
 from .wps.log_util import set_stream_handler
 # from jinja2 import Environment, FileSystemLoader
 from .wps.environment import JINJA2_ENVIRONMENT
@@ -100,9 +100,10 @@ class ReturnedData:
         return locals()
     filetype = property(**filetype())
 
-    def to_file(self, filename, overwrite=False):
+    def to_file(self, filename, overwrite=False, hdf=False):
         """Saves the data to the specified file.
-        Only write to file if it does not yet exist, or if overwrite=True
+        Only write to file if it does not yet exist, or if overwrite=True.
+        If hdf=True, convert to an HDF5 file.
         """
         try:
             assert isinstance(filename, str)
@@ -110,14 +111,28 @@ class ReturnedData:
             e.args += ("filename must be a string",)
             raise
         if not isfile(filename) or overwrite:
-            with open(filename, 'wb') as f:
-                f.write(self.data)
-            print("Data written to", filename)
+            if not hdf:
+                if filename[-3:].lower() != self.filetype:
+                    raise Exception("Filename extension should be {}".format(
+                        self.filetype.upper()
+                        ))
+                with open(filename, "wb") as f:
+                    f.write(self.data)
+                print("Data written to", filename)
+            elif hdf:
+                if filename[-3:] != ".h5":
+                    raise Exception("Filename extension should be .h5")
+                # Convert to dataframe.
+                df = self.as_dataframe()
+                df.to_hdf(filename, "data", mode="w")
         else:
-            print("File not written as it already exists and overwrite=False")
+            raise Exception(
+                "File not written as it already exists and overwrite=False"
+                )
 
     def as_dataframe(self):
         """Convert the data to a pandas DataFrame
+        NB: currently saves a temporary CDF file
         """
         if self.filetype == 'csv':
             df = pandas.read_csv(BytesIO(self.data))
@@ -126,6 +141,14 @@ class ReturnedData:
                 )
             # Rounded because the MJD2000 fractions are not precise enough(?)
             df['Timestamp'] = df['Timestamp'].dt.round('1s')
+            # Convert the columns of vectors from strings to lists
+            for col in df:
+                if type(df[col][0]) is str:
+                    if df[col][0][0] == '{':
+                        df[col] = df[col].apply(
+                            lambda x: [
+                                float(y) for y in x.strip('{}').split(';')
+                            ])
         elif self.filetype == 'cdf':
             self.to_file('cdftempfile.CDF', overwrite=True)
             cdf = cdflib.CDF('cdftempfile.CDF')
@@ -148,7 +171,7 @@ class ClientRequest:
     """Handles the requests to and downloads from the server.
     """
 
-    def __init__(self, url=None, username=None, password=None, log=False):
+    def __init__(self, url=None, username=None, password=None, log=0):
 
         try:
             assert isinstance(url, str)
@@ -165,10 +188,22 @@ class ClientRequest:
         self.auxiliaries = []
         self.filterlist = []
 
-        if log:
+        if log == 0:
+            # service proxy with basic HTTP authentication
+            self._wps = ViresWPS10Service(
+                url,
+                encode_basic_auth(username, password)
+            )
+        else:
+            if log == 1:
+                loglevel = INFO
+            elif log == 2:
+                loglevel = DEBUG
+            else:
+                raise Exception("log must be set to 0, 1, or 2")
             # setting up console logging (optional)
             self._logger = getLogger()
-            set_stream_handler(self._logger, DEBUG)
+            set_stream_handler(self._logger, loglevel)
             self._logger.debug("TEST LOG MESSAGE")
 
             # service proxy with basic HTTP authentication
@@ -176,12 +211,6 @@ class ClientRequest:
                 url,
                 encode_basic_auth(username, password),
                 logger=self._logger
-            )
-        else:
-            # service proxy with basic HTTP authentication
-            self._wps = ViresWPS10Service(
-                url,
-                encode_basic_auth(username, password)
             )
 
     def __str__(self):

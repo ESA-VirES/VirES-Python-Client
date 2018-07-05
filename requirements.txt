@@ -1,3 +1,4 @@
 Jinja2
 pandas
 cdflib
+PyTables
