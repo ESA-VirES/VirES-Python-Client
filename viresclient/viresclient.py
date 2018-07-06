@@ -29,9 +29,20 @@
 
 
 from os import remove
-from os.path import isfile#, join, dirname
+from os.path import isfile  # , join, dirname
+import datetime
+try:
+    from io import BytesIO
+except ImportError:
+    # Python 2 backward compatibility
+    import StringIO as BytesIO
+
+import json
+import pandas
+import cdflib
+from tqdm import tqdm
+
 from .wps.wps_vires import ViresWPS10Service
-from .wps.wps import WPSStatus
 # from .wps.time_util import parse_datetime
 from .wps.http_util import encode_basic_auth
 from logging import getLogger, DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -39,15 +50,6 @@ from .wps.log_util import set_stream_handler
 # from jinja2 import Environment, FileSystemLoader
 from .wps.environment import JINJA2_ENVIRONMENT
 from .wps import time_util
-import json
-import pandas
-import datetime
-try:
-    from io import BytesIO
-except ImportError:
-    # Python 2 backward compatibility
-    import StringIO as BytesIO
-import cdflib
 
 CDF_EPOCH_1970 = 62167219200000.0
 
@@ -183,25 +185,40 @@ class ReturnedData:
         return df
 
 
-class ProgressBar(WPSStatus):
+class ProgressBar:
     """Generates a progress bar from the WPS status
     """
-    def output(self):
-        print('{:2d}%%'.format(self.percentCompleted))
 
+    def __init__(self):
+        self.percentCompleted = 0
+        self.lastpercent = 0
 
-def WPS_status_handler(wpsstatus):
-    percent = wpsstatus.percentCompleted
-    if wpsstatus.status == "ACCEPTED":
-        percent = 0
-        print("Accepted...")
-    if wpsstatus.status == "STARTED":
-        print('{:2d}%'.format(percent))
-    elif wpsstatus.status == "FINISHED":
-        percent = 100
-        print("Request completed. Downloading...")
-    elif wpsstatus.status == "FAILED":
-        print("FAILED")
+        l_bar = 'Processing: {percentage:3.0f}%|'
+        bar = '{bar}'
+        r_bar = '|  [ Elapsed: {elapsed}, Remaining: {remaining} {postfix}]'
+        bar_format = '{}{}{}'.format(l_bar, bar, r_bar)
+        self.tqdm_pbar = tqdm(total=100, bar_format=bar_format)
+
+        self.refresh_tqdm()
+
+    def cleanup(self):
+        self.tqdm_pbar.close()
+
+    def update(self, wpsstatus):
+        """Updates the state based on the state of a WPSStatus object
+        """
+        self.lastpercent = self.percentCompleted
+        self.percentCompleted = wpsstatus.percentCompleted
+        if self.lastpercent != self.percentCompleted:
+            self.refresh_tqdm()
+
+    def refresh_tqdm(self):
+        if self.percentCompleted is None:
+            return
+        self.tqdm_pbar.update(self.percentCompleted-self.lastpercent)
+        if self.percentCompleted == 100:
+            self.cleanup()
+            print('Downloading...')
 
 
 class ClientRequest:
@@ -297,7 +314,9 @@ class ClientRequest:
     def get_orbit_number(self, spacecraft, input_time):
         """Translate a time to an orbit number
         """
-        assert spacecraft in ("Alpha", "Bravo", "Charlie")
+        # Change to spacecraft = "A" etc. for this request
+        if spacecraft in ("Alpha", "Bravo", "Charlie"):
+            spacecraft = spacecraft[0]
         collections = ["SW_OPER_MAG{}_LR_1B".format(spacecraft[0])]
         templatefile = "test_vires_fetch_filtered_data.xml"
         template = JINJA2_ENVIRONMENT.get_template(templatefile)
@@ -357,10 +376,17 @@ class ClientRequest:
         ).encode('UTF-8')
 
         if async:
-            progressbar = ProgressBar()
-            response = self._wps.retrieve_async(self.request,
-                status_handler=WPS_status_handler
-                ) #(self.request, handler= ...)
+            # Ensure that tqdm progress bar is removed
+            # Could also add __enter__ and __exit__ to ProgressBar
+            #   so that it could be used with a 'with' statement?
+            try:
+                progressbar = ProgressBar()
+                response = self._wps.retrieve_async(
+                            self.request, status_handler=progressbar.update
+                            )  # handler= ...)
+            finally:
+                # does this imply closing the tqdm bar?
+                del progressbar
         else:
             response = self._wps.retrieve(self.request)
 

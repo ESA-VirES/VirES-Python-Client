@@ -238,11 +238,15 @@ class WPS10Service(object):
             # status not found
             return None
         for elm in elm_status:
-            if cls.STATUS[elm.tag] == "STARTED":
-                if "percentCompleted" in elm.attrib.keys():
-                    return int(elm.attrib["percentCompleted"])
-                else:
-                    return None
+            if cls.STATUS[elm.tag] == "ACCEPTED":
+                return 0
+            elif cls.STATUS[elm.tag] == "STARTED":
+                # if "percentCompleted" in elm.attrib.keys():
+                return int(elm.attrib["percentCompleted"])
+            elif cls.STATUS[elm.tag] == "FINISHED":
+                return 100
+            else:
+                return None
 
     @classmethod
     def error_handler(cls, http_error):

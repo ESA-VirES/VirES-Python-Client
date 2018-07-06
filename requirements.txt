@@ -2,3 +2,4 @@ Jinja2
 pandas
 cdflib
 tables
+tqdm

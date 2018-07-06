@@ -53,7 +53,7 @@ setup(
             'wps/templates/*'
         ],
     },
-    install_requires=['Jinja2', 'pandas', 'cdflib', 'tables'],
+    install_requires=['Jinja2', 'pandas', 'cdflib', 'tables', 'tqdm'],
     setup_requires=['pytest-runner'],
     tests_require=['pytest']
 )
