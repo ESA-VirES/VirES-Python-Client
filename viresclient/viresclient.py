@@ -242,6 +242,7 @@ class ClientRequest:
         self._variables = []
         self._auxiliaries = []
         self._filterlist = []
+        self._subsample = None
 
         logging_level = get_log_level(logging_level)
         self._logger = getLogger()
@@ -256,16 +257,19 @@ class ClientRequest:
 
     def __str__(self):
         return "Request details:\n"\
-            "Collections: {}\nModels: {}\nVariables: {}\nFilters: {}"\
+            "Collections: {}\nModels: {}\nVariables: {}\n"\
+            "Filters: {}\nSubsampling: {}"\
             .format(self._collections, self._models,
-                    self._variables, self._filterlist
+                    self._variables, self._filterlist, self._subsample
                     )
 
     def set_collection(self, collection):
         self._tag = "X"
         self._collections = [collection]
 
-    def set_products(self, measurements, models, auxiliaries, residuals=False):
+    def set_products(self, measurements, models, auxiliaries,
+                     residuals=False, subsample=None
+                     ):
         """Set the combination of products to retrieve.
         If residuals=True then just get the measurement-model residuals,
         otherwise get both measurement and model values
@@ -273,6 +277,7 @@ class ClientRequest:
         self._measurements = measurements
         self._models = models
         self._auxiliaries = auxiliaries
+        self._subsample = subsample
         # Set up the variables that actually get passed to the WPS request
         variables = []
         if not residuals:
@@ -373,6 +378,7 @@ class ClientRequest:
             collection_ids={self._tag: self._collections},
             filters=self._filters,
             response_type=self._response_type,
+            subsample=self._subsample
         ).encode('UTF-8')
 
         if async:

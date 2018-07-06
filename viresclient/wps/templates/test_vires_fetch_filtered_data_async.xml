@@ -42,6 +42,14 @@
       </wps:Data>
     </wps:Input>
     {% endif -%}
+    {% if subsample -%}
+    <wps:Input>
+      <ows:Identifier>sampling_step</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData dataType="duration">{{ subsample }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
     <wps:Input>
       <ows:Identifier>csv_time_format</ows:Identifier>
       <wps:Data>
