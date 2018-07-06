@@ -244,6 +244,8 @@ class ClientRequest:
         self._filterlist = []
         self._subsample = None
 
+        self._available = self._set_available_data()
+
         logging_level = get_log_level(logging_level)
         self._logger = getLogger()
         set_stream_handler(self._logger, logging_level)
@@ -263,9 +265,105 @@ class ClientRequest:
                     self._variables, self._filterlist, self._subsample
                     )
 
+    def available():
+        doc = "The available data property."
+        def fget(self):
+            return self._available
+        def fset(self, value):
+            self._available = self._set_available_data()
+        def fdel(self):
+            del self._available
+        return locals()
+    available = property(**available())
+
+    def _set_available_data(self):
+        collections_grouped = {
+            "MAG": ["SW_OPER_MAG{}_LR_1B".format(x) for x in ("ABC")],
+            "EFI": ["SW_OPER_EFI{}_PL_1B".format(x) for x in ("ABC")],
+            "IBI": ["SW_OPER_IBI{}TMS_2F".format(x) for x in ("ABC")],
+            "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in ("ABC")],
+            "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in ("ABC")],
+            "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in ("ABC")]
+            }
+        collections_flat = [
+            item for sublist in list(collections_grouped.values())
+            for item in sublist
+            ]
+        # Build the reverse mapping: "SW_OPER_MAGA_LR_1B": "MAG" etc
+        collections_to_keys = dict.fromkeys(collections_flat)
+        for coll in collections_to_keys:
+            for key in list(collections_grouped.keys()):
+                if key in coll:
+                    collections_to_keys[coll] = key
+
+        measurements = {
+            "MAG": "F,dF_AOCS,dF_other,F_error,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_error,Flags_F,Flags_B,Flags_q,Flags_Platform,ASM_Freq_Dev".split(","),
+            "EFI": "v_SC,v_ion,v_ion_error,E,E_error,dt_LP,n,n_error,T_ion,T_ion_error,T_elec,T_elec_error,U_SC,U_SC_error,v_ion_H,v_ion_H_error,v_ion_V,v_ion_V_error,rms_fit_H,rms_fit_V,var_x_H,var_y_H,var_x_V,var_y_V,dv_mtq_H,dv_mtq_V,SAA,Flags_LP,Flags_LP_n,Flags_LP_T_elec,Flags_LP_U_SC,Flags_TII,Flags_Platform,Maneuver_Id".split(","),
+            "IBI": "Bubble_Index,Bubble_Probability,Flags_Bubble,Flags_F,Flags_B,Flags_q".split(","),
+            "TEC": "GPS_Position,LEO_Position,PRN,L1,L2,P1,P2,S1,S2,Absolute_STEC,Relative_STEC,Relative_STEC_RMS,DCB,DCB_Error".split(","),
+            "FAC": "IRC,IRC_Error,FAC,FAC_Error,Flags,Flags_F,Flags_B,Flags_q".split(","),
+            "EEF": "EEF,RelErr,flags".split(",")
+            }
+
+        models = """
+            IGRF12, SIFM, CHAOS-6-Combined, CHAOS-6-Core, CHAOS-6-Static,
+            MCO_SHA_2C, MCO_SHA_2D, MCO_SHA_2F, MLI_SHA_2C, MLI_SHA_2D,
+            MMA_SHA_2C-Primary, MMA_SHA_2C-Secondary,
+            MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,
+            MIO_SHA_2C-Primary, MIO_SHA_2C-Secondary,
+            MIO_SHA_2D-Primary, MIO_SHA_2D-Secondary
+            """.replace("\n", "").replace(" ", "").split(",")
+
+        auxiliaries = """
+            Timestamp, Latitude, Longitude, Radius, Spacecraft,
+            SyncStatus, Kp, Dst, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F10_INDEX,
+            OrbitSource, OrbitNumber, AscendingNodeTime,
+            AscendingNodeLongitude, QDLat, QDLon, QDBasis, MLT, SunDeclination,
+            SunHourAngle, SunRightAscension, SunAzimuthAngle, SunZenithAngle,
+            SunLongitude, SunVector, DipoleAxisVector, NGPLatitude, NGPLongitude,
+            DipoleTiltAngle, UpwardCurrent, TotalCurrent,
+            DivergenceFreeCurrentFunction, F_AMPS, B_NEC_AMPS
+            """.replace("\n", "").replace(" ", "").split(",")
+
+        return {
+            "collections_grouped": collections_grouped,
+            "collections": collections_flat,
+            "collections_to_keys": collections_to_keys,
+            "measurements": measurements,
+            "models": models,
+            "auxiliaries": auxiliaries
+            }
+
+    def available_collections(self):
+        return self.available["collections"]
+
+    def available_measurements(self, collection_key=None):
+        """key in ("MAG", "EFI", "IBI", "TEC", "FAC", "EEF")
+        """
+        keys = list(self.available["measurements"].keys())
+        if collection_key in keys:
+            return self.available["measurements"][collection_key]
+        elif collection_key is None:
+            return self.available["measurements"]
+        else:
+            raise Exception(
+                "collection_key must be one of {}".format(", ".join(keys))
+                )
+
+    def available_models(self):
+        return self.available["models"]
+
+    def available_auxiliaries(self):
+        return self.available["auxiliaries"]
+
     def set_collection(self, collection):
-        self._tag = "X"
-        self._collections = [collection]
+        if collection not in self.available["collections"]:
+            raise Exception(
+                "Invalid collection. "
+                "Check available with ClientRequest.available_collections()")
+        else:
+            self._tag = "X"
+            self._collections = [collection]
 
     def set_products(self, measurements, models, auxiliaries,
                      residuals=False, subsample=None
@@ -274,6 +372,31 @@ class ClientRequest:
         If residuals=True then just get the measurement-model residuals,
         otherwise get both measurement and model values
         """
+        # Check the chosen measurements are available for the set collection
+        collection_key = self.available["collections_to_keys"][self._collections[0]]
+        for x in measurements:
+            if x not in self.available["measurements"][collection_key]:
+                raise Exception(
+                    "Measurement '{}' not available for collection '{}'. "
+                    "Check available with "
+                    "ClientRequest.available_measurements({})".format(
+                        x, collection_key, collection_key
+                    ))
+        # Check chosen model is available
+        for x in models:
+            if x not in self.available["models"]:
+                raise Exception(
+                    "Model '{}' not available. Check available with "
+                    "ClientRequest.available_models()".format(x)
+                    )
+        # Check chosen aux is available
+        for x in auxiliaries:
+            if x not in self.available["auxiliaries"]:
+                raise Exception(
+                    "'{}' not available. Check available with "
+                    "ClientRequest.available_auxiliaries()".format(x)
+                    )
+        # TODO: check format of all inputs
         self._measurements = measurements
         self._models = models
         self._auxiliaries = auxiliaries
