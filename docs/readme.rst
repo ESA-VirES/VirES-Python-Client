@@ -45,7 +45,7 @@ Choose measurements and models to evaluate:
   models = ["MCO_SHA_2C","MMA_SHA_2C-Primary"]
   auxiliaries = ["OrbitNumber","SunZenithAngle","QDLat","QDLon","MLT"]
 
-  request.set_products(measurements, models, auxiliaries)
+  request.set_products(measurements, models, auxiliaries, residuals=False, subsample="PT10S")
 
 Set a parameter range filter to apply. You can add multiple filters in sequence
 
@@ -96,7 +96,7 @@ The returned data has columns for:
 Available parameters for Swarm data
 -----------------------------------
 
-``collections``: (replace x with A, B, or C for Alpha, Bravo, or Charlie)::
+``collections`` (replace x with A, B, or C for Alpha, Bravo, or Charlie)::
 
   SW_OPER_MAGx_LR_1B
   SW_OPER_EFIx_PL_1B
@@ -105,7 +105,9 @@ Available parameters for Swarm data
   SW_OPER_FACxTMS_2F
   SW_OPER_EEFxTMS_2F
 
-For Alpha-Charlie FAC: ``collection="SW_OPER_FAC_TMS_2F"``
+For Alpha-Charlie FAC: ``collection="SW_OPER_FAC_TMS_2F"``.
+
+The ``measurements``, ``models``, and ``auxiliaries`` chosen will match the cadence of the ``collection`` chosen.
 
 ``measurements``:
 
@@ -135,7 +137,7 @@ For EEF::
 
   EEF,RelErr,flags
 
-``models``::
+``models`` (``residuals`` available when combined with MAG ``measurements``)::
 
   IGRF12, SIFM, CHAOS-6-Combined, CHAOS-6-Core, CHAOS-6-Static,
   MCO_SHA_2C, MCO_SHA_2D, MCO_SHA_2F, MLI_SHA_2C, MLI_SHA_2D,
@@ -164,5 +166,3 @@ NB: the AMPS model is currently accessible as "auxiliaries" instead of a "model"
 
 ``filters``:
   TODO
-
-.. code-block:: python

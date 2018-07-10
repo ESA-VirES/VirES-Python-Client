@@ -3,7 +3,7 @@ Welcome to VirES-Python-Client's documentation!
 
 .. toctree::
   :maxdepth: 2
-  :caption: Overview:
+  :caption: Overview
 
   readme
 
@@ -15,7 +15,7 @@ Welcome to VirES-Python-Client's documentation!
 
 .. toctree::
   :maxdepth: 2
-  :caption: API:
+  :caption: API
 
   api
 
