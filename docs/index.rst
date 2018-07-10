@@ -2,16 +2,23 @@ Welcome to VirES-Python-Client's documentation!
 ===============================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Overview:
+  :maxdepth: 2
+  :caption: Overview:
 
-   readme
+  readme
 
 .. toctree::
-   :maxdepth: 2
-   :caption: API:
+  :maxdepth: 2
+  :caption: Example notebooks
 
-   api
+  notebooks/simple_example
+
+.. toctree::
+  :maxdepth: 2
+  :caption: API:
+
+  api
+
 
 Indices and tables
 ==================
