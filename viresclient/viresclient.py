@@ -70,7 +70,9 @@ def get_log_level(level):
 
 
 class ReturnedData:
-    """Holds the data returned from the server and the data type.
+    """Flexible object for handling data returned from the server.
+
+    Holds the data returned from the server and the data type.
     Provides output to different file types.
     """
 
@@ -120,8 +122,14 @@ class ReturnedData:
 
     def to_file(self, filename, overwrite=False, hdf=False):
         """Saves the data to the specified file.
+
         Only write to file if it does not yet exist, or if overwrite=True.
         If hdf=True, convert to an HDF5 file.
+
+        Args:
+            filename (str): path to the file to save as
+            overwrite (bool): Will overwrite existing file if True
+            hdf (bool): Will convert to an HDF5 file if True
         """
         try:
             assert isinstance(filename, str)
@@ -149,8 +157,14 @@ class ReturnedData:
                 )
 
     def as_dataframe(self):
-        """Convert the data to a pandas DataFrame
-        NB: currently saves a temporary CDF file
+        """Convert the data to a pandas DataFrame.
+
+        Note:
+            Currently saves a temporary CDF file
+
+        Returns:
+            DataFrame
+
         """
         if self.filetype == 'csv':
             df = pandas.read_csv(BytesIO(self.data))
@@ -186,7 +200,7 @@ class ReturnedData:
 
 
 class ProgressBar:
-    """Generates a progress bar from the WPS status
+    """Generates a progress bar from the WPS status.
     """
 
     def __init__(self):
@@ -205,7 +219,7 @@ class ProgressBar:
         self.tqdm_pbar.close()
 
     def update(self, wpsstatus):
-        """Updates the state based on the state of a WPSStatus object
+        """Updates the internal state based on the state of a WPSStatus object.
         """
         self.lastpercent = self.percentCompleted
         self.percentCompleted = wpsstatus.percentCompleted
@@ -213,6 +227,8 @@ class ProgressBar:
             self.refresh_tqdm()
 
     def refresh_tqdm(self):
+        """Updates the output of the progress bar.
+        """
         if self.percentCompleted is None:
             return
         self.tqdm_pbar.update(self.percentCompleted-self.lastpercent)
@@ -223,6 +239,25 @@ class ProgressBar:
 
 class ClientRequest:
     """Handles the requests to and downloads from the server.
+
+    Steps to download data:
+
+    1. Set up a connection to the server with: request = ClientRequest()
+
+    2. Set collections to use with: request.set_collections()
+
+    3. Set parameters to get with: request.set_products()
+
+    4. Set filters to apply with: request.set_range_filter()
+    
+    5. Get the data in a chosen time window: request.get_between()
+
+    Args:
+        url (str):
+        username (str):
+        password (str):
+        logging_level (str):
+
     """
 
     def __init__(self, url=None, username=None, password=None,
@@ -265,24 +300,14 @@ class ClientRequest:
                     self._variables, self._filterlist, self._subsample
                     )
 
-    def available():
-        doc = "The available data property."
-        def fget(self):
-            return self._available
-        def fset(self, value):
-            self._available = self._set_available_data()
-        def fdel(self):
-            del self._available
-        return locals()
-    available = property(**available())
-
     def _set_available_data(self):
         collections_grouped = {
             "MAG": ["SW_OPER_MAG{}_LR_1B".format(x) for x in ("ABC")],
             "EFI": ["SW_OPER_EFI{}_PL_1B".format(x) for x in ("ABC")],
             "IBI": ["SW_OPER_IBI{}TMS_2F".format(x) for x in ("ABC")],
             "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in ("ABC")],
-            "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in ("ABC")],
+            "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in ("ABC")] +
+            ["SW_OPER_FAC_TMS_2F"],
             "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in ("ABC")]
             }
         collections_flat = [
@@ -335,29 +360,48 @@ class ClientRequest:
             }
 
     def available_collections(self):
-        return self.available["collections"]
+        """Returns a list of the available collections.
+        """
+        return self._available["collections"]
 
     def available_measurements(self, collection_key=None):
-        """key in ("MAG", "EFI", "IBI", "TEC", "FAC", "EEF")
+        """Returns a list of the available measurements for the chosen collection.
+
+        Args:
+            collection_key (str): one of: ("MAG", "EFI", "IBI", "TEC", "FAC", "EEF")
+
         """
-        keys = list(self.available["measurements"].keys())
+        keys = list(self._available["measurements"].keys())
         if collection_key in keys:
-            return self.available["measurements"][collection_key]
+            return self._available["measurements"][collection_key]
         elif collection_key is None:
-            return self.available["measurements"]
+            return self._available["measurements"]
         else:
             raise Exception(
                 "collection_key must be one of {}".format(", ".join(keys))
                 )
 
     def available_models(self):
-        return self.available["models"]
+        """Returns a list of the available models.
+        """
+        return self._available["models"]
 
     def available_auxiliaries(self):
-        return self.available["auxiliaries"]
+        """Returns a list of the available auxiliary parameters.
+        """
+        return self._available["auxiliaries"]
 
     def set_collection(self, collection):
-        if collection not in self.available["collections"]:
+        """Set the collection to use (sets satellite implicitly).
+
+        Note:
+            Currently limited to one collection, one satellite.
+
+        Args:
+            collection (str): one of .available_collections()
+
+        """
+        if collection not in self._available["collections"]:
             raise Exception(
                 "Invalid collection. "
                 "Check available with ClientRequest.available_collections()")
@@ -369,13 +413,22 @@ class ClientRequest:
                      residuals=False, subsample=None
                      ):
         """Set the combination of products to retrieve.
+
         If residuals=True then just get the measurement-model residuals,
-        otherwise get both measurement and model values
+        otherwise get both measurement and model values.
+
+        Args:
+            measurements (list(str)): from .available_measurements(collection_key)
+            models (list(str)): from .available_models()
+            auxiliaries (list(str)): from .available_auxiliaries()
+            residuals (bool): True if only returning measurement-model residual
+            subsample (str): ISO_8601 duration, e.g. 10 seconds: PT10S, 1 minute: PT1M
+
         """
         # Check the chosen measurements are available for the set collection
-        collection_key = self.available["collections_to_keys"][self._collections[0]]
+        collection_key = self._available["collections_to_keys"][self._collections[0]]
         for x in measurements:
-            if x not in self.available["measurements"][collection_key]:
+            if x not in self._available["measurements"][collection_key]:
                 raise Exception(
                     "Measurement '{}' not available for collection '{}'. "
                     "Check available with "
@@ -384,14 +437,14 @@ class ClientRequest:
                     ))
         # Check chosen model is available
         for x in models:
-            if x not in self.available["models"]:
+            if x not in self._available["models"]:
                 raise Exception(
                     "Model '{}' not available. Check available with "
                     "ClientRequest.available_models()".format(x)
                     )
         # Check chosen aux is available
         for x in auxiliaries:
-            if x not in self.available["auxiliaries"]:
+            if x not in self._available["auxiliaries"]:
                 raise Exception(
                     "'{}' not available. Check available with "
                     "ClientRequest.available_auxiliaries()".format(x)
@@ -418,10 +471,33 @@ class ClientRequest:
         self._variables = variables
 
     def set_range_filter(self, parameter, minimum, maximum):
+        """Set a filter to apply.
+
+        Note:
+            Apply multiple filters with successive calls to set_range_filter()
+
+        Args:
+            parameter (str)
+            minimum (float)
+            maximum (float)
+
+        """
         self._filterlist += [parameter+":"+str(minimum)+","+str(maximum)]
 
     def get_times_for_orbits(self, spacecraft, start_orbit, end_orbit):
-        """Translate a pair of orbit numbers to a time interval
+        """Translate a pair of orbit numbers to a time interval.
+
+        Args:
+            spacecraft (str): one of ('A','B','C') or
+                                ("Alpha", "Bravo", "Charlie")
+            start_orbit (int): a starting orbit number
+            end_orbit (int): a later orbit number
+
+        Returns:
+            tuple(datetime): (start_time, end_time) The start time of the
+                start_orbit and the ending time of the end_orbit.
+                (Based on ascending nodes of the orbits)
+
         """
         # Change to spacecraft = "A" etc. for this request
         if spacecraft in ("Alpha", "Bravo", "Charlie"):
@@ -440,7 +516,16 @@ class ClientRequest:
         return start_time, end_time
 
     def get_orbit_number(self, spacecraft, input_time):
-        """Translate a time to an orbit number
+        """Translate a time to an orbit number.
+
+        Args:
+            spacecraft (str): one of ('A','B','C') or
+                                ("Alpha", "Bravo", "Charlie")
+            input_time (datetime): a point in time
+
+        Returns:
+            int: The current orbit number at the input_time
+
         """
         # Change to spacecraft = "A" etc. for this request
         if spacecraft in ("Alpha", "Bravo", "Charlie"):
@@ -462,6 +547,18 @@ class ClientRequest:
         return retdata.as_dataframe()["OrbitNumber"][0]
 
     def get_between(self, start_time, end_time, filetype="csv", async=True):
+        """Make the server request and download the data.
+
+        Args:
+            start_time (datetime)
+            end_time (datetime)
+            filetype (str): one of ('csv', 'cdf')
+            async (bool): True for asynchronous processing, False for synchronous
+
+        Returns:
+            ReturnedData object
+
+        """
         self.start_time = start_time
         self.end_time = end_time
 
