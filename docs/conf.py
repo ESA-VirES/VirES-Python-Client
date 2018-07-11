@@ -24,7 +24,7 @@ copyright = '2018, Ashley Smith'
 author = 'Ashley Smith'
 
 # The short X.Y version
-with open('viresclient/__init__.py') as f:
+with open('../viresclient/__init__.py') as f:
     for line in f:
         if line.find("__version__") >= 0:
             version = line.split("=")[1].strip()
