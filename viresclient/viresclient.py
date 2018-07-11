@@ -76,9 +76,9 @@ class ReturnedData:
     Provides output to different file types.
     """
 
-    def __init__(self, data=bytes(), filetype=str()):
-        self.data = data
-        self.filetype = filetype
+    def __init__(self, data=None, filetype=None):
+        self.data = bytes() if data is None else data
+        self.filetype = str() if filetype is None else filetype
 
     def __str__(self):
         return "viresclient ReturnedData object of type " + self.filetype + \
@@ -89,11 +89,8 @@ class ReturnedData:
         def fget(self):
             return self._data
         def fset(self, value):
-            try:
-                assert isinstance(value,bytes)
-            except AssertionError as e:
-                e.args += ("data must be of type bytes",)
-                raise
+            if not isinstance(value, bytes):
+                raise TypeError("data must be of type bytes")
             self._data = value
         def fdel(self):
             del self._data
@@ -105,15 +102,11 @@ class ReturnedData:
         def fget(self):
             return self._filetype
         def fset(self, value):
-            try:
-                value = value.lower()
-                assert value in ("csv", "cdf")
-            except AttributeError as e:
-                e.args += ("filetype must be a string",)
-                raise
-            except AssertionError as e:
-                e.args += ("Chosen filetype must be one of: 'csv', 'cdf'",)
-                raise
+            if not isinstance(value, str):
+                raise TypeError("filetype must be a string")
+            value = value.lower()
+            if value not in ("csv", "cdf"):
+                raise TypeError("Chosen filetype must be one of: 'csv', 'cdf'")
             self._filetype = value
         def fdel(self):
             del self._filetype
@@ -131,11 +124,8 @@ class ReturnedData:
             overwrite (bool): Will overwrite existing file if True
             hdf (bool): Will convert to an HDF5 file if True
         """
-        try:
-            assert isinstance(filename, str)
-        except AssertionError as e:
-            e.args += ("filename must be a string",)
-            raise
+        if not isinstance(filename, str):
+            raise TypeError("filename must be a string")
         if not isfile(filename) or overwrite:
             if not hdf:
                 if filename[-3:].lower() != self.filetype:
@@ -215,6 +205,12 @@ class ProgressBar:
 
         self.refresh_tqdm()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.cleanup()
+
     def cleanup(self):
         self.tqdm_pbar.close()
 
@@ -249,7 +245,7 @@ class ClientRequest:
     3. Set parameters to get with: request.set_products()
 
     4. Set filters to apply with: request.set_range_filter()
-    
+
     5. Get the data in a chosen time window: request.get_between()
 
     Args:
@@ -263,13 +259,11 @@ class ClientRequest:
     def __init__(self, url=None, username=None, password=None,
                  logging_level="NO_LOGGING"):
 
-        try:
-            assert isinstance(url, str)
-            assert isinstance(username, str)
-            assert isinstance(password, str)
-        except AssertionError as e:
-            e.args += ("url, username, and password must all be strings",)
-            raise
+        for i in [url, username, password]:
+            if not isinstance(i, str):
+                raise TypeError(
+                    "url, username, and password must all be strings"
+                )
 
         self._tag = []
         self._collections = []
@@ -409,9 +403,9 @@ class ClientRequest:
             self._tag = "X"
             self._collections = [collection]
 
-    def set_products(self, measurements, models, auxiliaries,
+    def set_products(self, measurements=None, models=None, auxiliaries=None,
                      residuals=False, subsample=None
-                     ):
+                     ):  # change these to all kwargs
         """Set the combination of products to retrieve.
 
         If residuals=True then just get the measurement-model residuals,
@@ -425,6 +419,9 @@ class ClientRequest:
             subsample (str): ISO_8601 duration, e.g. 10 seconds: PT10S, 1 minute: PT1M
 
         """
+        measurements = [] if measurements is None else measurements
+        models = [] if models is None else models
+        auxiliaries = [] if auxiliaries is None else auxiliaries
         # Check the chosen measurements are available for the set collection
         collection_key = self._available["collections_to_keys"][self._collections[0]]
         for x in measurements:
@@ -567,11 +564,8 @@ class ClientRequest:
         else:
             self._filters = ';'.join(self._filterlist)
 
-        try:
-            assert async in [True, False]
-        except AssertionError as e:
-            e.args += ("async must be set to either True or False",)
-            raise
+        if async not in [True, False]:
+            raise TypeError("async must be set to either True or False")
 
         # Initialise the ReturnedData so that filetype checking is done there
         retdata = ReturnedData(filetype=filetype)
@@ -602,17 +596,10 @@ class ClientRequest:
         ).encode('UTF-8')
 
         if async:
-            # Ensure that tqdm progress bar is removed
-            # Could also add __enter__ and __exit__ to ProgressBar
-            #   so that it could be used with a 'with' statement?
-            try:
-                progressbar = ProgressBar()
+            with ProgressBar() as progressbar:
                 response = self._wps.retrieve_async(
-                            self.request, status_handler=progressbar.update
-                            )  # handler= ...)
-            finally:
-                # does this imply closing the tqdm bar?
-                del progressbar
+                    self.request, status_handler=progressbar.update
+                )
         else:
             response = self._wps.retrieve(self.request)
 
