@@ -28,6 +28,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import os
 from setuptools import setup, find_packages
 
 with open('viresclient/__init__.py') as f:
@@ -38,13 +39,20 @@ with open('viresclient/__init__.py') as f:
             version = version.strip("'")
             continue
 
+
+# Utility function to read the README file.
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
 setup(
     name='viresclient',
     version=version,
     license='EOX licence (MIT style)',
-    description='A Python client for interacting with the VirES server',
-    author='EOX IT Services GmbH',
-    author_email='office@eox.at',
+    description='A Python client for interacting with a VirES server',
+    long_description=read('README.rst'),
+    author='Ashley Smith',
+    author_email='ashley.smith@ed.ac.uk',
     url='https://github.com/ESA-VirES/VirES-Python-Client',
     packages=find_packages(),
     scripts=[],

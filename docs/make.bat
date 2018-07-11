@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=VirES-Python-Client
+set SPHINXPROJ=viresclient
 
 if "%1" == "" goto help
 
