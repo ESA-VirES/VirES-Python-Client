@@ -8,11 +8,15 @@ Installation
 
 It can currently be installed with::
 
-  pip install git+https://github.com/ESA-VirES/VirES-Python-Client.git
+  pip install viresclient
 
 Dependencies::
 
-- TODO
+  Jinja2
+  pandas
+  cdflib
+  tables
+  tqdm
 
 Example usage
 -------------
@@ -23,7 +27,7 @@ Import the package and set up the connection to the server:
   from viresclient import ClientRequest
   import datetime as dt
 
-  url = ""
+  url = "https://testing.viresdisc.vires.services/openows"
   username = ""
   password = ""
 
@@ -163,6 +167,3 @@ Standard positional variables always returned::
   Timestamp,Latitude,Longitude,Radius,Spacecraft
 
 NB: the AMPS model is currently accessible as "auxiliaries" instead of a "model".
-
-``filters``:
-  TODO
