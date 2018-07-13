@@ -27,7 +27,7 @@ Import the package and set up the connection to the server:
   from viresclient import ClientRequest
   import datetime as dt
 
-  url = "https://testing.viresdisc.vires.services/openows"
+  url = "https://staging.viresdisc.vires.services/openows"
   username = ""
   password = ""
 
@@ -55,13 +55,13 @@ Set a parameter range filter to apply. You can add multiple filters in sequence
 
 .. code-block:: python
 
-  parameter = "Kp"
+  parameter = "Latitude"
   minimum = 0
-  maximum = 100
+  maximum = 90
 
   request.set_range_filter(parameter, minimum, maximum)
 
-  request.set_range_filter("Latitude", -90, 0)
+  request.set_range_filter("Longitude", 0, 90)
 
 Specify the time range from which to retrieve data, make the request to the server (specifying the output file format, currently either csv or cdf):
 
