@@ -79,6 +79,7 @@ class ReturnedData:
     def __init__(self, data=None, filetype=None):
         self.data = bytes() if data is None else data
         self.filetype = str() if filetype is None else filetype
+        # In Python 2.7: the above doesn't seem to use the property fset (?)
 
     def __str__(self):
         return "viresclient ReturnedData object of type " + self.filetype + \
