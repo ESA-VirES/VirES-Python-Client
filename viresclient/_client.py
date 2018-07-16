@@ -398,7 +398,7 @@ class ClientRequest:
         if spacecraft in ("Alpha", "Bravo", "Charlie"):
             spacecraft = spacecraft[0]
         collections = ["SW_OPER_MAG{}_LR_1B".format(spacecraft[0])]
-        templatefile = "test_vires_fetch_filtered_data.xml"
+        templatefile = "vires_fetch_filtered_data.xml"
         template = JINJA2_ENVIRONMENT.get_template(templatefile)
         request = template.render(
             begin_time=input_time,
@@ -448,10 +448,10 @@ class ClientRequest:
 
         if async:
             # asynchronous WPS request
-            templatefile = "test_vires_fetch_filtered_data_async.xml"
+            templatefile = "vires_fetch_filtered_data_async.xml"
         else:
             # synchronous WPS request
-            templatefile = "test_vires_fetch_filtered_data.xml"
+            templatefile = "vires_fetch_filtered_data.xml"
         self._template = JINJA2_ENVIRONMENT.get_template(templatefile)
 
         self.request = self._template.render(
