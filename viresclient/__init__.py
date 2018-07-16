@@ -28,6 +28,6 @@
 #-------------------------------------------------------------------------------
 
 
-from .viresclient import ClientRequest
+from ._client import ClientRequest
 
 __version__ = "0.1.1"
