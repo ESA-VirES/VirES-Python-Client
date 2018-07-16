@@ -135,10 +135,14 @@ class ReturnedData:
         if self.filetype == 'csv':
             df = pandas.read_csv(BytesIO(self.data))
             df['Timestamp'] = df['Timestamp'].apply(
-                time_util.mjd2000_to_datetime
+                time_util.parse_datetime
                 )
-            # Rounded because the MJD2000 fractions are not precise enough(?)
-            df['Timestamp'] = df['Timestamp'].dt.round('1s')
+            # # Originally used MJD2000 from the server:
+            # df['Timestamp'] = df['Timestamp'].apply(
+            #     time_util.mjd2000_to_datetime
+            #     )
+            # # Rounded because the MJD2000 fractions are not precise enough(?)
+            # df['Timestamp'] = df['Timestamp'].dt.round('1s')
             # Convert the columns of vectors from strings to lists
             for col in df:
                 if type(df[col][0]) is str:

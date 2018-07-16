@@ -53,7 +53,7 @@
     <wps:Input>
       <ows:Identifier>csv_time_format</ows:Identifier>
       <wps:Data>
-        <wps:LiteralData>MJD2000</wps:LiteralData>
+        <wps:LiteralData>ISO date-time</wps:LiteralData>
       </wps:Data>
     </wps:Input>
   </wps:DataInputs>
