@@ -105,20 +105,20 @@ class ReturnedData:
         if not isfile(filename) or overwrite:
             if not hdf:
                 if filename[-3:].lower() != self.filetype:
-                    raise Exception("Filename extension should be {}".format(
+                    raise TypeError("Filename extension should be {}".format(
                         self.filetype.upper()
                         ))
                 with open(filename, "wb") as f:
                     f.write(self.data)
             elif hdf:
                 if filename[-3:] != ".h5":
-                    raise Exception("Filename extension should be .h5")
+                    raise TypeError("Filename extension should be .h5")
                 # Convert to dataframe.
                 df = self.as_dataframe()
                 df.to_hdf(filename, "data", mode="w")
             print("Data written to", filename)
         else:
-            raise Exception(
+            raise FileExistsError(
                 "File not written as it already exists and overwrite=False"
                 )
 
