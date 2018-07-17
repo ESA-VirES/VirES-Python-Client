@@ -111,7 +111,8 @@ class ReturnedData(object):
                 df.to_hdf(filename, "data", mode="w")
             print("Data written to", filename)
         else:
-            raise FileExistsError(
+            # raise FileExistsError(    # doesn't exist in py27
+            raise Exception(
                 "File not written as it already exists and overwrite=False"
                 )
 
