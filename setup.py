@@ -58,7 +58,7 @@ setup(
     scripts=[],
     package_data={
         'viresclient': [
-            'wps/templates/*'
+            '_wps/templates/*'
         ],
     },
     install_requires=['Jinja2',
