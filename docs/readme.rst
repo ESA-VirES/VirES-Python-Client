@@ -70,7 +70,7 @@ Specify the time range from which to retrieve data, make the request to the serv
   start_time = dt.datetime(2016,1,1)
   end_time = dt.datetime(2016,1,2)
 
-  data = request.get_between(start_time, end_time, filetype="cdf", async=True)
+  data = request.get_between(start_time, end_time, filetype="cdf", asynchronous=True)
 
 Transfer your data to a (``pandas``) dataframe or save it:
 

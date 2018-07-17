@@ -413,14 +413,14 @@ class ClientRequest:
         retdata = ReturnedData(data=response, filetype="csv")
         return retdata.as_dataframe()["OrbitNumber"][0]
 
-    def get_between(self, start_time, end_time, filetype="csv", async=True):
+    def get_between(self, start_time, end_time, filetype="csv", asynchronous=True):
         """Make the server request and download the data.
 
         Args:
             start_time (datetime)
             end_time (datetime)
             filetype (str): one of ('csv', 'cdf')
-            async (bool): True for asynchronous processing, False for synchronous
+            asynchronous (bool): True for asynchronous processing, False for synchronous
 
         Returns:
             ReturnedData object
@@ -434,8 +434,8 @@ class ClientRequest:
         else:
             self._filters = ';'.join(self._filterlist)
 
-        if async not in [True, False]:
-            raise TypeError("async must be set to either True or False")
+        if asynchronous not in [True, False]:
+            raise TypeError("asynchronous must be set to either True or False")
 
         # Initialise the ReturnedData so that filetype checking is done there
         retdata = ReturnedData(filetype=filetype)
@@ -446,7 +446,7 @@ class ClientRequest:
         elif self._filetype == "cdf":
             self._response_type = "application/x-cdf"
 
-        if async:
+        if asynchronous:
             # asynchronous WPS request
             templatefile = "vires_fetch_filtered_data_async.xml"
         else:
@@ -465,7 +465,7 @@ class ClientRequest:
             subsample=self._subsample
         ).encode('UTF-8')
 
-        if async:
+        if asynchronous:
             with ProgressBar() as progressbar:
                 response = self._wps.retrieve_async(
                     self.request, status_handler=progressbar.update
