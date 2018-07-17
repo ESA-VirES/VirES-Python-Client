@@ -77,6 +77,6 @@ def test_ClientRequest():
     """Test that a ClientRequest gets set up correctly.
     """
     request = ClientRequest('', '', '')
-    assert isinstance(request._wps,
+    assert isinstance(request._wps_service,
                       viresclient._wps.wps_vires.ViresWPS10Service
                       )

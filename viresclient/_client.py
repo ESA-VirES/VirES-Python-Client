@@ -40,6 +40,7 @@ from ._wps.log_util import set_stream_handler
 # from jinja2 import Environment, FileSystemLoader
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps import time_util
+from ._wps.wps import WPSError
 
 from ._data_handling import ReturnedData
 
@@ -150,7 +151,7 @@ class ClientRequest:
         set_stream_handler(self._logger, logging_level)
 
         # service proxy with basic HTTP authentication
-        self._wps = ViresWPS10Service(
+        self._wps_service = ViresWPS10Service(
             url,
             encode_basic_auth(username, password),
             logger=self._logger
@@ -171,7 +172,7 @@ class ClientRequest:
             "IBI": ["SW_OPER_IBI{}TMS_2F".format(x) for x in ("ABC")],
             "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in ("ABC")],
             "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in ("ABC")] +
-            ["SW_OPER_FAC_TMS_2F"],
+                   ["SW_OPER_FAC_TMS_2F"],
             "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in ("ABC")]
             }
         collections_flat = [
@@ -376,7 +377,7 @@ class ClientRequest:
             start_orbit=start_orbit,
             end_orbit=end_orbit
         ).encode('UTF-8')
-        response = self._wps.retrieve(request)
+        response = self._wps_service.retrieve(request)
         responsedict = json.loads(response.decode('UTF-8'))
         start_time = time_util.parse_datetime(responsedict['start_time'])
         end_time = time_util.parse_datetime(responsedict['end_time'])
@@ -409,7 +410,7 @@ class ClientRequest:
             filters=[],
             response_type="text/csv",
         ).encode('UTF-8')
-        response = self._wps.retrieve(request)
+        response = self._wps_service.retrieve(request)
         retdata = ReturnedData(data=response, filetype="csv")
         return retdata.as_dataframe()["OrbitNumber"][0]
 
@@ -465,13 +466,20 @@ class ClientRequest:
             subsample=self._subsample
         ).encode('UTF-8')
 
-        if asynchronous:
-            with ProgressBar() as progressbar:
-                response = self._wps.retrieve_async(
-                    self.request, status_handler=progressbar.update
-                )
-        else:
-            response = self._wps.retrieve(self.request)
+        try:
+            if asynchronous:
+                with ProgressBar() as progressbar:
+                    response = self._wps_service.retrieve_async(
+                        self.request, status_handler=progressbar.update
+                    )
+            else:
+                response = self._wps_service.retrieve(self.request)
+        except WPSError:
+            # print("Server error - may be outside of product availability. "
+            #       "No data returned."
+            #       )
+            # return None
+            raise RuntimeError("Server error - may be outside of product availability")
 
         retdata.data = response
         return retdata

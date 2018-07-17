@@ -133,7 +133,13 @@ class ReturnedData:
 
         """
         if self.filetype == 'csv':
-            df = pandas.read_csv(BytesIO(self.data))
+            try:
+                df = pandas.read_csv(BytesIO(self.data))
+            except Exception:
+                # print("Bad or empty csv. Returning an empty dataframe.")
+                # return pandas.DataFrame()
+                raise Exception("Bad or empty csv.")
+            # Convert to datetime objects
             df['Timestamp'] = df['Timestamp'].apply(
                 time_util.parse_datetime
                 )
@@ -144,25 +150,41 @@ class ReturnedData:
             # # Rounded because the MJD2000 fractions are not precise enough(?)
             # df['Timestamp'] = df['Timestamp'].dt.round('1s')
             # Convert the columns of vectors from strings to lists
-            for col in df:
-                if type(df[col][0]) is str:
-                    if df[col][0][0] == '{':
-                        df[col] = df[col].apply(
-                            lambda x: [
-                                float(y) for y in x.strip('{}').split(';')
-                            ])
+            if len(df) == 0:
+                # Returns empty dataframe when retrieval from server is empty
+                print("No data available")
+            else:
+                # Convert the columns of vectors from strings to lists
+                for col in df:
+                    if type(df[col][0]) is str:
+                        if df[col][0][0] == '{':
+                            df[col] = df[col].apply(
+                                lambda x: [
+                                    float(y) for y in x.strip('{}').split(';')
+                                ])
         elif self.filetype == 'cdf':
             self.to_file('cdftempfile.CDF', overwrite=True)
-            cdf = cdflib.CDF('cdftempfile.CDF')
-            keys = cdf.cdf_info()['zVariables']
-            vals = [cdf.varget(key) for key in keys]
-            d = {key: list(value) for key, value in zip(keys, vals)}
-            df = pandas.DataFrame.from_dict(d)
-            df['Timestamp'] = df['Timestamp'].apply(
-                lambda x: time_util.unix_epoch_to_datetime(
-                    (x-CDF_EPOCH_1970)*1e-3
+            try:
+                cdf = cdflib.CDF('cdftempfile.CDF')
+                keys = cdf.cdf_info()['zVariables']
+                vals = [cdf.varget(key) for key in keys]
+            except Exception:
+                # print("Bad or empty cdf. Returning an empty dataframe.")
+                remove('cdftempfile.CDF')
+                # return pandas.DataFrame()
+                raise Exception("Bad or empty cdf.")
+            if all(v is None for v in vals):
+                # Returns empty dataframe when retrieval from server is empty
+                df = pandas.DataFrame(columns=keys)
+                print("No data available")
+            else:
+                d = {key: list(value) for key, value in zip(keys, vals)}
+                df = pandas.DataFrame.from_dict(d)
+                df['Timestamp'] = df['Timestamp'].apply(
+                    lambda x: time_util.unix_epoch_to_datetime(
+                        (x-CDF_EPOCH_1970)*1e-3
+                        )
                     )
-                )
             remove('cdftempfile.CDF')
             print("Removed cdftempfile.CDF")
         df.set_index('Timestamp', inplace=True)
