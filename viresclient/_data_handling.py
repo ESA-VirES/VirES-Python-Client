@@ -44,7 +44,7 @@ from ._wps import time_util
 CDF_EPOCH_1970 = 62167219200000.0
 
 
-class ReturnedData:
+class ReturnedData(object):
     """Flexible object for handling data returned from the server.
 
     Holds the data returned from the server and the data type.
@@ -54,40 +54,33 @@ class ReturnedData:
     def __init__(self, data=None, filetype=None):
         self.data = bytes() if data is None else data
         self.filetype = str() if filetype is None else filetype
-        # In Python 2.7: the above doesn't seem to use the property fset (?)
 
     def __str__(self):
         return "viresclient ReturnedData object of type " + self.filetype + \
             "\nSave it to a file with .to_file('filename')"
 
-    def data():
-        doc = "The data property."
-        def fget(self):
-            return self._data
-        def fset(self, value):
-            if not isinstance(value, bytes):
-                raise TypeError("data must be of type bytes")
-            self._data = value
-        def fdel(self):
-            del self._data
-        return locals()
-    data = property(**data())
+    @property
+    def data(self):
+        return self._data
 
-    def filetype():
-        doc = "The filetype property."
-        def fget(self):
-            return self._filetype
-        def fset(self, value):
-            if not isinstance(value, str):
-                raise TypeError("filetype must be a string")
-            value = value.lower()
-            if value not in ("csv", "cdf"):
-                raise TypeError("Chosen filetype must be one of: 'csv', 'cdf'")
-            self._filetype = value
-        def fdel(self):
-            del self._filetype
-        return locals()
-    filetype = property(**filetype())
+    @data.setter
+    def data(self, value):
+        if not isinstance(value, bytes):
+            raise TypeError("data must be of type bytes")
+        self._data = value
+
+    @property
+    def filetype(self):
+        return self._filetype
+
+    @filetype.setter
+    def filetype(self, value):
+        if not isinstance(value, str):
+            raise TypeError("filetype must be a string")
+        value = value.lower()
+        if value not in ("csv", "cdf"):
+            raise TypeError("Chosen filetype must be one of: 'csv', 'cdf'")
+        self._filetype = value
 
     def to_file(self, filename, overwrite=False, hdf=False):
         """Saves the data to the specified file.

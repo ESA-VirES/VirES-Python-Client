@@ -60,7 +60,7 @@ def get_log_level(level):
         return level
 
 
-class ProgressBar:
+class ProgressBar(object):
     """Generates a progress bar from the WPS status.
     """
 
@@ -104,7 +104,7 @@ class ProgressBar:
             print('Downloading...')
 
 
-class ClientRequest:
+class ClientRequest(object):
     """Handles the requests to and downloads from the server.
 
     Steps to download data:
