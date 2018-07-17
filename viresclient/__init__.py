@@ -29,5 +29,6 @@
 
 
 from ._client import ClientRequest
+from ._data_handling import ReturnedData
 
 __version__ = "0.1.1"

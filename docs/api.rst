@@ -8,7 +8,7 @@ viresclient
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: viresclient.viresclient.ReturnedData
+.. autoclass:: viresclient.ReturnedData
     :members:
     :undoc-members:
     :show-inheritance:
