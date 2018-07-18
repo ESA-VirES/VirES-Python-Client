@@ -6,8 +6,10 @@ from viresclient._data_handling import ReturnedData
 from viresclient import ClientRequest
 import viresclient
 
+SUPPORTED_FILETYPES = ('csv', 'cdf')
 
-def test_ReturnedData():
+
+def test_ReturnedData_setup():
     """Test the ReturnedData functionality
 
     Enforcement of filetype as csv/cdf, and data as bytes
@@ -40,39 +42,30 @@ def test_ReturnedData():
     with pytest.raises(TypeError):
         retdata = ReturnedData(data=1, filetype='xyz')
 
-    # Check that file name and extension checking is enforced
-    retdata = ReturnedData(data=b'testtext', filetype='csv')
-    with pytest.raises(TypeError):
-        retdata.to_file(1)
-    with pytest.raises(TypeError):
-        retdata.to_file('testfile.xyz')
-    retdata.to_file('testfile.csv')
-    # Check that not overwriting and overwriting work right
-    # with pytest.raises(FileExistsError):
-    with pytest.raises(Exception):
-        retdata.to_file('testfile.csv', overwrite=False)
-    retdata.to_file('testfile.csv', overwrite=True)
-    os.remove('testfile.csv')
-    # # Check that dataframe is created
-    # df = retdata.as_dataframe()
-    # assert isinstance(df, pd.DataFrame)
 
-    # Repeat the above for CDF
-    retdata = ReturnedData(data=b'testtext', filetype='cdf')
-    with pytest.raises(TypeError):
-        retdata.to_file(1)
-    with pytest.raises(TypeError):
-        retdata.to_file('testfile.xyz')
-    retdata.to_file('testfile.cdf')
-    # Check that not overwriting and overwriting work right
-    # with pytest.raises(FileExistsError):
-    with pytest.raises(Exception):
-        retdata.to_file('testfile.cdf', overwrite=False)
-    retdata.to_file('testfile.cdf', overwrite=True)
-    os.remove('testfile.cdf')
-    # # Check that dataframe is created
-    # df = retdata.as_dataframe()
-    # assert isinstance(df, pd.DataFrame)
+def test_ReturnedData_saving(tmpfile):
+    for filetype in SUPPORTED_FILETYPES:
+
+        # Check that file name and extension checking is enforced
+        retdata = ReturnedData(data=b'testtext', filetype=filetype)
+        with pytest.raises(TypeError):
+            retdata.to_file(1)
+        with pytest.raises(TypeError):
+            retdata.to_file(
+                str(tmpfile("testfile.xyz"))
+                )
+
+        # Check that not overwriting and overwriting work right
+        testfile = str(tmpfile('testfile.{}'.format(filetype)))
+        retdata.to_file(testfile)
+        # with pytest.raises(FileExistsError):  # not in py27
+        with pytest.raises(Exception):
+            retdata.to_file(
+                testfile, overwrite=False
+                )
+        retdata.to_file(
+            testfile, overwrite=True
+            )
 
 
 def test_ClientRequest():
