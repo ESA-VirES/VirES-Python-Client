@@ -6,7 +6,9 @@ python:
 - '3.6'
 install:
 - pip install -r requirements.txt
-- pip install pytest
+- pip install pytest coveralls
 - pip install .
 script:
-- py.test
+- coverage run --source=viresclient setup.py test
+after_success:
+- coveralls
