@@ -9,6 +9,6 @@ install:
 - pip install pytest coveralls
 - pip install .
 script:
-- coverage run --source=viresclient setup.py test
+- coverage run --source=viresclient setup.py py.test
 after_success:
 - coveralls
