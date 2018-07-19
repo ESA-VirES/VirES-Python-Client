@@ -189,6 +189,8 @@ class ClientRequest(object):
             response_type = "text/csv"
         elif retdata.filetype == "cdf":
             response_type = "application/x-cdf"
+        elif retdata.filetype == "netcdf":
+            response_type = "application/netcdf"
 
         if asynchronous:
             # asynchronous WPS request

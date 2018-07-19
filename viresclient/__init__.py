@@ -28,7 +28,8 @@
 #-------------------------------------------------------------------------------
 
 
-from ._client_swarm import SwarmClientRequest
+from ._client_swarm import SwarmClientRequest as SwarmRequest
+from ._client_aeolus import AeolusClientRequest as AeolusRequest
 from ._data_handling import ReturnedData
 
 __version__ = "0.2.0"

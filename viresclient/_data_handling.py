@@ -93,6 +93,7 @@ class ReturnedData(object):
     """
 
     def __init__(self, data=None, filetype=None):
+        self._supported_filetypes = ("csv", "cdf", "netcdf")
         self.data = bytes() if data is None else data
         self.filetype = str() if filetype is None else filetype
 
@@ -119,8 +120,10 @@ class ReturnedData(object):
         if not isinstance(value, str):
             raise TypeError("filetype must be a string")
         value = value.lower()
-        if value not in ("csv", "cdf"):
-            raise TypeError("Chosen filetype must be one of: 'csv', 'cdf'")
+        if value not in self._supported_filetypes:
+            raise TypeError("Chosen filetype must be one of: {}".format(
+                            self._supported_filetypes
+                            ))
         self._filetype = value
 
     def to_file(self, filename, overwrite=False, hdf=False):
@@ -138,9 +141,9 @@ class ReturnedData(object):
             raise TypeError("filename must be a string")
         if not isfile(filename) or overwrite:
             if not hdf:
-                if filename[-3:].lower() != self.filetype:
+                if filename.split('.')[-1].lower() != self.filetype:
                     raise TypeError("Filename extension should be {}".format(
-                        self.filetype.upper()
+                        self.filetype
                         ))
                 with open(filename, "wb") as f:
                     f.write(self.data)

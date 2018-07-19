@@ -1,0 +1,117 @@
+<wps:Execute version="1.0.0" service="WPS" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1">
+  <ows:Identifier>{{ processId }}</ows:Identifier>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier>collection_ids</ows:Identifier>
+      <wps:Data>
+        <wps:ComplexData mimeType="application/json">
+          {{ collection_ids|o2j }}
+        </wps:ComplexData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>begin_time</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ begin_time|d2s }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>end_time</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ end_time|d2s }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% if fields -%}
+    <wps:Input>
+      <ows:Identifier>fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if aux_type -%}
+    <wps:Input>
+      <ows:Identifier>aux_type</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ aux_type }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if observation_fields -%}
+    <wps:Input>
+      <ows:Identifier>observation_fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ observation_fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if measurement_fields -%}
+    <wps:Input>
+      <ows:Identifier>measurement_fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ measurement_fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if mie_profile_fields -%}
+    <wps:Input>
+      <ows:Identifier>mie_profile_fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ mie_profile_fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if rayleigh_profile_fields -%}
+    <wps:Input>
+      <ows:Identifier>rayleigh_profile_fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ rayleigh_profile_fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if mie_wind_fields -%}
+    <wps:Input>
+      <ows:Identifier>mie_wind_fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ mie_wind_fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if rayleigh_wind_fields -%}
+    <wps:Input>
+      <ows:Identifier>rayleigh_wind_fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ rayleigh_wind_fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if filters -%}
+    <wps:Input>
+      <ows:Identifier>filters</ows:Identifier>
+      <wps:Data>
+        <wps:ComplexData mimeType="application/json">
+          <![CDATA[{{ filters }}]]>
+        </wps:ComplexData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if bbox -%}
+    <wps:Input>
+      <ows:Identifier>bbox</ows:Identifier>
+      <wps:Data>
+        <wps:BoundingBoxData crs="http://www.opengis.net/def/crs/EPSG/0/4326">
+          <ows:LowerCorner>{{ bbox_lower }}</ows:LowerCorner>
+          <ows:UpperCorner>{{ bbox_upper }}</ows:UpperCorner>
+        </wps:BoundingBoxData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:ResponseDocument lineage="true" storeExecuteResponse="true" status="true">
+      <wps:Output mimeType="{{ response_type }}">
+        <ows:Identifier>output</ows:Identifier>
+      </wps:Output>
+    </wps:ResponseDocument>
+  </wps:ResponseForm>
+</wps:Execute>
