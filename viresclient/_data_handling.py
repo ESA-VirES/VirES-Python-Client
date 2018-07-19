@@ -36,12 +36,53 @@ except ImportError:
     # Python 2 backward compatibility
     import StringIO as BytesIO
 
+import numpy
 import pandas
+import xarray
 import cdflib
 
 from ._wps import time_util
 
 CDF_EPOCH_1970 = 62167219200000.0
+
+
+def _fix_Dataset_column(da):
+    """
+    If column (i.e. a DataArray) is 1D (i.e. consists of scalars):
+    Attach 'times' as the coordinates
+    If column is 2D:
+    Convert the DataArray from a stack of lists to a ND array
+    Attach 'time' and 'dim':(0,1,2,..) as the coordinates
+    """
+    data = numpy.stack(da.values)
+    times = da.coords['Timestamp'].values
+#     lats = da['Latitude'].values
+#     lons = da['Longitude'].values
+    if len(data.shape) == 1:
+        # scalars
+        return xarray.DataArray(data, coords=[times], dims=['time'])
+    elif len(data.shape) == 2:
+        # N-dimensional vectors will be labelled with 0,1,2...
+        locs = [i for i in range(data.shape[1])]
+#         locs = ['N','E','C']  # could be introduced depending on the column name
+        return xarray.DataArray(data,
+                                coords=[times, locs],
+                                dims=['time', 'dim']
+                                )
+    else:
+        raise NotImplementedError("Array too complicated...")
+
+
+def _DataFrame_to_xarrayDataset(df):
+    """Convert pandas DataFrame to xarray Dataset
+    """
+    # Transfer to Dataset
+    ds = xarray.Dataset.from_dataframe(df)
+    # Change vector columns accordingly and set coordinates (time,dim)
+    ds = xarray.Dataset(
+        {column: _fix_Dataset_column(ds[column]) for column in df}
+        )
+    return ds
 
 
 class ReturnedData(object):
@@ -183,3 +224,16 @@ class ReturnedData(object):
             print("Removed cdftempfile.CDF")
         df.set_index('Timestamp', inplace=True)
         return df
+
+    def as_xarray(self):
+        """Convert the data to an xarray Dataset.
+
+        Note:
+            Currently saves a temporary CDF file, and goes via a DataFrame
+
+        Returns:
+            Dataset
+
+        """
+        ds = _DataFrame_to_xarrayDataset(self.as_dataframe())
+        return ds
