@@ -42,7 +42,7 @@
       </wps:Data>
     </wps:Input>
     {% endif -%}
-    {% if subsample -%}
+    {% if sampling_step -%}
     <wps:Input>
       <ows:Identifier>sampling_step</ows:Identifier>
       <wps:Data>
