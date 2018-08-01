@@ -67,6 +67,8 @@ def wps_xml_request(templatefile, inputs):
      templatefile (str): Name of the xml template file
      input (WPSInputs): Contains valid parameters to fill the template
     """
+    if not isinstance(inputs, WPSInputs):
+        raise TypeError("inputs must be a WPSInputs object")
     template = JINJA2_ENVIRONMENT.get_template(templatefile)
     request = template.render(**inputs.as_dict).encode('UTF-8')
     return request
@@ -74,10 +76,29 @@ def wps_xml_request(templatefile, inputs):
 
 class WPSInputs(object):
     """Holds the set of inputs to be passed to the request template
+
+    Properties of this class are the set of valid inputs to a WPS request.
+    See SwarmWPSInputs and AeolusWPSInputs.
+    Also contains an as_dict property which converts its contents to a
+    dictionary to be passed as kwargs to wps_xml_request() which fills the xml
+    template.
     """
 
     def __init__(self):
-        pass
+        self.names = ()
+
+    def __str__(self):
+        if len(self.names) == 0:
+            return None
+        else:
+            return "Request details:\n{}".format('\n'.join(
+                ['{}: {}'.format(key, value) for (key, value) in
+                 self.as_dict.items()
+                 ]))
+
+    @property
+    def as_dict(self):
+        return {key: self.__dict__['_{}'.format(key)] for key in self.names}
 
 
 class ProgressBar(object):
@@ -127,7 +148,7 @@ class ProgressBar(object):
 class ClientRequest(object):
     """Handles the requests to and downloads from the server.
 
-    See SwarmClientRequest
+    See SwarmClientRequest and AeolusClientRequest
     """
 
     def __init__(self, url=None, username=None, password=None,
@@ -156,10 +177,10 @@ class ClientRequest(object):
         )
 
     def __str__(self):
-        return "Request details:\n{}".format('\n'.join(
-            ['{}: {}'.format(key, value) for (key, value) in
-             self._request_inputs.as_dict.items()
-             ]))
+        if self._request_inputs is None:
+            return "No request set"
+        else:
+            return self._request_inputs.__str__()
 
     def get_between(self, start_time, end_time, filetype="csv", asynchronous=True):
         """Make the server request and download the data.
@@ -205,8 +226,6 @@ class ClientRequest(object):
         self._request_inputs.response_type = response_type
 
         self._request = wps_xml_request(templatefile, self._request_inputs)
-
-        print(self)
 
         try:
             if asynchronous:
