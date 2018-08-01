@@ -4,3 +4,4 @@ pandas<0.21; python_version == '3.4'
 cdflib
 tables
 tqdm
+xarray

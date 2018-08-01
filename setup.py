@@ -63,10 +63,11 @@ setup(
     },
     install_requires=['Jinja2',
                       'pandas;python_version>="3.5"',
-                      'pandas<0.21;python_version<"3.5.0"',
+                      'pandas<0.21;python_version<"3.5"',
                       'cdflib',
                       'tables',
-                      'tqdm'],
+                      'tqdm',
+                      'xarray'],
     setup_requires=['pytest-runner'],
     tests_require=['pytest']
 )
