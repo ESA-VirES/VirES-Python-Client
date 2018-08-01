@@ -63,7 +63,7 @@ setup(
     },
     install_requires=['Jinja2',
                       'pandas;python_version>="3.5"',
-                      'pandas<0.21;python_version<"3.5"',
+                      'pandas<0.21;python_version<"3.5.0"',
                       'cdflib',
                       'tables',
                       'tqdm'],
