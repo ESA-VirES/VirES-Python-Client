@@ -8,6 +8,8 @@ from ._data_handling import ReturnedData
 
 
 class SwarmWPSInputs(WPSInputs):
+    """Holds the set of inputs to be passed to the request template for Swarm
+    """
 
     def __init__(self,
                  collection_ids=None,
@@ -18,12 +20,14 @@ class SwarmWPSInputs(WPSInputs):
                  filters=None,
                  sampling_step=None,
                  response_type=None):
-        # Obligatory
+        # Set up default values
+        # Obligatory - these must be replaced before the request is made
         self.collection_ids = None if collection_ids is None else collection_ids
         self.begin_time = None if begin_time is None else begin_time
         self.end_time = None if end_time is None else end_time
         self.response_type = None if response_type is None else response_type
-        # Optional
+        # Optional - these defaults will be used if not replaced before the
+        #            request is made
         self.model_ids = [] if model_ids is None else model_ids
         self.variables = [] if variables is None else variables
         self.filters = None if filters is None else filters
@@ -38,10 +42,6 @@ class SwarmWPSInputs(WPSInputs):
                       'sampling_step',
                       'response_type'
                       )
-
-    @property
-    def as_dict(self):
-        return {key: self.__dict__['_{}'.format(key)] for key in self.names}
 
     @property
     def collection_ids(self):
@@ -371,6 +371,11 @@ class SwarmClientRequest(ClientRequest):
             filters = ';'.join(self._filterlist)
         # Update the SwarmWPSInputs object
         self._request_inputs.filters = filters
+
+    def clear_range_filter(self):
+        """Remove all applied filters."""
+        self._filterlist = []
+        self._request_inputs.filters = None
 
     def get_times_for_orbits(self, spacecraft, start_orbit, end_orbit):
         """Translate a pair of orbit numbers to a time interval.
