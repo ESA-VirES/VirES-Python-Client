@@ -3,7 +3,8 @@ import os
 import pandas as pd
 
 from viresclient._data_handling import ReturnedData
-from viresclient import ClientRequest
+from viresclient._client import ClientRequest
+from viresclient import SwarmRequest, AeolusRequest
 import viresclient
 
 SUPPORTED_FILETYPES = ('csv', 'cdf')
@@ -72,6 +73,14 @@ def test_ClientRequest():
     """Test that a ClientRequest gets set up correctly.
     """
     request = ClientRequest('', '', '')
+    assert isinstance(request._wps_service,
+                      viresclient._wps.wps_vires.ViresWPS10Service
+                      )
+    request = SwarmRequest('', '', '')
+    assert isinstance(request._wps_service,
+                      viresclient._wps.wps_vires.ViresWPS10Service
+                      )
+    request = AeolusRequest('', '', '')
     assert isinstance(request._wps_service,
                       viresclient._wps.wps_vires.ViresWPS10Service
                       )
