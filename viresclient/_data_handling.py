@@ -35,6 +35,7 @@ try:
 except ImportError:
     # Python 2 backward compatibility
     import StringIO as BytesIO
+import tempfile
 
 import numpy
 import pandas
@@ -42,6 +43,7 @@ import xarray
 import cdflib
 
 from ._wps import time_util
+from viresclient import VIRESCLIENT_DEFAULT_FILE_DIR
 
 CDF_EPOCH_1970 = 62167219200000.0
 
@@ -92,24 +94,13 @@ class ReturnedData(object):
     Provides output to different file types.
     """
 
-    def __init__(self, data=None, filetype=None):
+    def __init__(self, filetype=None):
         self._supported_filetypes = ("csv", "cdf", "netcdf")
-        self.data = bytes() if data is None else data
         self.filetype = str() if filetype is None else filetype
 
     def __str__(self):
         return "viresclient ReturnedData object of type " + self.filetype + \
             "\nSave it to a file with .to_file('filename')"
-
-    @property
-    def data(self):
-        return self._data
-
-    @data.setter
-    def data(self, value):
-        if not isinstance(value, bytes):
-            raise TypeError("data must be of type bytes")
-        self._data = value
 
     @property
     def filetype(self):
@@ -125,6 +116,23 @@ class ReturnedData(object):
                             self._supported_filetypes
                             ))
         self._filetype = value
+
+
+class ReturnedDataInMemory(ReturnedData):
+
+    def __init__(self, data=None, filetype=None):
+        super().__init__(filetype=filetype)
+        self.data = bytes() if data is None else data
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        if not isinstance(value, bytes):
+            raise TypeError("data must be of type bytes")
+        self._data = value
 
     def to_file(self, filename, overwrite=False, hdf=False):
         """Saves the data to the specified file.
@@ -201,30 +209,31 @@ class ReturnedData(object):
                                     float(y) for y in x.strip('{}').split(';')
                                 ])
         elif self.filetype == 'cdf':
-            self.to_file('cdftempfile.CDF', overwrite=True)
-            try:
-                cdf = cdflib.CDF('cdftempfile.CDF')
-                keys = cdf.cdf_info()['zVariables']
-                vals = [cdf.varget(key) for key in keys]
-            except Exception:
-                # print("Bad or empty cdf. Returning an empty dataframe.")
-                remove('cdftempfile.CDF')
-                # return pandas.DataFrame()
-                raise Exception("Bad or empty cdf.")
-            if all(v is None for v in vals):
-                # Returns empty dataframe when retrieval from server is empty
-                df = pandas.DataFrame(columns=keys)
-                print("No data available")
-            else:
-                d = {key: list(value) for key, value in zip(keys, vals)}
-                df = pandas.DataFrame.from_dict(d)
-                df['Timestamp'] = df['Timestamp'].apply(
-                    lambda x: time_util.unix_epoch_to_datetime(
-                        (x-CDF_EPOCH_1970)*1e-3
+            # Currently need to write to a *named* temporary file,
+            # in order to use cdflib (which requires a file name to point to)
+            # Would be better to hold it in memory using SpooledTemporaryFile
+            with tempfile.NamedTemporaryFile() as temp_cdf:
+                temp_cdf.write(self.data)
+                try:
+                    cdf = cdflib.CDF(temp_cdf.name)
+                    keys = cdf.cdf_info()['zVariables']
+                    vals = [cdf.varget(key) for key in keys]
+                except Exception:
+                    # print("Bad or empty cdf. Returning an empty dataframe.")
+                    # return pandas.DataFrame()
+                    raise Exception("Bad or empty cdf.")
+                if all(v is None for v in vals):
+                    # Returns empty dataframe when retrieval from server is empty
+                    df = pandas.DataFrame(columns=keys)
+                    print("No data available")
+                else:
+                    d = {key: list(value) for key, value in zip(keys, vals)}
+                    df = pandas.DataFrame.from_dict(d)
+                    df['Timestamp'] = df['Timestamp'].apply(
+                        lambda x: time_util.unix_epoch_to_datetime(
+                            (x-CDF_EPOCH_1970)*1e-3
+                            )
                         )
-                    )
-            remove('cdftempfile.CDF')
-            print("Removed cdftempfile.CDF")
         df.set_index('Timestamp', inplace=True)
         return df
 
@@ -240,3 +249,16 @@ class ReturnedData(object):
         """
         ds = _DataFrame_to_xarrayDataset(self.as_dataframe())
         return ds
+
+
+class ReturnedDataOnDisk(ReturnedData):
+
+    def __init__(self, data_path=None, filetype=None):
+        super().__init__(filetype=filetype)
+        self.data_path = data_path
+
+    @property
+    def _data(self):
+        with open(self.data_path, "rb") as data_file:
+            data = data_file.read()
+        return data

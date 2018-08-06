@@ -31,6 +31,9 @@
 import datetime
 import json
 from tqdm import tqdm
+from os import path, mkdir
+from datetime import datetime
+import shutil
 
 from ._wps.wps_vires import ViresWPS10Service
 # from .wps.time_util import parse_datetime
@@ -42,7 +45,8 @@ from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps import time_util
 from ._wps.wps import WPSError
 
-from ._data_handling import ReturnedData
+from viresclient import VIRESCLIENT_DEFAULT_FILE_DIR
+from ._data_handling import ReturnedDataInMemory, ReturnedDataOnDisk
 
 LEVELS = {
     "DEBUG": DEBUG,
@@ -152,7 +156,9 @@ class ClientRequest(object):
     """
 
     def __init__(self, url=None, username=None, password=None,
-                 logging_level="NO_LOGGING", server_type="Swarm"):
+                 logging_level="NO_LOGGING", server_type="Swarm",
+                 files_dir=VIRESCLIENT_DEFAULT_FILE_DIR
+                 ):
 
         for i in [url, username, password]:
             if not isinstance(i, str):
@@ -176,20 +182,31 @@ class ClientRequest(object):
             logger=self._logger
         )
 
+        self.files_dir = files_dir
+        if not path.exists(self.files_dir):
+            mkdir(self.files_dir)
+        self._logger.info(
+            "Set directory for saving files locally: ".format(self.files_dir)
+        )
+
     def __str__(self):
         if self._request_inputs is None:
             return "No request set"
         else:
             return self._request_inputs.__str__()
 
-    def get_between(self, start_time, end_time, filetype="csv", asynchronous=True):
+    def get_between(self, start_time, end_time,
+                    filetype="csv", asynchronous=True, on_disk=False):
         """Make the server request and download the data.
 
         Args:
             start_time (datetime)
             end_time (datetime)
             filetype (str): one of ('csv', 'cdf')
-            asynchronous (bool): True for asynchronous processing, False for synchronous
+            asynchronous (bool): True for asynchronous processing,
+                False for synchronous
+            on_disk (bool): If True, save file directly on disk
+                instead of holding in memory
 
         Returns:
             ReturnedData object
@@ -200,7 +217,10 @@ class ClientRequest(object):
             raise TypeError("asynchronous must be set to either True or False")
 
         # Initialise the ReturnedData so that filetype checking is done there
-        retdata = ReturnedData(filetype=filetype)
+        if on_disk:
+            retdata = ReturnedDataOnDisk(filetype=filetype)
+        else:
+            retdata = ReturnedDataInMemory(filetype=filetype)
 
         if retdata.filetype not in self._supported_filetypes:
             raise TypeError("filetype: {} not supported by server"
@@ -227,16 +247,48 @@ class ClientRequest(object):
 
         self._request = wps_xml_request(templatefile, self._request_inputs)
 
+        if on_disk:
+            # Save to a file named with the current time
+            file_name = '.'.join([
+                datetime.now().strftime('%Y%m%d%H%M%S'),
+                retdata.filetype
+                ])
+            self.file_path = path.join(self.files_dir, file_name)
+            if path.exists(self.file_path):
+                raise Exception('File exists already')
+
+            def write_response_to_disk(file_obj):
+                """Acts on a file object to copy it to a file
+                https://stackoverflow.com/a/7244263
+                """
+                with open(self.file_path, 'wb') as out_file:
+                    shutil.copyfileobj(file_obj, out_file)
+
+            response_handler = write_response_to_disk
+
+        else:
+            response_handler = None
+
         try:
             if asynchronous:
                 with ProgressBar() as progressbar:
                     response = self._wps_service.retrieve_async(
-                        self._request, status_handler=progressbar.update
+                        self._request,
+                        handler=response_handler,
+                        status_handler=progressbar.update
                     )
             else:
-                response = self._wps_service.retrieve(self._request)
+                response = self._wps_service.retrieve(
+                    self._request,
+                    handler=response_handler
+                )
         except WPSError:
-            raise RuntimeError("Server error - may be outside of product availability")
+            raise RuntimeError(
+                "Server error - may be outside of product availability?"
+                )
 
-        retdata.data = response
+        if on_disk:
+            retdata.data_path = self.file_path
+        else:
+            retdata.data = response
         return retdata
