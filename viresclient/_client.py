@@ -31,7 +31,7 @@
 import datetime
 import json
 from tqdm import tqdm
-from os import path, mkdir
+from os import path, mkdir, SEEK_END
 from datetime import datetime
 import shutil
 
@@ -46,7 +46,7 @@ from ._wps import time_util
 from ._wps.wps import WPSError
 
 from viresclient import VIRESCLIENT_DEFAULT_FILE_DIR
-from ._data_handling import ReturnedDataInMemory, ReturnedDataOnDisk
+from ._data_handling import ReturnedDataInMemory, ReturnedDataOnDisk,ReturnedDataSpooled
 
 LEVELS = {
     "DEBUG": DEBUG,
@@ -109,14 +109,10 @@ class ProgressBar(object):
     """Generates a progress bar from the WPS status.
     """
 
-    def __init__(self):
+    def __init__(self, bar_format):
         self.percentCompleted = 0
         self.lastpercent = 0
 
-        l_bar = 'Processing: {percentage:3.0f}%|'
-        bar = '{bar}'
-        r_bar = '|  [ Elapsed: {elapsed}, Remaining: {remaining} {postfix}]'
-        bar_format = '{}{}{}'.format(l_bar, bar, r_bar)
         self.tqdm_pbar = tqdm(total=100, bar_format=bar_format)
 
         self.refresh_tqdm()
@@ -130,14 +126,6 @@ class ProgressBar(object):
     def cleanup(self):
         self.tqdm_pbar.close()
 
-    def update(self, wpsstatus):
-        """Updates the internal state based on the state of a WPSStatus object.
-        """
-        self.lastpercent = self.percentCompleted
-        self.percentCompleted = wpsstatus.percentCompleted
-        if self.lastpercent != self.percentCompleted:
-            self.refresh_tqdm()
-
     def refresh_tqdm(self):
         """Updates the output of the progress bar.
         """
@@ -146,7 +134,43 @@ class ProgressBar(object):
         self.tqdm_pbar.update(self.percentCompleted-self.lastpercent)
         if self.percentCompleted == 100:
             self.cleanup()
-            print('Downloading...')
+            # print('Downloading...')
+
+
+class ProgressBarProcessing(ProgressBar):
+
+    def __init__(self):
+        l_bar = 'Processing:  {percentage:3.0f}%|'
+        bar = '{bar}'
+        r_bar = '|  [ Elapsed: {elapsed}, Remaining: {remaining} {postfix}]'
+        bar_format = '{}{}{}'.format(l_bar, bar, r_bar)
+        super().__init__(bar_format)
+
+    def update(self, wpsstatus):
+        """Updates the internal state based on the state of a WPSStatus object.
+        """
+        self.lastpercent = self.percentCompleted
+        self.percentCompleted = wpsstatus.percentCompleted
+        if self.lastpercent != self.percentCompleted:
+            self.refresh_tqdm()
+
+
+class ProgressBarDownloading(ProgressBar):
+
+    def __init__(self):
+        l_bar = 'Downloading: {percentage:3.0f}%|'
+        bar = '{bar}'
+        r_bar = '|  [ Elapsed: {elapsed}, Remaining: {remaining} {postfix}]'
+        bar_format = '{}{}{}'.format(l_bar, bar, r_bar)
+        super().__init__(bar_format)
+
+    def update(self, percentCompleted):
+        """Updates the internal state based on the state of a WPSStatus object.
+        """
+        self.lastpercent = self.percentCompleted
+        self.percentCompleted = percentCompleted
+        if self.lastpercent != self.percentCompleted:
+            self.refresh_tqdm()
 
 
 class ClientRequest(object):
@@ -196,7 +220,7 @@ class ClientRequest(object):
             return self._request_inputs.__str__()
 
     def get_between(self, start_time, end_time,
-                    filetype="csv", asynchronous=True, on_disk=False):
+                    filetype="csv", asynchronous=True, on_disk=False, spool=True):
         """Make the server request and download the data.
 
         Args:
@@ -221,6 +245,8 @@ class ClientRequest(object):
             retdata = ReturnedDataOnDisk(filetype=filetype)
         else:
             retdata = ReturnedDataInMemory(filetype=filetype)
+        if spool:
+            retdata = ReturnedDataSpooled(filetype=filetype)
 
         if retdata.filetype not in self._supported_filetypes:
             raise TypeError("filetype: {} not supported by server"
@@ -247,7 +273,43 @@ class ClientRequest(object):
 
         self._request = wps_xml_request(templatefile, self._request_inputs)
 
-        if on_disk:
+        if spool:
+            out_file = retdata.file
+
+            def copyfileobj(fsrc, fdst, callback, total, length=16*1024):
+                """Copying with progress reporting
+                https://stackoverflow.com/a/29967714
+                """
+                copied = 0
+                while True:
+                    buf = fsrc.read(length)
+                    if not buf:
+                        break
+                    fdst.write(buf)
+                    copied += len(buf)
+                    callback(copied=copied, total=total)
+
+            def copy_progress(pbar):
+                def _copy_progress(copied, total):
+                    return pbar.update(100*copied/total)
+                return _copy_progress
+
+            def write_response_to_disk(file_obj):
+                """Acts on a file object to copy it to another file
+                https://stackoverflow.com/a/7244263
+                file_obj is what is returned from urllib.urlopen()
+                """
+                size = int(file_obj.info()['Content-Length'])
+                # pbar = ProgressBarDownloading()
+                with ProgressBarDownloading() as pbar:
+                    copyfileobj(
+                        file_obj, out_file, callback=copy_progress(pbar),
+                        total=size
+                        )
+                # pbar.close()
+
+            response_handler = write_response_to_disk
+        elif on_disk:
             # Save to a file named with the current time
             file_name = '.'.join([
                 datetime.now().strftime('%Y%m%d%H%M%S'),
@@ -271,7 +333,7 @@ class ClientRequest(object):
 
         try:
             if asynchronous:
-                with ProgressBar() as progressbar:
+                with ProgressBarProcessing() as progressbar:
                     response = self._wps_service.retrieve_async(
                         self._request,
                         handler=response_handler,
@@ -287,7 +349,9 @@ class ClientRequest(object):
                 "Server error - may be outside of product availability?"
                 )
 
-        if on_disk:
+        if spool:
+            return retdata
+        elif on_disk:
             retdata.data_path = self.file_path
         else:
             retdata.data = response

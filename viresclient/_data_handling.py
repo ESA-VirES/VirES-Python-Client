@@ -262,3 +262,16 @@ class ReturnedDataOnDisk(ReturnedData):
         with open(self.data_path, "rb") as data_file:
             data = data_file.read()
         return data
+
+
+class ReturnedDataSpooled(ReturnedData):
+
+    def __init__(self, filetype=None):
+        super().__init__(filetype=filetype)
+        # SpooledTemporaryFile which switches to disk when over 100MB
+        self._file = tempfile.SpooledTemporaryFile(max_size=1e8)
+
+    # @property
+    # def file(self):
+    #     self._file.seek(0)
+    #     return self._file
