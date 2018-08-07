@@ -432,6 +432,9 @@ class SwarmClientRequest(ClientRequest):
             response_type="text/csv"
         )
         request = wps_xml_request(self._templatefiles['sync'], request_inputs)
-        response = self._wps_service.retrieve(request)
-        retdata = ReturnedData(data=response, filetype="csv")
+        retdata = ReturnedData(filetype="csv")
+        response_handler = self._response_handler(
+            retdata.file, show_progress=False
+        )
+        response = self._wps_service.retrieve(request, handler=response_handler)
         return retdata.as_dataframe()["OrbitNumber"][0]

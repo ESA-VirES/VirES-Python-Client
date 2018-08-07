@@ -180,7 +180,7 @@ class AeolusClientRequest(ClientRequest):
             'async': "vires_aeolus_fetch_filtered_data_async.xml"
             }
         self._filterlist = []
-        self._supported_filetypes = ("netcdf",)
+        self._supported_filetypes = ("nc",)
 
     def set_collection(self, collection):
         # self._request_inputs.set_collection = collection

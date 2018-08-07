@@ -33,7 +33,6 @@ import json
 from tqdm import tqdm
 from os import path, mkdir, SEEK_END
 from datetime import datetime
-import shutil
 
 from ._wps.wps_vires import ViresWPS10Service
 # from .wps.time_util import parse_datetime
@@ -46,7 +45,7 @@ from ._wps import time_util
 from ._wps.wps import WPSError
 
 from viresclient import VIRESCLIENT_DEFAULT_FILE_DIR
-from ._data_handling import ReturnedDataInMemory, ReturnedDataOnDisk,ReturnedDataSpooled
+from ._data_handling import ReturnedData
 
 LEVELS = {
     "DEBUG": DEBUG,
@@ -54,6 +53,12 @@ LEVELS = {
     "WARNING": WARNING,
     "ERROR": ERROR,
     "NO_LOGGING": CRITICAL + 1,
+}
+
+RESPONSE_TYPES = {
+    "csv": "text/csv",
+    "cdf": "application/x-cdf",
+    "nc": "application/netcdf"
 }
 
 
@@ -157,10 +162,16 @@ class ProgressBarProcessing(ProgressBar):
 
 class ProgressBarDownloading(ProgressBar):
 
-    def __init__(self):
+    def __init__(self, size):
+        # Convert size to MB
+        sizeMB = round(size/1e6, 3)
+        # if sizeMB > 1:
+        #     sizeMB = round(sizeMB,)
         l_bar = 'Downloading: {percentage:3.0f}%|'
         bar = '{bar}'
-        r_bar = '|  [ Elapsed: {elapsed}, Remaining: {remaining} {postfix}]'
+        r_bar = '|  [ Elapsed: {{elapsed}}, '\
+                'Remaining: {{remaining}} {{postfix}}] '\
+                '({sizeMB}MB)'.format(sizeMB=sizeMB)
         bar_format = '{}{}{}'.format(l_bar, bar, r_bar)
         super().__init__(bar_format)
 
@@ -219,8 +230,62 @@ class ClientRequest(object):
         else:
             return self._request_inputs.__str__()
 
+    # def _get_request(self, request_inputs, asynchronous=True):
+    #
+    #     if asynchronous not in [True, False]:
+    #         raise TypeError("asynchronous must be set to either True or False")
+    #
+    #     # Initialise the ReturnedData so that filetype checking is done there
+    #     retdata = ReturnedDataSpooled(filetype=filetype)
+
+    @staticmethod
+    def _response_handler(out_file, show_progress=True):
+        """Creates the response handler function for the WPS request
+
+        Streams the remote file to the local, with a download progress bar
+        """
+
+        def copyfileobj(fsrc, fdst, callback=None, total=None, length=16*1024):
+            """Copying with progress reporting
+            https://stackoverflow.com/a/29967714
+            """
+            copied = 0
+            while True:
+                buf = fsrc.read(length)
+                if not buf:
+                    break
+                fdst.write(buf)
+                copied += len(buf)
+                if callback:
+                    callback(copied=copied, total=total)
+
+        def copy_progress(pbar):
+            def _copy_progress(copied, total):
+                return pbar.update(100*copied/total)
+            return _copy_progress
+
+        def _write_response(file_obj):
+            """Acts on a file object to copy it to another file
+            https://stackoverflow.com/a/7244263
+            file_obj is what is returned from urllib.urlopen()
+            """
+            size = int(file_obj.info()['Content-Length'])
+            with ProgressBarDownloading(size) as pbar:
+                copyfileobj(
+                    file_obj, out_file, callback=copy_progress(pbar),
+                    total=size
+                    )
+
+        def _write_response_without_reporting(file_obj):
+            copyfileobj(file_obj, out_file)
+
+        if show_progress:
+            return _write_response
+        else:
+            return _write_response_without_reporting
+
     def get_between(self, start_time, end_time,
-                    filetype="csv", asynchronous=True, on_disk=False, spool=True):
+                    filetype="cdf", asynchronous=True):
         """Make the server request and download the data.
 
         Args:
@@ -229,8 +294,6 @@ class ClientRequest(object):
             filetype (str): one of ('csv', 'cdf')
             asynchronous (bool): True for asynchronous processing,
                 False for synchronous
-            on_disk (bool): If True, save file directly on disk
-                instead of holding in memory
 
         Returns:
             ReturnedData object
@@ -241,23 +304,13 @@ class ClientRequest(object):
             raise TypeError("asynchronous must be set to either True or False")
 
         # Initialise the ReturnedData so that filetype checking is done there
-        if on_disk:
-            retdata = ReturnedDataOnDisk(filetype=filetype)
-        else:
-            retdata = ReturnedDataInMemory(filetype=filetype)
-        if spool:
-            retdata = ReturnedDataSpooled(filetype=filetype)
+        retdata = ReturnedData(filetype=filetype)
 
         if retdata.filetype not in self._supported_filetypes:
             raise TypeError("filetype: {} not supported by server"
                             .format(filetype)
                             )
-        if retdata.filetype == "csv":
-            response_type = "text/csv"
-        elif retdata.filetype == "cdf":
-            response_type = "application/x-cdf"
-        elif retdata.filetype == "netcdf":
-            response_type = "application/netcdf"
+        response_type = RESPONSE_TYPES[retdata.filetype]
 
         if asynchronous:
             # asynchronous WPS request
@@ -273,63 +326,7 @@ class ClientRequest(object):
 
         self._request = wps_xml_request(templatefile, self._request_inputs)
 
-        if spool:
-            out_file = retdata.file
-
-            def copyfileobj(fsrc, fdst, callback, total, length=16*1024):
-                """Copying with progress reporting
-                https://stackoverflow.com/a/29967714
-                """
-                copied = 0
-                while True:
-                    buf = fsrc.read(length)
-                    if not buf:
-                        break
-                    fdst.write(buf)
-                    copied += len(buf)
-                    callback(copied=copied, total=total)
-
-            def copy_progress(pbar):
-                def _copy_progress(copied, total):
-                    return pbar.update(100*copied/total)
-                return _copy_progress
-
-            def write_response_to_disk(file_obj):
-                """Acts on a file object to copy it to another file
-                https://stackoverflow.com/a/7244263
-                file_obj is what is returned from urllib.urlopen()
-                """
-                size = int(file_obj.info()['Content-Length'])
-                # pbar = ProgressBarDownloading()
-                with ProgressBarDownloading() as pbar:
-                    copyfileobj(
-                        file_obj, out_file, callback=copy_progress(pbar),
-                        total=size
-                        )
-                # pbar.close()
-
-            response_handler = write_response_to_disk
-        elif on_disk:
-            # Save to a file named with the current time
-            file_name = '.'.join([
-                datetime.now().strftime('%Y%m%d%H%M%S'),
-                retdata.filetype
-                ])
-            self.file_path = path.join(self.files_dir, file_name)
-            if path.exists(self.file_path):
-                raise Exception('File exists already')
-
-            def write_response_to_disk(file_obj):
-                """Acts on a file object to copy it to a file
-                https://stackoverflow.com/a/7244263
-                """
-                with open(self.file_path, 'wb') as out_file:
-                    shutil.copyfileobj(file_obj, out_file)
-
-            response_handler = write_response_to_disk
-
-        else:
-            response_handler = None
+        response_handler = self._response_handler(retdata.file)
 
         try:
             if asynchronous:
@@ -349,10 +346,4 @@ class ClientRequest(object):
                 "Server error - may be outside of product availability?"
                 )
 
-        if spool:
-            return retdata
-        elif on_disk:
-            retdata.data_path = self.file_path
-        else:
-            retdata.data = response
         return retdata

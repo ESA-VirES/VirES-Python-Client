@@ -36,6 +36,7 @@ except ImportError:
     # Python 2 backward compatibility
     import StringIO as BytesIO
 import tempfile
+import shutil
 
 import numpy
 import pandas
@@ -91,16 +92,48 @@ class ReturnedData(object):
     """Flexible object for handling data returned from the server.
 
     Holds the data returned from the server and the data type.
+    Data is held in a NamedTemporaryFile. It is automatically closed & destroyed
+     when it goes out of scope.
     Provides output to different file types.
     """
 
     def __init__(self, filetype=None):
-        self._supported_filetypes = ("csv", "cdf", "netcdf")
+        self._supported_filetypes = ("csv", "cdf", "nc")
         self.filetype = str() if filetype is None else filetype
+        # SpooledTemporaryFile may be quicker on very small file sizes (<1MB?)
+        # Depends on the machine it is running on - choose the directory of the temp file?
+        # But need to do some extra work for cdf->dataframe support
+        # self._file = tempfile.SpooledTemporaryFile(max_size=1e8)
+        self._file = tempfile.NamedTemporaryFile()
+        # Add an option for storing to a regular file directly?
 
     def __str__(self):
         return "viresclient ReturnedData object of type " + self.filetype + \
             "\nSave it to a file with .to_file('filename')"
+
+    @property
+    def file(self):
+        return self._file
+
+    @property
+    def _data(self):
+        self.file.seek(0)
+        return self.file.read()
+
+    def _write_new_data(self, data):
+        """Replace the tempfile contents with 'data' (bytes)
+        """
+        if not isinstance(data, bytes):
+            raise TypeError("data must be of type bytes")
+        self.file.seek(0)
+        self.file.write(data)
+
+    def _write_file(self, filename):
+        """Write the tempfile out to a regular file
+        """
+        self.file.seek(0)
+        with open(filename, 'wb') as out_file:
+            shutil.copyfileobj(self.file, out_file)
 
     @property
     def filetype(self):
@@ -117,56 +150,56 @@ class ReturnedData(object):
                             ))
         self._filetype = value
 
-
-class ReturnedDataInMemory(ReturnedData):
-
-    def __init__(self, data=None, filetype=None):
-        super().__init__(filetype=filetype)
-        self.data = bytes() if data is None else data
-
-    @property
-    def data(self):
-        return self._data
-
-    @data.setter
-    def data(self, value):
-        if not isinstance(value, bytes):
-            raise TypeError("data must be of type bytes")
-        self._data = value
-
-    def to_file(self, filename, overwrite=False, hdf=False):
-        """Saves the data to the specified file.
-
-        Only write to file if it does not yet exist, or if overwrite=True.
-        If hdf=True, convert to an HDF5 file.
-
-        Args:
-            filename (str): path to the file to save as
-            overwrite (bool): Will overwrite existing file if True
-            hdf (bool): Will convert to an HDF5 file if True
+    @staticmethod
+    def _check_outfile(path, path_extension, overwrite=False):
+        """Check validity of path and extension, and if it exists already
         """
-        if not isinstance(filename, str):
-            raise TypeError("filename must be a string")
-        if not isfile(filename) or overwrite:
-            if not hdf:
-                if filename.split('.')[-1].lower() != self.filetype:
-                    raise TypeError("Filename extension should be {}".format(
-                        self.filetype
-                        ))
-                with open(filename, "wb") as f:
-                    f.write(self.data)
-            elif hdf:
-                if filename[-3:] != ".h5":
-                    raise TypeError("Filename extension should be .h5")
-                # Convert to dataframe.
-                df = self.as_dataframe()
-                df.to_hdf(filename, "data", mode="w")
-            print("Data written to", filename)
-        else:
-            # raise FileExistsError(    # doesn't exist in py27
+        if not isinstance(path, str):
+            raise TypeError("path must be a string")
+        if path.split('.')[-1].lower() != path_extension:
+            raise TypeError("Filename extension should be {}".format(
+                path_extension
+                ))
+        if isfile(path) and not overwrite:
             raise Exception(
                 "File not written as it already exists and overwrite=False"
                 )
+
+    def to_file(self, path, overwrite=False):
+        """Saves the data to the specified file.
+
+        Only write to file if it does not yet exist, or if overwrite=True.
+        Currently handles CSV and CDF formats.
+
+        Args:
+            path (str): path to the file to save as
+            overwrite (bool): Will overwrite existing file if True
+        """
+        self._check_outfile(path, self.filetype, overwrite)
+        self._write_file(path)
+        print("Data written to", path)
+
+    # def to_hdf(self, path, overwrite=False):
+    #     """Saves the data as an HDF5 file
+    #
+    #     Extension should be .h5
+    #     """
+    #     self._check_outfile(path, 'h5', overwrite)
+    #     # Convert to dataframe.
+    #     df = self.as_dataframe()
+    #     df.to_hdf(path, "data", mode="w")
+    #     print("Data written to", path)
+
+    def to_netcdf(self, path, overwrite=False):
+        """Saves the data as a netCDF4 file (this is compatible with HDF5)
+
+        Extension should be .nc
+        """
+        self._check_outfile(path, 'nc', overwrite)
+        # Convert to xarray Dataset
+        ds = self.as_xarray()
+        ds.to_netcdf(path)
+        print("Data written to", path)
 
     def as_dataframe(self):
         """Convert the data to a pandas DataFrame.
@@ -180,21 +213,14 @@ class ReturnedDataInMemory(ReturnedData):
         """
         if self.filetype == 'csv':
             try:
-                df = pandas.read_csv(BytesIO(self.data))
+                # df = pandas.read_csv(BytesIO(self._data))
+                df = pandas.read_csv(self.file.name)
             except Exception:
-                # print("Bad or empty csv. Returning an empty dataframe.")
-                # return pandas.DataFrame()
                 raise Exception("Bad or empty csv.")
             # Convert to datetime objects
             df['Timestamp'] = df['Timestamp'].apply(
                 time_util.parse_datetime
                 )
-            # # Originally used MJD2000 from the server:
-            # df['Timestamp'] = df['Timestamp'].apply(
-            #     time_util.mjd2000_to_datetime
-            #     )
-            # # Rounded because the MJD2000 fractions are not precise enough(?)
-            # df['Timestamp'] = df['Timestamp'].dt.round('1s')
             # Convert the columns of vectors from strings to lists
             if len(df) == 0:
                 # Returns empty dataframe when retrieval from server is empty
@@ -211,67 +237,41 @@ class ReturnedDataInMemory(ReturnedData):
         elif self.filetype == 'cdf':
             # Currently need to write to a *named* temporary file,
             # in order to use cdflib (which requires a file name to point to)
-            # Would be better to hold it in memory using SpooledTemporaryFile
-            with tempfile.NamedTemporaryFile() as temp_cdf:
-                temp_cdf.write(self.data)
-                try:
-                    cdf = cdflib.CDF(temp_cdf.name)
-                    keys = cdf.cdf_info()['zVariables']
-                    vals = [cdf.varget(key) for key in keys]
-                except Exception:
-                    # print("Bad or empty cdf. Returning an empty dataframe.")
-                    # return pandas.DataFrame()
-                    raise Exception("Bad or empty cdf.")
-                if all(v is None for v in vals):
-                    # Returns empty dataframe when retrieval from server is empty
-                    df = pandas.DataFrame(columns=keys)
-                    print("No data available")
-                else:
-                    d = {key: list(value) for key, value in zip(keys, vals)}
-                    df = pandas.DataFrame.from_dict(d)
-                    df['Timestamp'] = df['Timestamp'].apply(
-                        lambda x: time_util.unix_epoch_to_datetime(
-                            (x-CDF_EPOCH_1970)*1e-3
-                            )
+            try:
+                cdf = cdflib.CDF(self.file.name)
+                keys = cdf.cdf_info()['zVariables']
+                vals = [cdf.varget(key) for key in keys]
+            except Exception:
+                raise Exception("Bad or empty cdf.")
+            if all(v is None for v in vals):
+                # Returns empty dataframe when retrieval from server is empty
+                df = pandas.DataFrame(columns=keys)
+                print("No data available")
+            else:
+                # Set up the output dataframe
+                # Convert timestamps to datetime objects
+                d = {key: list(value) for key, value in zip(keys, vals)}
+                df = pandas.DataFrame.from_dict(d)
+                df['Timestamp'] = df['Timestamp'].apply(
+                    lambda x: time_util.unix_epoch_to_datetime(
+                        (x-CDF_EPOCH_1970)*1e-3
                         )
+                    )
         df.set_index('Timestamp', inplace=True)
         return df
 
-    def as_xarray(self):
+    def as_xarray(self, group=None):
         """Convert the data to an xarray Dataset.
 
         Note:
-            Currently saves a temporary CDF file, and goes via a DataFrame
+            For CSV and CDF, currently goes via a DataFrame
 
         Returns:
             Dataset
 
         """
-        ds = _DataFrame_to_xarrayDataset(self.as_dataframe())
+        if self.filetype in ('cdf', 'csv'):
+            ds = _DataFrame_to_xarrayDataset(self.as_dataframe())
+        elif self.filetype == 'nc':
+            ds = xarray.open_dataset(self.file.name, group=group)
         return ds
-
-
-class ReturnedDataOnDisk(ReturnedData):
-
-    def __init__(self, data_path=None, filetype=None):
-        super().__init__(filetype=filetype)
-        self.data_path = data_path
-
-    @property
-    def _data(self):
-        with open(self.data_path, "rb") as data_file:
-            data = data_file.read()
-        return data
-
-
-class ReturnedDataSpooled(ReturnedData):
-
-    def __init__(self, filetype=None):
-        super().__init__(filetype=filetype)
-        # SpooledTemporaryFile which switches to disk when over 100MB
-        self._file = tempfile.SpooledTemporaryFile(max_size=1e8)
-
-    # @property
-    # def file(self):
-    #     self._file.seek(0)
-    #     return self._file
