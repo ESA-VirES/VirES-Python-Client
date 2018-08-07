@@ -7,48 +7,37 @@ from viresclient._client import ClientRequest
 from viresclient import SwarmRequest, AeolusRequest
 import viresclient
 
-SUPPORTED_FILETYPES = ('csv', 'cdf')
+SUPPORTED_FILETYPES = ('csv', 'cdf', 'nc')
 
 
 def test_ReturnedData_setup():
     """Test the ReturnedData functionality
 
-    Enforcement of filetype as csv/cdf, and data as bytes
+    Enforcement of filetype as csv/cdf/nc
     Writing files and dealing correctly with overwrite or not
     TODO: creation of dataframe
     """
-    # CSV/CDF should be converted to csv/cdf
-    retdata = ReturnedData(data=b'', filetype='CSV')
-    assert retdata.filetype == 'csv'
-    assert retdata.data == b''
-    retdata = ReturnedData(data=b'', filetype='csv')
-    assert retdata.filetype == 'csv'
-    assert retdata.data == b''
-    retdata = ReturnedData(data=b'', filetype='CDF')
-    assert retdata.filetype == 'cdf'
-    assert retdata.data == b''
-    retdata = ReturnedData(data=b'', filetype='cdf')
-    assert retdata.filetype == 'cdf'
-    assert retdata.data == b''
+    # CSV/CDF/NC should be converted to csv/cdf/nc
+    for filetype in SUPPORTED_FILETYPES:
+        retdata = ReturnedData(filetype=filetype.upper())
+        assert retdata.filetype == filetype
+        retdata = ReturnedData(filetype=filetype)
+        assert retdata.filetype == filetype
 
     # The following should raise a TypeError:
-    #  data must be a bytes,
-    #  filetype must be csv/cdf
+    #  filetype must be csv/cdf/nc
     with pytest.raises(TypeError):
-        retdata = ReturnedData(data=b'', filetype='xyz')
+        retdata = ReturnedData(filetype='xyz')
     with pytest.raises(TypeError):
-        retdata = ReturnedData(data=b'', filetype=1)
-    with pytest.raises(TypeError):
-        retdata = ReturnedData(data=1, filetype='CDF')
-    with pytest.raises(TypeError):
-        retdata = ReturnedData(data=1, filetype='xyz')
+        retdata = ReturnedData(filetype=1)
 
 
 def test_ReturnedData_saving(tmpfile):
     for filetype in SUPPORTED_FILETYPES:
 
         # Check that file name and extension checking is enforced
-        retdata = ReturnedData(data=b'testtext', filetype=filetype)
+        retdata = ReturnedData(filetype=filetype)
+        retdata._write_new_data(b'testtext')
         with pytest.raises(TypeError):
             retdata.to_file(1)
         with pytest.raises(TypeError):
