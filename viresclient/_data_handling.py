@@ -44,7 +44,7 @@ import xarray
 import cdflib
 
 from ._wps import time_util
-from viresclient import VIRESCLIENT_DEFAULT_FILE_DIR
+# from viresclient import VIRESCLIENT_DEFAULT_FILE_DIR
 
 CDF_EPOCH_1970 = 62167219200000.0
 
@@ -94,7 +94,7 @@ class ReturnedData(object):
     Holds the data returned from the server and the data type.
     Data is held in a NamedTemporaryFile. It is automatically closed & destroyed
      when it goes out of scope.
-    Provides output to different file types.
+    Provides output to different file types and data objects.
     """
 
     def __init__(self, filetype=None):
@@ -109,16 +109,19 @@ class ReturnedData(object):
 
     def __str__(self):
         return "viresclient ReturnedData object of type " + self.filetype + \
-            "\nSave it to a file with .to_file('filename')"
+            "\nSave it to a file with .to_file('filename')" + \
+            "\nLoad it as a pandas dataframe with .as_dataframe()" + \
+            "\nLoad it as an xarray dataset with .as_xarray()"
 
     @property
     def file(self):
+        self._file.seek(0)
         return self._file
 
-    @property
-    def _data(self):
-        self.file.seek(0)
-        return self.file.read()
+    # @property
+    # def _data(self):
+    #     self.file.seek(0)
+    #     return self.file.read()
 
     def _write_new_data(self, data):
         """Replace the tempfile contents with 'data' (bytes)
@@ -204,9 +207,6 @@ class ReturnedData(object):
     def as_dataframe(self):
         """Convert the data to a pandas DataFrame.
 
-        Note:
-            Currently saves a temporary CDF file
-
         Returns:
             DataFrame
 
@@ -275,3 +275,70 @@ class ReturnedData(object):
         elif self.filetype == 'nc':
             ds = xarray.open_dataset(self.file.name, group=group)
         return ds
+
+
+class ReturnedDataGroup(object):
+    """Holds a list of ReturnedData objects
+    """
+
+    def __init__(self, filetype=None, N=1):
+        self.filetype = filetype
+        self.contents = [ReturnedData(filetype=filetype) for i in range(N)]
+
+    def as_dataframe(self):
+        """Convert the data to a pandas DataFrame.
+
+        Returns:
+            DataFrame
+
+        """
+        return pandas.concat([d.as_dataframe() for d in self.contents])
+
+    def as_xarray(self):
+        """Convert the data to an xarray Dataset.
+
+        Note:
+            For CSV and CDF, currently goes via a DataFrame
+
+        Returns:
+            Dataset
+
+        """
+        return _DataFrame_to_xarrayDataset(self.as_dataframe())
+
+    def to_files(self, paths, overwrite=False):
+        """Saves the data to the specified files.
+
+        Only write to file if it does not yet exist, or if overwrite=True.
+        Currently handles CSV and CDF formats.
+
+        Args:
+            paths (list of str): paths to the files to save as
+            overwrite (bool): Will overwrite existing file if True
+        """
+        nfiles = len(self.contents)
+        if not isinstance(paths, list) or not isinstance(paths[0], str):
+            raise TypeError("paths must be a list of strings")
+        if len(paths) != nfiles:
+            raise Exception(
+                "Number of paths must equal number of files ({})".format(
+                    nfiles
+                ))
+        for path, retdata in zip(paths, self.contents):
+            retdata.to_file(path, overwrite)
+
+    def to_file(self, path, overwrite=False):
+        """Saves the data to the specified file, when data is only in one file.
+
+        Only write to file if it does not yet exist, or if overwrite=True.
+        Currently handles CSV and CDF formats.
+
+        Args:
+            path (str): path to the file to save as
+            overwrite (bool): Will overwrite existing file if True
+        """
+        if len(self.contents) != 1:
+            raise Exception("Data is split into multiple files. "
+                            "Use .to_files instead"
+                            )
+        self.contents[0].to_file(path, overwrite)

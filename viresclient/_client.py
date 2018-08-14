@@ -31,22 +31,24 @@
 import datetime
 import json
 from tqdm import tqdm
+# from tqdm import tqdm_notebook as tqdm
 from os import path, mkdir, SEEK_END
-from datetime import datetime
+from datetime import datetime, timedelta
+from math import ceil
 
 from ._wps.wps_vires import ViresWPS10Service
-# from .wps.time_util import parse_datetime
+from ._wps.time_util import parse_duration
 from ._wps.http_util import encode_basic_auth
 from logging import getLogger, DEBUG, INFO, WARNING, ERROR, CRITICAL
 from ._wps.log_util import set_stream_handler
 # from jinja2 import Environment, FileSystemLoader
 from ._wps.environment import JINJA2_ENVIRONMENT
-from ._wps import time_util
 from ._wps.wps import WPSError
 
-from viresclient import VIRESCLIENT_DEFAULT_FILE_DIR
-from ._data_handling import ReturnedData
+# from viresclient import VIRESCLIENT_DEFAULT_FILE_DIR
+from ._data_handling import ReturnedDataGroup
 
+# Logging levels
 LEVELS = {
     "DEBUG": DEBUG,
     "INFO": INFO,
@@ -55,11 +57,15 @@ LEVELS = {
     "NO_LOGGING": CRITICAL + 1,
 }
 
+# File type to WPS output name
 RESPONSE_TYPES = {
     "csv": "text/csv",
     "cdf": "application/x-cdf",
     "nc": "application/netcdf"
 }
+
+# Maximum number of records allowable in one WPS request
+NRECORDS_LIMIT = 4320000
 
 
 def get_log_level(level):
@@ -111,7 +117,7 @@ class WPSInputs(object):
 
 
 class ProgressBar(object):
-    """Generates a progress bar from the WPS status.
+    """Custom tqdm status bar
     """
 
     def __init__(self, bar_format):
@@ -120,7 +126,7 @@ class ProgressBar(object):
 
         self.tqdm_pbar = tqdm(total=100, bar_format=bar_format)
 
-        self.refresh_tqdm()
+        # self.refresh_tqdm()
 
     def __enter__(self):
         return self
@@ -139,10 +145,22 @@ class ProgressBar(object):
         self.tqdm_pbar.update(self.percentCompleted-self.lastpercent)
         if self.percentCompleted == 100:
             self.cleanup()
-            # print('Downloading...')
+
+    def write(self, message):
+        """Command line output that doesn't interfere with the tqdm
+
+        This isn't working right in notebooks.
+        Could be fixed by using tqdm_notebook, but this doesn't work with
+        regular terminals and also messes up the bar_format
+        """
+        self.tqdm_pbar.write(message)
 
 
 class ProgressBarProcessing(ProgressBar):
+    """Generates a progress bar from the WPS status.
+
+    Depends on ._wps.wps.WPSStatus
+    """
 
     def __init__(self):
         l_bar = 'Processing:  {percentage:3.0f}%|'
@@ -161,6 +179,9 @@ class ProgressBarProcessing(ProgressBar):
 
 
 class ProgressBarDownloading(ProgressBar):
+    """Shows download progress and size,
+    given a file size in bytes and updated with the percent completion
+    """
 
     def __init__(self, size):
         # Convert size to MB
@@ -176,7 +197,7 @@ class ProgressBarDownloading(ProgressBar):
         super().__init__(bar_format)
 
     def update(self, percentCompleted):
-        """Updates the internal state based on the state of a WPSStatus object.
+        """Updates the internal state of the percentage completion.
         """
         self.lastpercent = self.percentCompleted
         self.percentCompleted = percentCompleted
@@ -191,8 +212,7 @@ class ClientRequest(object):
     """
 
     def __init__(self, url=None, username=None, password=None,
-                 logging_level="NO_LOGGING", server_type="Swarm",
-                 files_dir=VIRESCLIENT_DEFAULT_FILE_DIR
+                 logging_level="NO_LOGGING", server_type="Swarm"
                  ):
 
         for i in [url, username, password]:
@@ -217,12 +237,12 @@ class ClientRequest(object):
             logger=self._logger
         )
 
-        self.files_dir = files_dir
-        if not path.exists(self.files_dir):
-            mkdir(self.files_dir)
-        self._logger.info(
-            "Set directory for saving files locally: ".format(self.files_dir)
-        )
+        # self.files_dir = files_dir
+        # if not path.exists(self.files_dir):
+        #     mkdir(self.files_dir)
+        # self._logger.info(
+        #     "Set directory for saving files locally: ".format(self.files_dir)
+        # )
 
     def __str__(self):
         if self._request_inputs is None:
@@ -230,19 +250,12 @@ class ClientRequest(object):
         else:
             return self._request_inputs.__str__()
 
-    # def _get_request(self, request_inputs, asynchronous=True):
-    #
-    #     if asynchronous not in [True, False]:
-    #         raise TypeError("asynchronous must be set to either True or False")
-    #
-    #     # Initialise the ReturnedData so that filetype checking is done there
-    #     retdata = ReturnedDataSpooled(filetype=filetype)
-
     @staticmethod
     def _response_handler(out_file, show_progress=True):
         """Creates the response handler function for the WPS request
 
-        Streams the remote file to the local, with a download progress bar
+        Streams the remote file to the local (out_file),
+        with a download progress bar
         """
 
         def copyfileobj(fsrc, fdst, callback=None, total=None, length=16*1024):
@@ -284,6 +297,79 @@ class ClientRequest(object):
         else:
             return _write_response_without_reporting
 
+    @staticmethod
+    def _chunkify_request(start_time, end_time, sampling_step):
+        """Split the start and end times into several as necessary, as specified
+        by the NRECORDS_LIMIT
+
+        Calculate the maximum number of chunks required
+        so that we never request more than nrecords_limit records
+        i.e. Consider the time range and the sampling step,
+             but neglect that filtering will reduce the number of records
+             since we can't predict the effect of filtering beforehand
+        Split the requested interval accordingly
+
+        Args:
+            start_time (datetime)
+            end_time (datetime)
+            sampling_step (str) ISO-8601 duration
+
+        Returns:
+            list of tuples of datetime pairs,
+                e.g. [(start1, end1), (start2, end2)]
+        """
+        # Maximum allowable chunk length, in seconds
+        chunklength = NRECORDS_LIMIT * parse_duration(sampling_step).total_seconds()
+        # Resulting number of chunks
+        nchunks = ceil((end_time-start_time).total_seconds() / chunklength)
+
+        if nchunks == 1:
+            request_intervals = [(start_time, end_time)]
+            return request_intervals
+
+        # Calculate the interval times (start,end) at which to place the
+        # individual request bounds
+        # First interval
+        request_intervals = [(start_time,
+                              start_time + timedelta(seconds=chunklength))]
+        for i in range(1, nchunks-1):
+            last_time = request_intervals[i-1][1]
+            request_intervals += [(last_time,
+                                   last_time + timedelta(seconds=chunklength))]
+        # Last interval (has a different chunk length)
+        request_intervals += [(request_intervals[-1][1], end_time)]
+
+        return request_intervals
+
+    def _get(self, request=None, asynchronous=None, response_handler=None,
+             message=None):
+        """Make a request and handle response according to response_handler
+
+        Args:
+            request: the rendered xml request
+            asynchronous (bool): True for asynchronous processing,
+                False for synchronous
+            response_handler: a function that handles the server response
+        """
+        try:
+            if asynchronous:
+                with ProgressBarProcessing() as progressbar:
+                    progressbar.write(message)
+                    self._wps_service.retrieve_async(
+                        request,
+                        handler=response_handler,
+                        status_handler=progressbar.update
+                    )
+            else:
+                self._wps_service.retrieve(
+                    request,
+                    handler=response_handler
+                )
+        except WPSError:
+            raise RuntimeError(
+                "Server error - may be outside of product availability?"
+                )
+
     def get_between(self, start_time, end_time,
                     filetype="cdf", asynchronous=True):
         """Make the server request and download the data.
@@ -304,13 +390,13 @@ class ClientRequest(object):
             raise TypeError("asynchronous must be set to either True or False")
 
         # Initialise the ReturnedData so that filetype checking is done there
-        retdata = ReturnedData(filetype=filetype)
+        retdatagroup = ReturnedDataGroup(filetype=filetype)
 
-        if retdata.filetype not in self._supported_filetypes:
+        if retdatagroup.filetype not in self._supported_filetypes:
             raise TypeError("filetype: {} not supported by server"
                             .format(filetype)
                             )
-        response_type = RESPONSE_TYPES[retdata.filetype]
+        self._request_inputs.response_type = RESPONSE_TYPES[retdatagroup.filetype]
 
         if asynchronous:
             # asynchronous WPS request
@@ -319,31 +405,56 @@ class ClientRequest(object):
             # synchronous WPS request
             templatefile = self._templatefiles['sync']
 
-        # Finalise the WPSInputs object
-        self._request_inputs.begin_time = start_time
-        self._request_inputs.end_time = end_time
-        self._request_inputs.response_type = response_type
-
-        self._request = wps_xml_request(templatefile, self._request_inputs)
-
-        response_handler = self._response_handler(retdata.file)
-
+        # If we've set a sampling step, then use that, otherwise set to 1s
+        # DANGER: This won't be valid for non-1Hz datasets
         try:
-            if asynchronous:
-                with ProgressBarProcessing() as progressbar:
-                    response = self._wps_service.retrieve_async(
-                        self._request,
-                        handler=response_handler,
-                        status_handler=progressbar.update
-                    )
-            else:
-                response = self._wps_service.retrieve(
-                    self._request,
-                    handler=response_handler
-                )
-        except WPSError:
-            raise RuntimeError(
-                "Server error - may be outside of product availability?"
-                )
+            sampling_step = self._request_inputs.sampling_step
+        except AttributeError:
+            sampling_step = "PT1S"
+        if sampling_step is None:
+            sampling_step = "PT1S"
+        # Split the request into several intervals
+        intervals = self._chunkify_request(
+            start_time, end_time, sampling_step
+            )
+        nchunks = len(intervals)
+        # Recreate the ReturnedDataGroup with the right number of chunks
+        retdatagroup = ReturnedDataGroup(filetype=filetype, N=nchunks)
+        for i, (start_time_i, end_time_i) in enumerate(intervals):
+            message = "Getting chunk {}/{}\nFrom {} to {}".format(
+                                i+1, nchunks, start_time_i, end_time_i
+            )
+            # tqdm.write(message)
+            # Finalise the WPSInputs object and generate the xml
+            self._request_inputs.begin_time = start_time_i
+            self._request_inputs.end_time = end_time_i
+            self._request = wps_xml_request(templatefile, self._request_inputs)
+            # Identify the individual ReturnedData object within the group
+            retdata = retdatagroup.contents[i]
+            # Make the request, as either asynchronous or synchronous
+            # The response handler streams the data to the ReturnedData object
+            response_handler = self._response_handler(retdata.file)
+            self._get(request=self._request,
+                      asynchronous=asynchronous,
+                      response_handler=response_handler,
+                      message=message
+                      )
+        # try:
+        #     if asynchronous:
+        #         with ProgressBarProcessing() as progressbar:
+        #             self._wps_service.retrieve_async(
+        #                 self._request,
+        #                 handler=response_handler,
+        #                 status_handler=progressbar.update
+        #             )
+        #     else:
+        #         self._wps_service.retrieve(
+        #             self._request,
+        #             handler=response_handler
+        #         )
+        # except WPSError:
+        #     raise RuntimeError(
+        #         "Server error - may be outside of product availability?"
+        #         )
 
-        return retdata
+        return retdatagroup
