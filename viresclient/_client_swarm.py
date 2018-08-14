@@ -140,7 +140,7 @@ class SwarmWPSInputs(WPSInputs):
             raise TypeError
 
 
-class SwarmClientRequest(ClientRequest):
+class SwarmRequest(ClientRequest):
     """Handles the requests to and downloads from the server.
 
     Steps to download data:

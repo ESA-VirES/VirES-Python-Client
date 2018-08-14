@@ -156,7 +156,7 @@ class AeolusWPSInputs(WPSInputs):
             raise TypeError
 
 
-class AeolusClientRequest(ClientRequest):
+class AeolusRequest(ClientRequest):
     """Handles the requests to and downloads from the server.
 
     Args:
