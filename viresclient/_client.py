@@ -162,8 +162,9 @@ class ProgressBarProcessing(ProgressBar):
     Depends on ._wps.wps.WPSStatus
     """
 
-    def __init__(self):
-        l_bar = 'Processing:  {percentage:3.0f}%|'
+    def __init__(self, left_text=None):
+        left_text = str() if left_text is None else left_text
+        l_bar = left_text + 'Processing:  {percentage:3.0f}%|'
         bar = '{bar}'
         r_bar = '|  [ Elapsed: {elapsed}, Remaining: {remaining} {postfix}]'
         bar_format = '{}{}{}'.format(l_bar, bar, r_bar)
@@ -188,7 +189,7 @@ class ProgressBarDownloading(ProgressBar):
         sizeMB = round(size/1e6, 3)
         # if sizeMB > 1:
         #     sizeMB = round(sizeMB,)
-        l_bar = 'Downloading: {percentage:3.0f}%|'
+        l_bar = '      Downloading: {percentage:3.0f}%|'
         bar = '{bar}'
         r_bar = '|  [ Elapsed: {{elapsed}}, '\
                 'Remaining: {{remaining}} {{postfix}}] '\
@@ -353,8 +354,8 @@ class ClientRequest(object):
         """
         try:
             if asynchronous:
-                with ProgressBarProcessing() as progressbar:
-                    progressbar.write(message)
+                with ProgressBarProcessing(message) as progressbar:
+                    # progressbar.write(message)
                     self._wps_service.retrieve_async(
                         request,
                         handler=response_handler,
@@ -421,11 +422,12 @@ class ClientRequest(object):
         # Recreate the ReturnedDataGroup with the right number of chunks
         retdatagroup = ReturnedDataGroup(filetype=filetype, N=nchunks)
         for i, (start_time_i, end_time_i) in enumerate(intervals):
-            message = "Getting chunk {}/{}\nFrom {} to {}".format(
-                                i+1, nchunks, start_time_i, end_time_i
-            )
+            # message = "Getting chunk {}/{}\nFrom {} to {}".format(
+            #                     i+1, nchunks, start_time_i, end_time_i
+            # )
             # tqdm.write(message)
-            # Finalise the WPSInputs object and generate the xml
+            message = "[{}/{}] ".format(i+1, nchunks)
+            # Finalise the WPSInputs object and (re-)generate the xml
             self._request_inputs.begin_time = start_time_i
             self._request_inputs.end_time = end_time_i
             self._request = wps_xml_request(templatefile, self._request_inputs)
