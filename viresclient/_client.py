@@ -406,17 +406,34 @@ class ClientRequest(object):
             # synchronous WPS request
             templatefile = self._templatefiles['sync']
 
-        # If we've set a sampling step, then use that, otherwise set to 1s
-        # DANGER: This won't be valid for non-1Hz datasets
+        # Set the "sampling step" to use to split the request if it's too long
+        # (Due to the the server limit of NRECORDS_LIMIT)
+        #
+        # If a custom sampling step is set, then use that
         try:
-            sampling_step = self._request_inputs.sampling_step
+            sampling_step_estimate = self._request_inputs.sampling_step
         except AttributeError:
-            sampling_step = "PT1S"
-        if sampling_step is None:
-            sampling_step = "PT1S"
+            # Assume 1Hz data otherwise (Currently will use this for Aeolus)
+            # Swarm requests all have a sampling_step attribute
+            sampling_step_estimate = "PT1S"
+        # If no custom sampling step set:
+        if sampling_step_estimate is None:
+            # Move this to _client_swarm at some point
+            # Identify choice of ("MAG", "EFI", "IBI", "TEC", "FAC", "EEF")
+            collection_key = self._available['collections_to_keys'][self._collection]
+            # These are not necessarily real sampling steps,
+            # but are good enough to make the split correctly
+            default_sampling_steps = {"MAG": "PT1S",
+                                      "EFI": "PT0.5S",
+                                      "IBI": "PT1S",
+                                      "TEC": "PT1S",  # Actually more complicated
+                                      "FAC": "PT1S",
+                                      "EEF": "PT90M"
+                                      }
+            sampling_step_estimate = default_sampling_steps[collection_key]
         # Split the request into several intervals
         intervals = self._chunkify_request(
-            start_time, end_time, sampling_step
+            start_time, end_time, sampling_step_estimate
             )
         nchunks = len(intervals)
         # Recreate the ReturnedDataGroup with the right number of chunks
