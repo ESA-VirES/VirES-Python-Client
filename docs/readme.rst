@@ -17,6 +17,7 @@ Dependencies::
   cdflib
   tables
   tqdm
+  xarray
 
 Example usage
 -------------
@@ -24,42 +25,36 @@ Import the package and set up the connection to the server:
 
 .. code-block:: python
 
-  from viresclient import ClientRequest
+  from viresclient import SwarmRequest
   import datetime as dt
 
-  url = "https://staging.viresdisc.vires.services/openows"
-  username = ""
-  password = ""
-
-  request = ClientRequest(url, username, password)
+  request = SwarmRequest(url="https://staging.viresdisc.vires.services/openows",
+                         username="your username",
+                         password="your password")
 
 Choose which collection to access:
 
 .. code-block:: python
 
-  collection = "SW_OPER_MAGA_LR_1B"
+  request.set_collection("SW_OPER_MAGA_LR_1B")
 
-  request.set_collection(collection)
-
-Choose measurements and models to evaluate:
+Choose a combination of variables to retrieve. ``measurements`` are measured by the satellite and members of the specified ``collection``; ``models`` are evaluated on the server at the positions of the satellite; ``auxiliaries`` are additional parameters not unique to the ``collection``. If ``residuals`` is set to ``True`` then only data-model residuals are returned. Optionally specify a resampling of the original time series with ``sampling_step`` (an `ISO-8601 duration <https://en.wikipedia.org/wiki/ISO_8601#Durations>`_).
 
 .. code-block:: python
 
-  measurements = ["F","B_NEC"]
-  models = ["MCO_SHA_2C","MMA_SHA_2C-Primary"]
-  auxiliaries = ["OrbitNumber","SunZenithAngle","QDLat","QDLon","MLT"]
-
-  request.set_products(measurements, models, auxiliaries, residuals=False, subsample="PT10S")
+  request.set_products(measurements=["F","B_NEC"],
+                       models=["MCO_SHA_2C", "MMA_SHA_2C-Primary", "MMA_SHA_2C-Secondary"],
+                       auxiliaries=["QDLat", "QDLon", "MLT", "OrbitNumber", "SunZenithAngle"],
+                       residuals=False,
+                       sampling_step="PT10S")
 
 Set a parameter range filter to apply. You can add multiple filters in sequence
 
 .. code-block:: python
 
-  parameter = "Latitude"
-  minimum = 0
-  maximum = 90
-
-  request.set_range_filter(parameter, minimum, maximum)
+  request.set_range_filter(parameter="Latitude",
+                           minimum=0,
+                           maximum=90)
 
   request.set_range_filter("Longitude", 0, 90)
 
@@ -67,10 +62,10 @@ Specify the time range from which to retrieve data, make the request to the serv
 
 .. code-block:: python
 
-  start_time = dt.datetime(2016,1,1)
-  end_time = dt.datetime(2016,1,2)
-
-  data = request.get_between(start_time, end_time, filetype="cdf", asynchronous=True)
+  data = request.get_between(start_time=dt.datetime(2016,1,1),
+                             end_time=dt.datetime(2016,1,2),
+                             filetype="cdf",
+                             asynchronous=True)
 
 Transfer your data to a (``pandas``) dataframe or save it:
 
@@ -78,15 +73,6 @@ Transfer your data to a (``pandas``) dataframe or save it:
 
   df = data.as_dataframe()
   data.to_file('outfile.cdf', overwrite=False)
-
-Convert to an HDF5 file:
-
-.. code-block:: python
-
-  data.to_file('outfile.h5', hdf=True, overwrite=False)
-
-  import pandas as pd
-  df = pd.read_hdf('outfile.h5')
 
 The returned data has columns for:
  - ``Spacecraft, Timestamp, Latitude, Longitude, Radius``
