@@ -56,6 +56,7 @@ def _fix_Dataset_column(da):
     If column is 2D:
     Convert the DataArray from a stack of lists to a ND array
     Attach 'time' and 'dim':(0,1,2,..) as the coordinates
+
     """
     data = numpy.stack(da.values)
     times = da.coords['Timestamp'].values
@@ -78,6 +79,7 @@ def _fix_Dataset_column(da):
 
 def _DataFrame_to_xarrayDataset(df):
     """Convert pandas DataFrame to xarray Dataset
+
     """
     # Transfer to Dataset
     ds = xarray.Dataset.from_dataframe(df)
@@ -93,8 +95,9 @@ class ReturnedData(object):
 
     Holds the data returned from the server and the data type.
     Data is held in a NamedTemporaryFile. It is automatically closed & destroyed
-     when it goes out of scope.
+    when it goes out of scope.
     Provides output to different file types and data objects.
+
     """
 
     def __init__(self, filetype=None):
@@ -125,6 +128,7 @@ class ReturnedData(object):
 
     def _write_new_data(self, data):
         """Replace the tempfile contents with 'data' (bytes)
+
         """
         if not isinstance(data, bytes):
             raise TypeError("data must be of type bytes")
@@ -133,6 +137,7 @@ class ReturnedData(object):
 
     def _write_file(self, filename):
         """Write the tempfile out to a regular file
+
         """
         self.file.seek(0)
         with open(filename, 'wb') as out_file:
@@ -156,6 +161,7 @@ class ReturnedData(object):
     @staticmethod
     def _check_outfile(path, path_extension, overwrite=False):
         """Check validity of path and extension, and if it exists already
+
         """
         if not isinstance(path, str):
             raise TypeError("path must be a string")
@@ -177,6 +183,7 @@ class ReturnedData(object):
         Args:
             path (str): path to the file to save as
             overwrite (bool): Will overwrite existing file if True
+
         """
         self._check_outfile(path, self.filetype, overwrite)
         self._write_file(path)
@@ -197,6 +204,7 @@ class ReturnedData(object):
         """Saves the data as a netCDF4 file (this is compatible with HDF5)
 
         Extension should be .nc
+
         """
         self._check_outfile(path, 'nc', overwrite)
         # Convert to xarray Dataset
@@ -279,6 +287,7 @@ class ReturnedData(object):
 
 class ReturnedDataGroup(object):
     """Holds a list of ReturnedData objects
+
     """
 
     def __init__(self, filetype=None, N=1):
@@ -315,6 +324,7 @@ class ReturnedDataGroup(object):
         Args:
             paths (list of str): paths to the files to save as
             overwrite (bool): Will overwrite existing file if True
+
         """
         nfiles = len(self.contents)
         if not isinstance(paths, list) or not isinstance(paths[0], str):
@@ -336,6 +346,7 @@ class ReturnedDataGroup(object):
         Args:
             path (str): path to the file to save as
             overwrite (bool): Will overwrite existing file if True
+
         """
         if len(self.contents) != 1:
             raise Exception("Data is split into multiple files. "

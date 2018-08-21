@@ -350,7 +350,7 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.variables = variables
         self._request_inputs.sampling_step = sampling_step
 
-    def set_range_filter(self, parameter, minimum, maximum):
+    def set_range_filter(self, parameter=None, minimum=None, maximum=None):
         """Set a filter to apply.
 
         Note:
@@ -362,6 +362,8 @@ class SwarmRequest(ClientRequest):
             maximum (float)
 
         """
+        if not isinstance(parameter, str):
+            raise TypeError("parameter must be a str")
         # Update the list that contains the separate filters
         self._filterlist += [parameter+":"+str(minimum)+","+str(maximum)]
         # Convert the list into the string that gets passed to the xml template

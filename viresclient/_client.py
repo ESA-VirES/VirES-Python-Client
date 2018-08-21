@@ -76,7 +76,7 @@ def get_log_level(level):
 
 
 def wps_xml_request(templatefile, inputs):
-    """Creates a WPS request object that can later be executed
+    """Renders a WPS request template (xml) that can later be executed
 
     Args:
      templatefile (str): Name of the xml template file
@@ -151,7 +151,7 @@ class ProgressBar(object):
 
         This isn't working right in notebooks.
         Could be fixed by using tqdm_notebook, but this doesn't work with
-        regular terminals and also messes up the bar_format
+        regular terminals and also messes up the bar_format at present.
         """
         self.tqdm_pbar.write(message)
 
@@ -278,7 +278,7 @@ class ClientRequest(object):
                 return pbar.update(100*copied/total)
             return _copy_progress
 
-        def _write_response(file_obj):
+        def write_response(file_obj):
             """Acts on a file object to copy it to another file
             https://stackoverflow.com/a/7244263
             file_obj is what is returned from urllib.urlopen()
@@ -290,13 +290,13 @@ class ClientRequest(object):
                     total=size
                     )
 
-        def _write_response_without_reporting(file_obj):
+        def write_response_without_reporting(file_obj):
             copyfileobj(file_obj, out_file)
 
         if show_progress:
-            return _write_response
+            return write_response
         else:
-            return _write_response_without_reporting
+            return write_response_without_reporting
 
     @staticmethod
     def _chunkify_request(start_time, end_time, sampling_step):
@@ -347,10 +347,11 @@ class ClientRequest(object):
         """Make a request and handle response according to response_handler
 
         Args:
-            request: the rendered xml request
+            request: the rendered xml request, from wps_xml_request
             asynchronous (bool): True for asynchronous processing,
                 False for synchronous
             response_handler: a function that handles the server response
+            message (str): Message to be added to the progress bar
         """
         try:
             if asynchronous:
@@ -371,7 +372,7 @@ class ClientRequest(object):
                 "Server error - may be outside of product availability?"
                 )
 
-    def get_between(self, start_time, end_time,
+    def get_between(self, start_time=None, end_time=None,
                     filetype="cdf", asynchronous=True):
         """Make the server request and download the data.
 
@@ -386,6 +387,9 @@ class ClientRequest(object):
             ReturnedData object
 
         """
+        if not (isinstance(start_time, datetime) &
+                isinstance(end_time, datetime)):
+            raise TypeError("start_time and end_time must be datetime objects")
 
         if asynchronous not in [True, False]:
             raise TypeError("asynchronous must be set to either True or False")
