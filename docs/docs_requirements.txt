@@ -6,3 +6,4 @@ pandas
 cdflib
 tables
 tqdm
+xarray
