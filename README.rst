@@ -2,6 +2,9 @@
 viresclient
 ===========
 
+.. image:: https://badge.fury.io/py/viresclient.svg
+    :target: https://badge.fury.io/py/viresclient
+
 .. image:: https://readthedocs.org/projects/viresclient/badge/?version=latest
     :target: http://viresclient.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
@@ -15,7 +18,7 @@ viresclient
 
 ``viresclient`` is a tool which connects to a VirES server through the `WPS <http://www.opengeospatial.org/standards/wps>`_ interface and handles product requests and downloads.
 
-Install with with::
+Install with::
 
   pip install viresclient
 
