@@ -1,21 +1,14 @@
 import pytest
-import os
-import pandas as pd
 
 from viresclient._data_handling import ReturnedData
-from viresclient._client import ClientRequest
-from viresclient import SwarmRequest, AeolusRequest
-import viresclient
 
 SUPPORTED_FILETYPES = ('csv', 'cdf', 'nc')
 
 
 def test_ReturnedData_setup():
-    """Test the ReturnedData functionality
+    """Test setup of ReturnedData objects
 
-    Enforcement of filetype as csv/cdf/nc
-    Writing files and dealing correctly with overwrite or not
-    TODO: creation of dataframe
+    Enforcement of filetype as 'csv'/'cdf'/'nc' (lower case)
     """
     # CSV/CDF/NC should be converted to csv/cdf/nc
     for filetype in SUPPORTED_FILETYPES:
@@ -33,6 +26,11 @@ def test_ReturnedData_setup():
 
 
 def test_ReturnedData_saving(tmpfile):
+    """Test saving of ReturnedData
+
+    Writing files with extension checking
+    Dealing correctly with overwrite or not
+    """
     for filetype in SUPPORTED_FILETYPES:
 
         # Check that file name and extension checking is enforced
@@ -56,20 +54,3 @@ def test_ReturnedData_saving(tmpfile):
         retdata.to_file(
             testfile, overwrite=True
             )
-
-
-def test_ClientRequest():
-    """Test that a ClientRequest gets set up correctly.
-    """
-    request = ClientRequest('', '', '')
-    assert isinstance(request._wps_service,
-                      viresclient._wps.wps_vires.ViresWPS10Service
-                      )
-    request = SwarmRequest('', '', '')
-    assert isinstance(request._wps_service,
-                      viresclient._wps.wps_vires.ViresWPS10Service
-                      )
-    request = AeolusRequest('', '', '')
-    assert isinstance(request._wps_service,
-                      viresclient._wps.wps_vires.ViresWPS10Service
-                      )
