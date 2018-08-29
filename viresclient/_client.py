@@ -340,7 +340,7 @@ class ClientRequest(object):
         return request_intervals
 
     def _get(self, request=None, asynchronous=None, response_handler=None,
-             message=None):
+             message=None, show_progress=True):
         """Make a request and handle response according to response_handler
 
         Args:
@@ -352,12 +352,18 @@ class ClientRequest(object):
         """
         try:
             if asynchronous:
-                with ProgressBarProcessing(message) as progressbar:
-                    # progressbar.write(message)
+                if show_progress:
+                    with ProgressBarProcessing(message) as progressbar:
+                        # progressbar.write(message)
+                        self._wps_service.retrieve_async(
+                            request,
+                            handler=response_handler,
+                            status_handler=progressbar.update
+                        )
+                else:
                     self._wps_service.retrieve_async(
                         request,
-                        handler=response_handler,
-                        status_handler=progressbar.update
+                        handler=response_handler
                     )
             else:
                 self._wps_service.retrieve(
@@ -370,7 +376,7 @@ class ClientRequest(object):
                 )
 
     def get_between(self, start_time=None, end_time=None,
-                    filetype="cdf", asynchronous=True):
+                    filetype="cdf", asynchronous=True, show_progress=True):
         """Make the server request and download the data.
 
         Args:
@@ -379,6 +385,7 @@ class ClientRequest(object):
             filetype (str): one of ('csv', 'cdf')
             asynchronous (bool): True for asynchronous processing,
                 False for synchronous
+            show_progress (bool): Set to False to remove progress bars
 
         Returns:
             ReturnedData object
@@ -454,28 +461,15 @@ class ClientRequest(object):
             retdata = retdatagroup.contents[i]
             # Make the request, as either asynchronous or synchronous
             # The response handler streams the data to the ReturnedData object
-            response_handler = self._response_handler(retdata.file)
+            response_handler = self._response_handler(
+                                retdata.file,
+                                show_progress=show_progress
+                               )
             self._get(request=self._request,
                       asynchronous=asynchronous,
                       response_handler=response_handler,
-                      message=message
+                      message=message,
+                      show_progress=show_progress
                       )
-        # try:
-        #     if asynchronous:
-        #         with ProgressBarProcessing() as progressbar:
-        #             self._wps_service.retrieve_async(
-        #                 self._request,
-        #                 handler=response_handler,
-        #                 status_handler=progressbar.update
-        #             )
-        #     else:
-        #         self._wps_service.retrieve(
-        #             self._request,
-        #             handler=response_handler
-        #         )
-        # except WPSError:
-        #     raise RuntimeError(
-        #         "Server error - may be outside of product availability?"
-        #         )
 
         return retdatagroup
