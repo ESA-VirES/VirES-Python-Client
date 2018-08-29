@@ -1,10 +1,11 @@
 import datetime
-import json
 
-from ._wps.environment import JINJA2_ENVIRONMENT
-from ._wps import time_util
-from ._client import WPSInputs, ClientRequest, wps_xml_request
-from ._data_handling import ReturnedData
+from ._client import WPSInputs, ClientRequest
+
+TEMPLATE_FILES = {
+    'sync': "vires_aeolus_fetch_filtered_data.xml",
+    'async': "vires_aeolus_fetch_filtered_data_async.xml"
+}
 
 
 class AeolusWPSInputs(WPSInputs):
@@ -60,7 +61,7 @@ class AeolusWPSInputs(WPSInputs):
 
     @property
     def as_dict(self):
-        #Add these as properties later:
+        # Add these as properties later:
         self._filters = self.filters
         self._fields = self.fields
         self._observation_fields = self.observation_fields
@@ -175,10 +176,7 @@ class AeolusRequest(ClientRequest):
         # self._available = self._set_available_data()
         self._request_inputs = AeolusWPSInputs()
         self._request_inputs.processId = 'aeolus:level1B:AUX'
-        self._templatefiles = {
-            'sync': "vires_aeolus_fetch_filtered_data.xml",
-            'async': "vires_aeolus_fetch_filtered_data_async.xml"
-            }
+        self._templatefiles = TEMPLATE_FILES
         self._filterlist = []
         self._supported_filetypes = ("nc",)
 

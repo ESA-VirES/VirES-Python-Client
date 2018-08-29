@@ -75,27 +75,13 @@ def get_log_level(level):
         return level
 
 
-def wps_xml_request(templatefile, inputs):
-    """Renders a WPS request template (xml) that can later be executed
-
-    Args:
-     templatefile (str): Name of the xml template file
-     input (WPSInputs): Contains valid parameters to fill the template
-    """
-    if not isinstance(inputs, WPSInputs):
-        raise TypeError("inputs must be a WPSInputs object")
-    template = JINJA2_ENVIRONMENT.get_template(templatefile)
-    request = template.render(**inputs.as_dict).encode('UTF-8')
-    return request
-
-
 class WPSInputs(object):
     """Holds the set of inputs to be passed to the request template
 
     Properties of this class are the set of valid inputs to a WPS request.
     See SwarmWPSInputs and AeolusWPSInputs.
     Also contains an as_dict property which converts its contents to a
-    dictionary to be passed as kwargs to wps_xml_request() which fills the xml
+    dictionary to be passed as kwargs to as_xml() which fills the xml
     template.
     """
 
@@ -114,6 +100,17 @@ class WPSInputs(object):
     @property
     def as_dict(self):
         return {key: self.__dict__['_{}'.format(key)] for key in self.names}
+
+    def as_xml(self, templatefile):
+        """Renders a WPS request template (xml) that can later be executed
+
+        Args:
+            templatefile (str): Name of the xml template file
+
+        """
+        template = JINJA2_ENVIRONMENT.get_template(templatefile)
+        request = template.render(**self.as_dict).encode('UTF-8')
+        return request
 
 
 class ProgressBar(object):
@@ -347,7 +344,7 @@ class ClientRequest(object):
         """Make a request and handle response according to response_handler
 
         Args:
-            request: the rendered xml request, from wps_xml_request
+            request: the rendered xml for the request
             asynchronous (bool): True for asynchronous processing,
                 False for synchronous
             response_handler: a function that handles the server response
@@ -451,7 +448,8 @@ class ClientRequest(object):
             # Finalise the WPSInputs object and (re-)generate the xml
             self._request_inputs.begin_time = start_time_i
             self._request_inputs.end_time = end_time_i
-            self._request = wps_xml_request(templatefile, self._request_inputs)
+            # self._request = wps_xml_request(templatefile, self._request_inputs)
+            self._request = self._request_inputs.as_xml(templatefile)
             # Identify the individual ReturnedData object within the group
             retdata = retdatagroup.contents[i]
             # Make the request, as either asynchronous or synchronous

@@ -3,8 +3,13 @@ import json
 
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps import time_util
-from ._client import WPSInputs, ClientRequest, wps_xml_request
+from ._client import WPSInputs, ClientRequest
 from ._data_handling import ReturnedData
+
+TEMPLATE_FILES = {
+    'sync': "vires_fetch_filtered_data.xml",
+    'async': "vires_fetch_filtered_data_async.xml"
+}
 
 
 class SwarmWPSInputs(WPSInputs):
@@ -170,10 +175,7 @@ class SwarmRequest(ClientRequest):
                          )
         self._available = self._set_available_data()
         self._request_inputs = SwarmWPSInputs()
-        self._templatefiles = {
-            'sync': "vires_fetch_filtered_data.xml",
-            'async': "vires_fetch_filtered_data_async.xml"
-            }
+        self._templatefiles = TEMPLATE_FILES
         self._filterlist = []
         self._supported_filetypes = ("csv", "cdf")
 
@@ -433,10 +435,11 @@ class SwarmRequest(ClientRequest):
             variables=["OrbitNumber"],
             response_type="text/csv"
         )
-        request = wps_xml_request(self._templatefiles['sync'], request_inputs)
+        # request = wps_xml_request(self._templatefiles['sync'], request_inputs)
+        request = self._request_inputs.as_xml(self._templatefiles['sync'])
         retdata = ReturnedData(filetype="csv")
         response_handler = self._response_handler(
             retdata.file, show_progress=False
         )
-        response = self._wps_service.retrieve(request, handler=response_handler)
+        self._wps_service.retrieve(request, handler=response_handler)
         return retdata.as_dataframe()["OrbitNumber"][0]
