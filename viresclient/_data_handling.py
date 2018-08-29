@@ -28,7 +28,6 @@
 #-------------------------------------------------------------------------------
 
 
-from os import remove
 from os.path import isfile  # , join, dirname
 try:
     from io import BytesIO
@@ -49,44 +48,125 @@ from ._wps import time_util
 CDF_EPOCH_1970 = 62167219200000.0
 
 
-def _fix_Dataset_column(da):
-    """
-    If column (i.e. a DataArray) is 1D (i.e. consists of scalars):
-    Attach 'times' as the coordinates
-    If column is 2D:
-    Convert the DataArray from a stack of lists to a ND array
-    Attach 'time' and 'dim':(0,1,2,..) as the coordinates
+def make_pandas_DataFrame_from_csv(csv_filename):
+    """Load a csv file into a pandas.DataFrame
+
+    Set the Timestamp as a datetime index.
+
+    Args:
+        csv_filename (str)
+
+    Returns:
+        pandas.DataFrame
 
     """
-    data = numpy.stack(da.values)
-    times = da.coords['Timestamp'].values
-#     lats = da['Latitude'].values
-#     lons = da['Longitude'].values
-    if len(data.shape) == 1:
-        # scalars
-        return xarray.DataArray(data, coords=[times], dims=['time'])
-    elif len(data.shape) == 2:
-        # N-dimensional vectors will be labelled with 0,1,2...
-        locs = [i for i in range(data.shape[1])]
-#         locs = ['N','E','C']  # could be introduced depending on the column name
-        return xarray.DataArray(data,
-                                coords=[times, locs],
-                                dims=['time', 'dim']
-                                )
-    else:
-        raise NotImplementedError("Array too complicated...")
-
-
-def _DataFrame_to_xarrayDataset(df):
-    """Convert pandas DataFrame to xarray Dataset
-
-    """
-    # Transfer to Dataset
-    ds = xarray.Dataset.from_dataframe(df)
-    # Change vector columns accordingly and set coordinates (time,dim)
-    ds = xarray.Dataset(
-        {column: _fix_Dataset_column(ds[column]) for column in df}
+    try:
+        # df = pandas.read_csv(BytesIO(self._data))
+        df = pandas.read_csv(csv_filename)
+    except Exception:
+        raise Exception("Bad or empty csv.")
+    # Convert to datetime objects
+    df['Timestamp'] = df['Timestamp'].apply(
+        time_util.parse_datetime
         )
+    # Convert the columns of vectors from strings to lists
+    if len(df) == 0:
+        # Returns empty dataframe when retrieval from server is empty
+        print("No data available")
+    else:
+        # Convert the columns of vectors from strings to lists
+        for col in df:
+            if type(df[col][0]) is str:
+                if df[col][0][0] == '{':
+                    df[col] = df[col].apply(
+                        lambda x: [
+                            float(y) for y in x.strip('{}').split(';')
+                        ])
+    df.set_index('Timestamp', inplace=True)
+    return df
+
+
+def make_pandas_DataFrame_from_cdf(cdf_filename):
+    """Load a csv file into a pandas.DataFrame
+
+    Set the Timestamp as a datetime index.
+
+    Args:
+        cdf_filename (str)
+
+    Returns:
+        pandas.DataFrame
+
+    """
+
+    try:
+        cdf = cdflib.CDF(cdf_filename)
+        keys = cdf.cdf_info()['zVariables']
+        # For performance, should avoid duplicating this data,
+        # only load it directly into the dataframe
+        vals = [cdf.varget(key) for key in keys]
+    except Exception:
+        raise Exception("Bad or empty cdf.")
+    if all(v is None for v in vals):
+        # Returns empty dataframe when retrieval from server is empty
+        df = pandas.DataFrame(columns=keys)
+        print("No data available")
+    else:
+        # Set up the output dataframe
+        # Convert timestamps to datetime objects
+        df = pandas.DataFrame.from_dict(
+                {key: list(value) for key, value in zip(keys, vals)}
+                )
+        df['Timestamp'] = df['Timestamp'].apply(
+            lambda x: time_util.unix_epoch_to_datetime(
+                (x-CDF_EPOCH_1970)*1e-3
+                )
+            )
+    df.set_index('Timestamp', inplace=True)
+    return df
+
+
+def make_xarray_Dataset_from_cdf(cdf_filename):
+    """Load a cdf file as an xarray Dataset
+
+    Use cdflib to read the cdf file. Create an xarray.Dataset with the
+    Timestamp as the coords (as datetime.datetime).
+    3-D vectors have dimension label 'dim'. Other cases not yet handled.
+
+    Args:
+        cdf_filename (str)
+
+    Returns:
+        xarray.Dataset
+
+    """
+
+    cdf = cdflib.CDF(cdf_filename)
+
+    ds = xarray.Dataset(coords={"Timestamp": cdf.varget("Timestamp")})
+
+    keys = [k for k in cdf.cdf_info()["zVariables"] if k != "Timestamp"]
+
+    for k in keys:
+        if cdf.varinq(k)["Num_Dims"] == 0:
+            # 1D (scalar) data
+            ds[k] = (("Timestamp",), cdf.varget(k))
+        elif ((cdf.varinq(k)["Num_Dims"] == 1) &
+                (cdf.varinq(k)["Dim_Sizes"] == [3])):
+                # Common 3D (vector) case
+                ds[k] = (("Timestamp", "dim"), cdf.varget(k))
+        else:
+            raise NotImplementedError("{}: array too complicated".format(k))
+
+    ds["Timestamp"].values = numpy.array(list(map(
+                                lambda x: time_util.unix_epoch_to_datetime(
+                                        (x-CDF_EPOCH_1970)*1e-3
+                                        ),
+                                ds["Timestamp"].values)
+                             ))
+
+    cdf.close()
+
     return ds
 
 
@@ -94,8 +174,8 @@ class ReturnedData(object):
     """Flexible object for handling data returned from the server.
 
     Holds the data returned from the server and the data type.
-    Data is held in a NamedTemporaryFile. It is automatically closed & destroyed
-    when it goes out of scope.
+    Data is held in a NamedTemporaryFile, which is automatically closed and
+    destroyed when it goes out of scope.
     Provides output to different file types and data objects.
 
     """
@@ -104,7 +184,8 @@ class ReturnedData(object):
         self._supported_filetypes = ("csv", "cdf", "nc")
         self.filetype = str() if filetype is None else filetype
         # SpooledTemporaryFile may be quicker on very small file sizes (<1MB?)
-        # Depends on the machine it is running on - choose the directory of the temp file?
+        # Depends on the machine it is running on
+        #  - choose the directory of the temp file?
         # But need to do some extra work for cdf->dataframe support
         # self._file = tempfile.SpooledTemporaryFile(max_size=1e8)
         self._file = tempfile.NamedTemporaryFile()
@@ -132,14 +213,14 @@ class ReturnedData(object):
         """
         if not isinstance(data, bytes):
             raise TypeError("data must be of type bytes")
-        self.file.seek(0)
+        # self.file.seek(0)
         self.file.write(data)
 
     def _write_file(self, filename):
         """Write the tempfile out to a regular file
 
         """
-        self.file.seek(0)
+        # self.file.seek(0)
         with open(filename, 'wb') as out_file:
             shutil.copyfileobj(self.file, out_file)
 
@@ -189,17 +270,6 @@ class ReturnedData(object):
         self._write_file(path)
         print("Data written to", path)
 
-    # def to_hdf(self, path, overwrite=False):
-    #     """Saves the data as an HDF5 file
-    #
-    #     Extension should be .h5
-    #     """
-    #     self._check_outfile(path, 'h5', overwrite)
-    #     # Convert to dataframe.
-    #     df = self.as_dataframe()
-    #     df.to_hdf(path, "data", mode="w")
-    #     print("Data written to", path)
-
     def to_netcdf(self, path, overwrite=False):
         """Saves the data as a netCDF4 file (this is compatible with HDF5)
 
@@ -216,70 +286,29 @@ class ReturnedData(object):
         """Convert the data to a pandas DataFrame.
 
         Returns:
-            DataFrame
+            pandas.DataFrame
 
         """
         if self.filetype == 'csv':
-            try:
-                # df = pandas.read_csv(BytesIO(self._data))
-                df = pandas.read_csv(self.file.name)
-            except Exception:
-                raise Exception("Bad or empty csv.")
-            # Convert to datetime objects
-            df['Timestamp'] = df['Timestamp'].apply(
-                time_util.parse_datetime
-                )
-            # Convert the columns of vectors from strings to lists
-            if len(df) == 0:
-                # Returns empty dataframe when retrieval from server is empty
-                print("No data available")
-            else:
-                # Convert the columns of vectors from strings to lists
-                for col in df:
-                    if type(df[col][0]) is str:
-                        if df[col][0][0] == '{':
-                            df[col] = df[col].apply(
-                                lambda x: [
-                                    float(y) for y in x.strip('{}').split(';')
-                                ])
+            df = make_pandas_DataFrame_from_csv(self.file.name)
         elif self.filetype == 'cdf':
-            # Currently need to write to a *named* temporary file,
-            # in order to use cdflib (which requires a file name to point to)
-            try:
-                cdf = cdflib.CDF(self.file.name)
-                keys = cdf.cdf_info()['zVariables']
-                vals = [cdf.varget(key) for key in keys]
-            except Exception:
-                raise Exception("Bad or empty cdf.")
-            if all(v is None for v in vals):
-                # Returns empty dataframe when retrieval from server is empty
-                df = pandas.DataFrame(columns=keys)
-                print("No data available")
-            else:
-                # Set up the output dataframe
-                # Convert timestamps to datetime objects
-                d = {key: list(value) for key, value in zip(keys, vals)}
-                df = pandas.DataFrame.from_dict(d)
-                df['Timestamp'] = df['Timestamp'].apply(
-                    lambda x: time_util.unix_epoch_to_datetime(
-                        (x-CDF_EPOCH_1970)*1e-3
-                        )
-                    )
-        df.set_index('Timestamp', inplace=True)
+            df = make_pandas_DataFrame_from_cdf(self.file.name)
         return df
 
     def as_xarray(self, group=None):
         """Convert the data to an xarray Dataset.
 
         Note:
-            For CSV and CDF, currently goes via a DataFrame
+            Does not support csv
 
         Returns:
-            Dataset
+            xarray.Dataset
 
         """
-        if self.filetype in ('cdf', 'csv'):
-            ds = _DataFrame_to_xarrayDataset(self.as_dataframe())
+        if self.filetype == 'csv':
+            raise NotImplementedError("csv to xarray is not supported")
+        elif self.filetype == 'cdf':
+            ds = make_xarray_Dataset_from_cdf(self.file.name)
         elif self.filetype == 'nc':
             ds = xarray.open_dataset(self.file.name, group=group)
         return ds
@@ -288,17 +317,25 @@ class ReturnedData(object):
 class ReturnedDataGroup(object):
     """Holds a list of ReturnedData objects
 
+    Number, N, of ReturnedData objects (i.e. tempfiles) is set upon init
+
     """
 
     def __init__(self, filetype=None, N=1):
         self.filetype = filetype
         self.contents = [ReturnedData(filetype=filetype) for i in range(N)]
 
+    def __str__(self):
+        return "viresclient ReturnedDataGroup object of type "+self.filetype +\
+            "\nSave it to a file with .to_file('filename')" + \
+            "\nLoad it as a pandas dataframe with .as_dataframe()" + \
+            "\nLoad it as an xarray dataset with .as_xarray()"
+
     def as_dataframe(self):
         """Convert the data to a pandas DataFrame.
 
         Returns:
-            DataFrame
+            pandas.DataFrame
 
         """
         return pandas.concat([d.as_dataframe() for d in self.contents])
@@ -306,14 +343,13 @@ class ReturnedDataGroup(object):
     def as_xarray(self):
         """Convert the data to an xarray Dataset.
 
-        Note:
-            For CSV and CDF, currently goes via a DataFrame
-
         Returns:
-            Dataset
+            xarray.Dataset
 
         """
-        return _DataFrame_to_xarrayDataset(self.as_dataframe())
+        return xarray.concat(
+            [d.as_xarray() for d in self.contents], dim="Timestamp"
+            )
 
     def to_files(self, paths, overwrite=False):
         """Saves the data to the specified files.
