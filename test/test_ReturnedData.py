@@ -1,8 +1,28 @@
 import pytest
+import os
+import pandas
 
 from viresclient._data_handling import ReturnedData
 
 SUPPORTED_FILETYPES = ('csv', 'cdf', 'nc')
+
+TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+
+# # Test data generated from:
+# request = SwarmRequest(...)
+# request.set_collection("SW_OPER_MAGA_LR_1B")
+# request.set_products(measurements=["F","B_NEC"],
+#                      sampling_step="PT10S")
+# request.set_range_filter(parameter="Latitude",
+#                          minimum=0,
+#                          maximum=90)
+# data = request.get_between(start_time=dt.datetime(2016,1,1),
+#                            end_time=dt.datetime(2016,1,1,1), filetype="cdf")
+TEST_FILES = {
+    "cdf": os.path.join(TEST_DATA_DIR, "test_data_01.cdf"),
+    "csv": os.path.join(TEST_DATA_DIR, "test_data_01.csv"),
+    "json_from_cdf": os.path.join(TEST_DATA_DIR, "test_data_01_from_cdf.json")
+}
 
 
 def test_ReturnedData_setup():
@@ -54,3 +74,48 @@ def test_ReturnedData_saving(tmpfile):
         retdata.to_file(
             testfile, overwrite=True
             )
+
+
+def test_ReturnedData_dataframe():
+    """Load test data as dataframes
+
+    Load dataframes from equivalent cdf and csv files.
+    Check that the index and column labels match.
+    Check that they also match the expected output (in json file).
+
+    """
+    # Initalise objects from the stored test data
+    data_cdf = ReturnedData(filetype="cdf")
+    data_csv = ReturnedData(filetype="csv")
+    with open(TEST_FILES["cdf"], "rb") as f:
+        data_cdf._write_new_data(f.read())
+    with open(TEST_FILES["csv"], "rb") as f:
+        data_csv._write_new_data(f.read())
+    df_cdf = data_cdf.as_dataframe()
+    df_csv = data_csv.as_dataframe()
+    # Check equivalency of dataframes loaded from cdf and csv
+    assert df_cdf.index.equals(df_csv.index)
+    assert set(df_cdf.keys()) == set(df_csv.keys())
+    # assert df_cdf.equals(df_csv)
+    # Check equivalency to the pre-made dataframe
+    df_json = pandas.read_json(TEST_FILES["json_from_cdf"])
+    assert df_cdf.index.equals(df_json.index)
+    assert set(df_cdf.keys()) == set(df_json.keys())
+
+
+def test_ReturnedData_xarray():
+    """Check that xarray keys and index match that from the dataframe
+
+    """
+    # Initalise objects from the stored test data
+    data_cdf = ReturnedData(filetype="cdf")
+    with open(TEST_FILES["cdf"], "rb") as f:
+        data_cdf._write_new_data(f.read())
+    ds = data_cdf.as_xarray()
+    # Check equivalency to the pre-made dataframe
+    df_json = pandas.read_json(TEST_FILES["json_from_cdf"])
+    # NB Dataset has "Timestamp" as a key as well as an index
+    assert set(ds.keys()) == set(list(df_json.keys()) + ["Timestamp"])
+    # Warning here: may need to instead use: set(data.as_xarray().variables)
+    # And may drop "Timestamp" with xarray v0.11?
+    assert ds.indexes["Timestamp"].equals(df_json.index)
