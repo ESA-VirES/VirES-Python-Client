@@ -43,7 +43,6 @@ import xarray
 import cdflib
 
 from ._wps import time_util
-# from viresclient import VIRESCLIENT_DEFAULT_FILE_DIR
 
 CDF_EPOCH_1970 = 62167219200000.0
 
@@ -105,6 +104,7 @@ def make_pandas_DataFrame_from_cdf(cdf_filename):
         # For performance, should avoid duplicating this data,
         # only load it directly into the dataframe
         vals = [cdf.varget(key) for key in keys]
+        cdf.close()
     except Exception:
         raise Exception("Bad or empty cdf.")
     if all(v is None for v in vals):

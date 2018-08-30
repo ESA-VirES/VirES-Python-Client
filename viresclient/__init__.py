@@ -27,10 +27,6 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from os import path
-
-# VIRESCLIENT_DEFAULT_FILE_DIR = path.expanduser('~/viresclient_data/')
-
 from ._client_swarm import SwarmRequest
 from ._client_aeolus import AeolusRequest
 from ._data_handling import ReturnedData

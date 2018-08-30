@@ -27,12 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
-import datetime
-import json
 from tqdm import tqdm
-# from tqdm import tqdm_notebook as tqdm
-from os import path, mkdir, SEEK_END
 from datetime import datetime, timedelta
 from math import ceil
 
@@ -45,7 +40,6 @@ from ._wps.log_util import set_stream_handler
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.wps import WPSError
 
-# from viresclient import VIRESCLIENT_DEFAULT_FILE_DIR
 from ._data_handling import ReturnedDataGroup
 
 # Logging levels
@@ -212,6 +206,10 @@ class ClientRequest(object):
     def __init__(self, url=None, username=None, password=None,
                  logging_level="NO_LOGGING", server_type="Swarm"
                  ):
+
+        url = "" if url is None else url
+        username = "" if username is None else username
+        password = "" if password is None else password
 
         for i in [url, username, password]:
             if not isinstance(i, str):
