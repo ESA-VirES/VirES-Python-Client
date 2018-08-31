@@ -30,6 +30,8 @@
 from tqdm import tqdm
 from datetime import datetime, timedelta
 from math import ceil
+import configparser
+import os
 
 from ._wps.wps_vires import ViresWPS10Service
 from ._wps.time_util import parse_duration
@@ -60,6 +62,9 @@ RESPONSE_TYPES = {
 
 # Maximum number of records allowable in one WPS request
 NRECORDS_LIMIT = 4320000
+
+# Store the config file in home directory
+CONFIG_FILE_PATH = os.path.join(os.environ["HOME"], ".viresclient.ini")
 
 
 def get_log_level(level):
@@ -197,6 +202,26 @@ class ProgressBarDownloading(ProgressBar):
             self.refresh_tqdm()
 
 
+def load_config():
+    config = configparser.ConfigParser()
+    config.read(CONFIG_FILE_PATH)
+    return config
+
+
+def save_config(url, username, password):
+    config = load_config()
+    # Replace the username and password for an already stored url
+    if url in config:
+        config.set(url, "username", username)
+        config.set(url, "password", password)
+    # Store an extra config section for a new url
+    else:
+        config[url] = {"username": username,
+                       "password": password}
+    with open(CONFIG_FILE_PATH, 'w') as configfile:
+        config.write(configfile)
+
+
 class ClientRequest(object):
     """Handles the requests to and downloads from the server.
 
@@ -216,6 +241,17 @@ class ClientRequest(object):
                 raise TypeError(
                     "url, username, and password must all be strings"
                 )
+
+        # Try to load a previously stored username and password that match the
+        # url, if none have been provided
+        if (url != "") & (username == "") & (password == ""):
+            config = load_config()
+            if url in config:
+                username = config[url].get("username", "")
+                password = config[url].get("password", "")
+        # If they have been provided, update the config file with them
+        elif "" not in [url, username, password]:
+            save_config(url, username, password)
 
         self._server_type = server_type
         self._request_inputs = None
