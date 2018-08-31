@@ -170,8 +170,8 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
     return ds
 
 
-class ReturnedData(object):
-    """Flexible object for handling data returned from the server.
+class ReturnedDataFile(object):
+    """For handling individual files returned from the server.
 
     Holds the data returned from the server and the data type.
     Data is held in a NamedTemporaryFile, which is automatically closed and
@@ -192,7 +192,7 @@ class ReturnedData(object):
         # Add an option for storing to a regular file directly?
 
     def __str__(self):
-        return "viresclient ReturnedData object of type " + self.filetype + \
+        return "viresclient ReturnedDataFile object of type " + self.filetype + \
             "\nSave it to a file with .to_file('filename')" + \
             "\nLoad it as a pandas dataframe with .as_dataframe()" + \
             "\nLoad it as an xarray dataset with .as_xarray()"
@@ -314,19 +314,21 @@ class ReturnedData(object):
         return ds
 
 
-class ReturnedDataGroup(object):
-    """Holds a list of ReturnedData objects
+class ReturnedData(object):
+    """Flexible object for working with data returned from the server
 
-    Number, N, of ReturnedData objects (i.e. tempfiles) is set upon init
+    Holds a list of ReturnedDataFile objects.
+    The number of them, N, is set upon initialisation.
 
     """
 
     def __init__(self, filetype=None, N=1):
-        self.filetype = filetype
-        self.contents = [ReturnedData(filetype=filetype) for i in range(N)]
+        self.contents = [ReturnedDataFile(filetype=filetype) for i in range(N)]
+        # filetype checking / conversion has been done in ReturnedDataFile
+        self.filetype = self.contents[0].filetype
 
     def __str__(self):
-        return "viresclient ReturnedDataGroup object of type "+self.filetype +\
+        return "viresclient ReturnedData object of type "+self.filetype +\
             "\nSave it to a file with .to_file('filename')" + \
             "\nLoad it as a pandas dataframe with .as_dataframe()" + \
             "\nLoad it as an xarray dataset with .as_xarray()"

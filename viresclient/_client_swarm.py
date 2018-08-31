@@ -4,7 +4,7 @@ import json
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps import time_util
 from ._client import WPSInputs, ClientRequest
-from ._data_handling import ReturnedData
+from ._data_handling import ReturnedDataFile
 
 TEMPLATE_FILES = {
     'sync': "vires_fetch_filtered_data.xml",
@@ -436,7 +436,7 @@ class SwarmRequest(ClientRequest):
             response_type="text/csv"
         )
         request = request_inputs.as_xml(self._templatefiles['sync'])
-        retdata = ReturnedData(filetype="csv")
+        retdata = ReturnedDataFile(filetype="csv")
         response_handler = self._response_handler(
             retdata.file, show_progress=False
         )

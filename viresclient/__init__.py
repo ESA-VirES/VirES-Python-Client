@@ -30,6 +30,6 @@
 from ._client_swarm import SwarmRequest
 from ._client_aeolus import AeolusRequest
 from ._data_handling import ReturnedData
-from ._data_handling import ReturnedDataGroup
+from ._data_handling import ReturnedDataFile
 
 __version__ = "0.2.0"

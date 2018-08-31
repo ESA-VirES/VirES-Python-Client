@@ -42,7 +42,7 @@ from ._wps.log_util import set_stream_handler
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.wps import WPSError
 
-from ._data_handling import ReturnedDataGroup
+from ._data_handling import ReturnedData
 
 # Logging levels
 LEVELS = {
@@ -433,7 +433,7 @@ class ClientRequest(object):
             raise TypeError("asynchronous must be set to either True or False")
 
         # Initialise the ReturnedData so that filetype checking is done there
-        retdatagroup = ReturnedDataGroup(filetype=filetype)
+        retdatagroup = ReturnedData(filetype=filetype)
 
         if retdatagroup.filetype not in self._supported_filetypes:
             raise TypeError("filetype: {} not supported by server"
@@ -478,8 +478,8 @@ class ClientRequest(object):
             start_time, end_time, sampling_step_estimate
             )
         nchunks = len(intervals)
-        # Recreate the ReturnedDataGroup with the right number of chunks
-        retdatagroup = ReturnedDataGroup(filetype=filetype, N=nchunks)
+        # Recreate the ReturnedData with the right number of chunks
+        retdatagroup = ReturnedData(filetype=filetype, N=nchunks)
         for i, (start_time_i, end_time_i) in enumerate(intervals):
             # message = "Getting chunk {}/{}\nFrom {} to {}".format(
             #                     i+1, nchunks, start_time_i, end_time_i
