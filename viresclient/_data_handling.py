@@ -199,6 +199,8 @@ class ReturnedDataFile(object):
 
     @property
     def file(self):
+        """Points to the actual file object
+        """
         self._file.seek(0)
         return self._file
 
@@ -226,6 +228,8 @@ class ReturnedDataFile(object):
 
     @property
     def filetype(self):
+        """Filetype is one of ("csv", "cdf", "nc")
+        """
         return self._filetype
 
     @filetype.setter
@@ -319,6 +323,7 @@ class ReturnedData(object):
 
     Holds a list of ReturnedDataFile objects.
     The number of them, N, is set upon initialisation.
+    Access the ReturnedDataFile objects directly via the list in ReturnedData.c
 
     """
 
@@ -332,6 +337,35 @@ class ReturnedData(object):
             "\nSave it to a file with .to_file('filename')" + \
             "\nLoad it as a pandas dataframe with .as_dataframe()" + \
             "\nLoad it as an xarray dataset with .as_xarray()"
+
+    @property
+    def filetype(self):
+        """Filetype string
+        """
+        return self._filetype
+
+    @filetype.setter
+    def filetype(self, value):
+        if not isinstance(value, str):
+            raise TypeError("filetype must be a string")
+        self._filetype = value
+
+    @property
+    def contents(self):
+        """List of ReturnedDataFile objects
+        """
+        return self._contents
+
+    @contents.setter
+    def contents(self, value):
+        if not isinstance(value, list):
+            raise TypeError("ReturnedData.contents should be a list")
+        for i in value:
+            if not isinstance(i, ReturnedDataFile):
+                raise TypeError(
+                    "Items in ReturnedData.contents should be"
+                    "of type ReturnedDataFile")
+        self._contents = value
 
     def as_dataframe(self):
         """Convert the data to a pandas DataFrame.
