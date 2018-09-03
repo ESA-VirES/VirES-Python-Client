@@ -1,19 +1,14 @@
+python:
+  - 3.5
+  - 3.6
 matrix:
-    include:
-        - python: 3.5
-          dist: trusty
-          sudo: false
-        - python: 3.6
-          dist: trusty
-          sudo: false
-        - python: 3.7
-          dist: xenial
-          sudo: true
+  include:
+    - python: 3.7
+      dist: xenial
 install:
-- pip install tox-travis
 - pip install pytest coveralls
 - pip install .
-script: tox
+script:
 - coverage run --source=viresclient setup.py pytest
 after_success:
 - coveralls
