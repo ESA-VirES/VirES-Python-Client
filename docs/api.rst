@@ -1,8 +1,3 @@
-viresclient
-===========
-
-.. automodule:: viresclient
-
 SwarmRequest
 ============
 
@@ -21,7 +16,7 @@ ReturnedData
     :show-inheritance:
     :inherited-members:
 
-.. autoclass:: viresclient.ReturnedDataGroup
+.. autoclass:: viresclient.ReturnedDataFile
     :members:
     :undoc-members:
     :show-inheritance:

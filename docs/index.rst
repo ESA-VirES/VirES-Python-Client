@@ -6,6 +6,8 @@ Welcome to VirES-Python-Client's documentation!
   :caption: Overview
 
   readme
+  available_parameters
+  release_notes
 
 .. toctree::
   :maxdepth: 2
