@@ -1,5 +1,6 @@
 import datetime
 import json
+from collections import OrderedDict
 
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps import time_util
@@ -9,6 +10,86 @@ from ._data_handling import ReturnedDataFile
 TEMPLATE_FILES = {
     'sync': "vires_fetch_filtered_data.xml",
     'async': "vires_fetch_filtered_data_async.xml"
+}
+
+REFERENCES = {
+    'General Swarm': (" Swarm Data Handbook, https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook ",
+                      " The Swarm Satellite Constellation Application and Research Facility (SCARF) and Swarm data products, https://doi.org/10.5047/eps.2013.07.001 ",
+                      " Swarm Science Data Processing and Products (2013), https://link.springer.com/journal/40623/65/11/page/1 ",
+                      " Special issue “Swarm science results after 2 years in space (2016), https://www.springeropen.com/collections/swsr ",
+                      " Earth's Magnetic Field: Understanding Geomagnetic Sources from the Earth's Interior and its Environment (2017), https://link.springer.com/journal/11214/206/1/page/1 ")
+    }
+
+MODEL_REFERENCES = {
+    'IGRF12':
+        (" International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
+         " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
+    'SIFM':
+        ("Swarm Initial Field Model",
+         " The Swarm Initial Field Model for the 2014 geomagnetic field, https://doi.org/10.1002/2014GL062659 "),
+    'CHAOS-6-Combined':
+        ("CHAOS-6 Core + Static, NB: no magnetospheric part",
+         " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS-6 geomagnetic field model, http://doi.org/10.1186/s40623-016-0486-1 ",
+         " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
+    'CHAOS-6-Core': "",
+    'CHAOS-6-Static': "",
+    'MCO_SHA_2C':
+        ("[Comprehensive Inversion]: Core field of CIY4",
+         " A comprehensive model of Earth’s magnetic field determined from 4 years of Swarm satellite observations, https://doi.org/10.1186/s40623-018-0896-3 ",
+         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MCO/SW_OPER_MCO_VAL_2C_20131201T000000_20180101T000000_0401.ZIP "),
+    'MCO_SHA_2D':
+        ("[Dedicated Chain]: Core field",
+         "An algorithm for deriving core magnetic field models from the Swarm data set, https://doi.org/10.5047/eps.2013.07.005 ",
+         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MCO/SW_OPER_MCO_VAL_2D_20131126T000000_20180101T000000_0401.ZIP "),
+    'MCO_SHA_2F':
+        ("[Fast-Track Product]: Core field",),
+    'MLI_SHA_2C':
+        ("[Comprehensive Inversion]: Lithospheric field of CIY4",
+         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2C_00000000T000000_99999999T999999_0401.ZIP"),
+    'MLI_SHA_2D':
+        ("[Dedicated Chain]: Lithospheric field",
+         " Swarm SCARF Dedicated Lithospheric Field Inversion chain, https://doi.org/10.5047/eps.2013.07.008 ",
+         " Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2D_00000000T000000_99999999T999999_0401.ZIP "),
+    'MMA_SHA_2C-Primary':
+        ("[Comprehensive Inversion]: Primary (external) magnetospheric field of CIY4",
+         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MMA/SW_OPER_MMA_VAL_2C_20131201T000000_20180101T000000_0401.ZIP"),
+    'MMA_SHA_2C-Secondary':
+        ("[Comprehensive Inversion]: Secondary (internal/induced) magnetospheric field of CIY4",),
+    'MMA_SHA_2F-Primary':
+        ("[Fast-Track Product]: Primary (external) magnetospheric field",
+         " Rapid modelling of the large-scale magnetospheric field from Swarm satellite data, https://doi.org/10.5047/eps.2013.09.003 "),
+    'MMA_SHA_2F-Secondary':
+        ("[Fast-Track Product]: Secondary (internal/induced) magnetospheric field",),
+    'MIO_SHA_2C-Primary':
+        ("[Comprehensive Inversion]: Primary (external) ionospheric field of CIY4",
+         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MIO/SW_OPER_MIO_VAL_2C_00000000T000000_99999999T999999_0401.ZIP "),
+    'MIO_SHA_2C-Secondary':
+        ("[Comprehensive Inversion]: Secondary (external/induced) ionospheric field of CIY4",),
+    'MIO_SHA_2D-Primary':
+        ("[Dedicated Chain]: Primary (external) ionospheric field, DIFI",
+         " Swarm SCARF dedicated ionospheric field inversion chain, https://doi.org/10.5047/eps.2013.08.006 ",
+         " First results from the Swarm Dedicated Ionospheric Field Inversion chain, https://doi.org/10.1186/s40623-016-0481-6 ",
+         " http://geomag.colorado.edu/difi-3 ",
+         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MIO/SW_OPER_MIO_VAL_2D_20131201T000000_20171231T235959_0402.ZIP "),
+    'MIO_SHA_2D-Secondary':
+        ("[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",)
+}
+
+COLLECTION_REFERENCES = {
+    "MAG": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#MAGX_LR_1B_Product ",
+            ),
+    "EFI": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#EFIX_LP_1B_Product ",
+            ),
+    "IBI": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#IBIxTMS_2F ",
+            " https://earth.esa.int/documents/10174/1514862/Swarm_L2_IBI_product_description "),
+    "TEC": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#TECxTMS_2F ",
+            " https://earth.esa.int/documents/10174/1514862/Swarm_Level-2_TEC_Product_Description "),
+    "FAC": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#FAC_TMS_2F ",
+            " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#FACxTMS_2F ",
+            " https://earth.esa.int/documents/10174/1514862/Swarm_L2_FAC_single_product_description ",
+            " https://earth.esa.int/documents/10174/1514862/Swarm-L2-FAC-Dual-Product-Description "),
+    "EEF": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#EEFxTMS_2F ",
+            " https://earth.esa.int/documents/10174/1514862/Swarm-Level-2-EEF-Product-Description ")
 }
 
 
@@ -239,32 +320,108 @@ class SwarmRequest(ClientRequest):
             "auxiliaries": auxiliaries
             }
 
-    def available_collections(self):
-        """Returns a list of the available collections.
-        """
-        return self._available["collections"]
+    def available_collections(self, details=True):
+        """Show details of available collections.
 
-    def available_measurements(self, collection_key=None):
+        Args:
+            details (bool): If True then print a nice output.
+                If False then return a list of available collections.
+
+        """
+        if details:
+            print("General References:")
+            for i in REFERENCES["General Swarm"]:
+                print(i)
+            print()
+            for key, val in self._available["collections_grouped"].items():
+                print(key)
+                for i in val:
+                    print('  ', i)
+                for ref in COLLECTION_REFERENCES[key]:
+                    print(ref)
+                print()
+        else:
+            return self._available["collections"]
+
+    def available_measurements(self, collection=None):
         """Returns a list of the available measurements for the chosen collection.
 
         Args:
-            collection_key (str): one of: ("MAG", "EFI", "IBI", "TEC", "FAC", "EEF")
+            collection (str): one of: ("MAG", "EFI", "IBI", "TEC", "FAC", "EEF")
 
         """
         keys = list(self._available["measurements"].keys())
-        if collection_key in keys:
+        if collection in keys:
+            collection_key = collection
             return self._available["measurements"][collection_key]
-        elif collection_key is None:
+        elif collection in self._available["collections"]:
+            collection_key = self._available["collections_to_keys"][collection]
+            return self._available["measurements"][collection_key]
+        elif collection is None:
             return self._available["measurements"]
         else:
             raise Exception(
-                "collection_key must be one of {}".format(", ".join(keys))
+                "collection must be one of {}\nor\n{}".format(
+                    ", ".join(keys),
+                    "\n".join(self._available["collections"])
+                    )
                 )
 
-    def available_models(self):
-        """Returns a list of the available models.
+    def available_models(self, param=None, details=True, nice_output=True):
+        """Show details of avalable models.
+
+        If details is True, return a dictionary of model names and details.
+        If nice_output is True, the dictionary is printed nicely.
+        If details is False, return a list of model names.
+        If param is set, filter to only return entries including this
+
+        Note:
+            |  F = Fast-Track Products
+            |  C = Comprehensive Inversion
+            |  D = Dedicated Chain
+            |  MCO = Core / main
+            |  MLI = Lithosphere
+            |  MMA = Magnetosphere
+            |  MIO = Ionosphere
+
+        Args:
+            param (str): one of "F C D MCO MLI MMA MIO"
+            details (bool): True for a dict of details, False for a brief list
+            nice_output (bool): If True, just print the dict nicely
+
         """
-        return self._available["models"]
+        param_choices = "F C D MCO MLI MMA MIO".split(' ')
+
+        def filter_by_param(d, param):
+            if param not in param_choices:
+                raise Exception("param must be one of {}".format(param_choices))
+            if param in "F C D".split(' '):
+                param = '2' + param
+            if isinstance(d, list):
+                d = [i for i in d if param in i]
+            elif isinstance(d, dict):
+                d = {k: d[k] for k in d.keys() if param in k}
+            else:
+                raise TypeError("d should be a dict or a list")
+            return d
+
+        if details:
+            d = MODEL_REFERENCES
+        else:
+            d = self._available["models"]
+        # Filter the dict/list to only include those that contain param
+        if param is not None:
+            d = filter_by_param(d, param)
+
+        if nice_output and details:
+            d = OrderedDict(sorted(d.items()))
+            for key, val in d.items():
+                print(key)
+                for i in val:
+                    print(i)
+                print()
+        else:
+            return d
 
     def available_auxiliaries(self):
         """Returns a list of the available auxiliary parameters.
