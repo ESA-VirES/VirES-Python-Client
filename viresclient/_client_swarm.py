@@ -231,7 +231,7 @@ class SwarmRequest(ClientRequest):
 
     Steps to download data:
 
-    1. Set up a connection to the server with: request = ClientRequest()
+    1. Set up a connection to the server with: request = SwarmRequest()
 
     2. Set collections to use with: request.set_collections()
 
@@ -441,7 +441,7 @@ class SwarmRequest(ClientRequest):
         if collection not in self._available["collections"]:
             raise Exception(
                 "Invalid collection. "
-                "Check available with ClientRequest.available_collections()")
+                "Check available with SwarmRequest.available_collections()")
         else:
             self._collection = collection
             self._request_inputs.set_collection(collection)
@@ -472,7 +472,7 @@ class SwarmRequest(ClientRequest):
                 raise Exception(
                     "Measurement '{}' not available for collection '{}'. "
                     "Check available with "
-                    "ClientRequest.available_measurements({})".format(
+                    "SwarmRequest.available_measurements({})".format(
                         x, collection_key, collection_key
                     ))
         # Check chosen model is available
@@ -480,14 +480,14 @@ class SwarmRequest(ClientRequest):
             if x not in self._available["models"]:
                 raise Exception(
                     "Model '{}' not available. Check available with "
-                    "ClientRequest.available_models()".format(x)
+                    "SwarmRequest.available_models()".format(x)
                     )
         # Check chosen aux is available
         for x in auxiliaries:
             if x not in self._available["auxiliaries"]:
                 raise Exception(
                     "'{}' not available. Check available with "
-                    "ClientRequest.available_auxiliaries()".format(x)
+                    "SwarmRequest.available_auxiliaries()".format(x)
                     )
         # Set up the variables that actually get passed to the WPS request
         variables = []
