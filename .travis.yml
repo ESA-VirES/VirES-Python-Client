@@ -10,10 +10,10 @@ matrix:
           dist: xenial
           sudo: true
 install:
-- pip install -r requirements.txt
+- pip install tox-travis
 - pip install pytest coveralls
 - pip install .
-script:
+script: tox
 - coverage run --source=viresclient setup.py pytest
 after_success:
 - coveralls
