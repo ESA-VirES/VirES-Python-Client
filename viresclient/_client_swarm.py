@@ -512,6 +512,8 @@ class SwarmRequest(ClientRequest):
     def set_range_filter(self, parameter=None, minimum=None, maximum=None):
         """Set a filter to apply.
 
+        Filters data for minimum ≤ parameter ≤ maximum
+
         Note:
             Apply multiple filters with successive calls to set_range_filter()
 
@@ -548,9 +550,9 @@ class SwarmRequest(ClientRequest):
             end_orbit (int): a later orbit number
 
         Returns:
-            tuple(datetime): (start_time, end_time) The start time of the
-                start_orbit and the ending time of the end_orbit.
-                (Based on ascending nodes of the orbits)
+            tuple (datetime): (start_time, end_time) The start time of the
+            start_orbit and the ending time of the end_orbit.
+            (Based on ascending nodes of the orbits)
 
         """
         # Change to spacecraft = "A" etc. for this request

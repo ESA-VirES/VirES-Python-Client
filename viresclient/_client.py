@@ -61,7 +61,7 @@ RESPONSE_TYPES = {
 }
 
 # Maximum number of records allowable in one WPS request
-NRECORDS_LIMIT = 4320000
+NRECORDS_LIMIT = 4320000  # = 50 days at 1Hz
 
 # Store the config file in home directory
 CONFIG_FILE_PATH = os.path.join(os.environ["HOME"], ".viresclient.ini")
@@ -330,7 +330,9 @@ class ClientRequest(object):
             return write_response_without_reporting
 
     @staticmethod
-    def _chunkify_request(start_time, end_time, sampling_step):
+    def _chunkify_request(
+            start_time, end_time, sampling_step, nrecords_limit
+            ):
         """Split the start and end times into several as necessary, as specified
         by the NRECORDS_LIMIT
 
@@ -351,7 +353,7 @@ class ClientRequest(object):
                 e.g. [(start1, end1), (start2, end2)]
         """
         # Maximum allowable chunk length, in seconds
-        chunklength = NRECORDS_LIMIT * parse_duration(sampling_step).total_seconds()
+        chunklength = nrecords_limit * parse_duration(sampling_step).total_seconds()
         # Resulting number of chunks
         nchunks = ceil((end_time-start_time).total_seconds() / chunklength)
 
@@ -406,11 +408,12 @@ class ClientRequest(object):
                 )
         except WPSError:
             raise RuntimeError(
-                "Server error - may be outside of product availability?"
+                "Server error - perhaps you are requesting a period outside of product availability?"
                 )
 
     def get_between(self, start_time=None, end_time=None,
-                    filetype="cdf", asynchronous=True, show_progress=True):
+                    filetype="cdf", asynchronous=True, show_progress=True,
+                    nrecords_limit=None, tmpdir=None):
         """Make the server request and download the data.
 
         Args:
@@ -420,6 +423,9 @@ class ClientRequest(object):
             asynchronous (bool): True for asynchronous processing,
                 False for synchronous
             show_progress (bool): Set to False to remove progress bars
+            nrecords_limit (int): Override the default limit per request
+                (e.g. nrecords_limit=3456000)
+            tmpdir (str): Override the default temporary file directory
 
         Returns:
             ReturnedData object
@@ -473,13 +479,14 @@ class ClientRequest(object):
                                       "EEF": "PT90M"
                                       }
             sampling_step_estimate = default_sampling_steps[collection_key]
+        nrecords_limit = NRECORDS_LIMIT if nrecords_limit is None else nrecords_limit
         # Split the request into several intervals
         intervals = self._chunkify_request(
-            start_time, end_time, sampling_step_estimate
+            start_time, end_time, sampling_step_estimate, nrecords_limit
             )
         nchunks = len(intervals)
         # Recreate the ReturnedData with the right number of chunks
-        retdatagroup = ReturnedData(filetype=filetype, N=nchunks)
+        retdatagroup = ReturnedData(filetype=filetype, N=nchunks, tmpdir=tmpdir)
         for i, (start_time_i, end_time_i) in enumerate(intervals):
             # message = "Getting chunk {}/{}\nFrom {} to {}".format(
             #                     i+1, nchunks, start_time_i, end_time_i

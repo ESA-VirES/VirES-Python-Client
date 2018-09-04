@@ -28,7 +28,7 @@
 #-------------------------------------------------------------------------------
 
 
-from os.path import isfile  # , join, dirname
+import os
 try:
     from io import BytesIO
 except ImportError:
@@ -117,11 +117,8 @@ def make_pandas_DataFrame_from_cdf(cdf_filename):
         df = pandas.DataFrame.from_dict(
                 {key: list(value) for key, value in zip(keys, vals)}
                 )
-        df['Timestamp'] = df['Timestamp'].apply(
-            lambda x: time_util.unix_epoch_to_datetime(
-                (x-CDF_EPOCH_1970)*1e-3
-                )
-            )
+        df['Timestamp'] = (df['Timestamp']-CDF_EPOCH_1970)/1e3
+        df['Timestamp'] = pandas.to_datetime(df['Timestamp'], unit='s')
     df.set_index('Timestamp', inplace=True)
     return df
 
@@ -143,7 +140,12 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
 
     cdf = cdflib.CDF(cdf_filename)
 
-    ds = xarray.Dataset(coords={"Timestamp": cdf.varget("Timestamp")})
+    # Load time and convert to Unix time
+    time = (cdf.varget("Timestamp")-CDF_EPOCH_1970)/1e3
+    # Now convert to a DatetimeIndex
+    time = pandas.to_datetime(time, unit='s')
+
+    ds = xarray.Dataset(coords={"Timestamp": time})
 
     keys = [k for k in cdf.cdf_info()["zVariables"] if k != "Timestamp"]
 
@@ -157,13 +159,6 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
                 ds[k] = (("Timestamp", "dim"), cdf.varget(k))
         else:
             raise NotImplementedError("{}: array too complicated".format(k))
-
-    ds["Timestamp"].values = numpy.array(list(map(
-                                lambda x: time_util.unix_epoch_to_datetime(
-                                        (x-CDF_EPOCH_1970)*1e-3
-                                        ),
-                                ds["Timestamp"].values)
-                             ))
 
     cdf.close()
 
@@ -180,15 +175,18 @@ class ReturnedDataFile(object):
 
     """
 
-    def __init__(self, filetype=None):
+    def __init__(self, filetype=None, tmpdir=None):
         self._supported_filetypes = ("csv", "cdf", "nc")
         self.filetype = str() if filetype is None else filetype
+        if tmpdir is not None:
+            if not os.path.exists(tmpdir):
+                raise Exception("tmpdir does not exist")
         # SpooledTemporaryFile may be quicker on very small file sizes (<1MB?)
         # Depends on the machine it is running on
         #  - choose the directory of the temp file?
         # But need to do some extra work for cdf->dataframe support
         # self._file = tempfile.SpooledTemporaryFile(max_size=1e8)
-        self._file = tempfile.NamedTemporaryFile()
+        self._file = tempfile.NamedTemporaryFile(dir=tmpdir)
         # Add an option for storing to a regular file directly?
 
     def __str__(self):
@@ -254,7 +252,7 @@ class ReturnedDataFile(object):
             raise TypeError("Filename extension should be {}".format(
                 path_extension
                 ))
-        if isfile(path) and not overwrite:
+        if os.path.isfile(path) and not overwrite:
             raise Exception(
                 "File not written as it already exists and overwrite=False"
                 )
@@ -305,6 +303,8 @@ class ReturnedDataFile(object):
         Note:
             Does not support csv
 
+            Only supports scalar and 3D vectors (currently)
+
         Returns:
             xarray.Dataset
 
@@ -327,8 +327,10 @@ class ReturnedData(object):
 
     """
 
-    def __init__(self, filetype=None, N=1):
-        self.contents = [ReturnedDataFile(filetype=filetype) for i in range(N)]
+    def __init__(self, filetype=None, N=1, tmpdir=None):
+        self.contents = [
+            ReturnedDataFile(filetype=filetype, tmpdir=tmpdir) for i in range(N)
+            ]
         # filetype checking / conversion has been done in ReturnedDataFile
         self.filetype = self.contents[0].filetype
 
