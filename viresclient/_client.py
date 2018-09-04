@@ -428,7 +428,7 @@ class ClientRequest(object):
             tmpdir (str): Override the default temporary file directory
 
         Returns:
-            ReturnedData object
+            ReturnedData:
 
         """
         if not (isinstance(start_time, datetime) &

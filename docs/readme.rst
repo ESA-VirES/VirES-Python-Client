@@ -16,7 +16,9 @@ The cdflib_ library is used to read CDF files.
 Installation
 ------------
 
-Python ≥ 3.5 is required for full support. Python 3.4 can also be used, but conversion from CDF to pandas/xarray is not supported - you can still download and save CDF files - ``.to_file()``, or download as CSV files and convert to pandas - ``as_dataframe()``. (Partial?) support for 2.7 and 3.4 could be added in the future, but their usage is not recommended (https://python3statement.org/).
+Python ≥ 3.5 is required for full support.
+
+Python 3.4 can also be used, but conversion from CDF to pandas/xarray is not supported - you can still download and save CDF files - :meth:`viresclient.ReturnedData.to_file`, or download as CSV files and convert to pandas - :meth:`viresclient.ReturnedData.as_dataframe`. (Partial?) support for 2.7 and 3.4 could be added in the future, but their usage is not recommended (https://python3statement.org/).
 
 It can currently be installed with::
 

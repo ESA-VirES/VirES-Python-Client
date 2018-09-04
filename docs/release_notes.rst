@@ -5,7 +5,7 @@ Changes from v0.2.0 to v0.2.1
 -----------------------------
 
  - Improved performance of pandas and xarray loading from cdf.
- - Added option to override the default nrecords_limit (maximum number of records in each request). Use this if a request is failing with a server error that the maximum allowable number of records has been exceeded - but this means that there is probably duplicate data on the server (old and new versions), so check the data that gets returned::
+ - Added ``nrecords_limit`` option to :meth:`viresclient.SwarmRequest.get_between` to override the default maximum number of records in each request. Use this if a request is failing with a server error that the maximum allowable number of records has been exceeded - but this means that there is probably duplicate data on the server (old and new versions), so check the data that gets returned::
 
     data = request.get_between(start_time, end_time, nrecords_limit=3456000)
     ds = data.as_xarray()
@@ -17,7 +17,7 @@ Changes from v0.2.0 to v0.2.1
     # Length of day should be 86400
     ds.sel(Timestamp='2014-02-02')
 
- - Added option to override the default temporary file directory.
+ - Added ``tmpdir`` option to :meth:`viresclient.SwarmRequest.get_between` to override the default temporary file directory. The default is selected automatically according to https://docs.python.org/3/library/tempfile.html#tempfile.mkstemp (usually /tmp). This may not be suitable when fetching large amounts of data as some machines may have limited space available in /tmp or there may be a higher performance or preferred location.
 
 Changes from v0.1.0 to v0.2.0
 -----------------------------

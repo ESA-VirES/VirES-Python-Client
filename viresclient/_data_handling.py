@@ -323,7 +323,7 @@ class ReturnedData(object):
 
     Holds a list of ReturnedDataFile objects.
     The number of them, N, is set upon initialisation.
-    Access the ReturnedDataFile objects directly via the list in ReturnedData.c
+    Access the ReturnedDataFile objects directly via the list in ReturnedData.contents.
 
     """
 
