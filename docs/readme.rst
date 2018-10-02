@@ -1,7 +1,10 @@
 Introduction
 ============
 
-This is the documentation for the ``viresclient`` Python package. This is a tool which connects to a VirES server through the `WPS <http://www.opengeospatial.org/standards/wps>`_ interface and handles product requests and downloads.
+This is the documentation for the ``viresclient`` Python package. This is a tool which connects to a VirES_ server through the WPS_ interface and handles product requests and downloads.
+
+.. _VirES: https://vires.services
+.. _WPS: http://www.opengeospatial.org/standards/wps
 
 Data can be accessed from the server as CSV or CDF files and saved to disk, or loaded directly into Python objects pandas.DataFrame_, or xarray.Dataset_.
 
@@ -9,14 +12,18 @@ Data can be accessed from the server as CSV or CDF files and saved to disk, or l
 
 .. _xarray.Dataset: http://xarray.pydata.org/en/stable/data-structures.html#dataset
 
-The cdflib_ library is used to read CDF files.
+cdflib_ is used to read CDF files.
 
 .. _cdflib: https://github.com/MAVENSDC/cdflib
+
+The project is on GitHub at https://github.com/ESA-VirES/VirES-Python-Client - please feel free to contribute with any code/suggestions/comments.
+
+A repository of example notebooks can be found at https://github.com/smithara/viresclient_examples. We welcome contribution of notebooks to this repository that show some short analyses or generating useful figures.
 
 Installation
 ------------
 
-Python ≥ 3.5 is required for full support.
+Python ≥ 3.5 is required for full support (since cdflib requires ≥ 3.5).
 
 Python 3.4 can also be used, but conversion from CDF to pandas/xarray is not supported - you can still download and save CDF files - :meth:`viresclient.ReturnedData.to_file`, or download as CSV files and convert to pandas - :meth:`viresclient.ReturnedData.as_dataframe`. (Partial?) support for 2.7 and 3.4 could be added in the future, but their usage is not recommended (https://python3statement.org/).
 
