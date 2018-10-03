@@ -33,6 +33,7 @@ MODEL_REFERENCES = {
          " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
     'CHAOS-6-Core': "",
     'CHAOS-6-Static': "",
+    'CHAOS-6-MMA': "",
     'MCO_SHA_2C':
         ("[Comprehensive Inversion]: Core field of CIY4",
          " A comprehensive model of Earth’s magnetic field determined from 4 years of Swarm satellite observations, https://doi.org/10.1186/s40623-018-0896-3 ",
@@ -293,6 +294,7 @@ class SwarmRequest(ClientRequest):
 
         models = """
             IGRF12, SIFM, CHAOS-6-Combined, CHAOS-6-Core, CHAOS-6-Static,
+            CHAOS-6-MMA-Primary, CHAOS-6-MMA-Secondary
             MCO_SHA_2C, MCO_SHA_2D, MCO_SHA_2F, MLI_SHA_2C, MLI_SHA_2D,
             MMA_SHA_2C-Primary, MMA_SHA_2C-Secondary,
             MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,

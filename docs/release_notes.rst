@@ -1,6 +1,11 @@
 Release notes
 =============
 
+Changes from v0.2.1 to v0.2.2
+-----------------------------
+
+- Added models CHAOS-6-MMA-Primary and CHAOS-6-MMA-Secondary
+
 Changes from v0.2.0 to v0.2.1
 -----------------------------
 
