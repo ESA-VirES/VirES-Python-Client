@@ -294,7 +294,7 @@ class SwarmRequest(ClientRequest):
 
         models = """
             IGRF12, SIFM, CHAOS-6-Combined, CHAOS-6-Core, CHAOS-6-Static,
-            CHAOS-6-MMA-Primary, CHAOS-6-MMA-Secondary
+            CHAOS-6-MMA-Primary, CHAOS-6-MMA-Secondary,
             MCO_SHA_2C, MCO_SHA_2D, MCO_SHA_2F, MLI_SHA_2C, MLI_SHA_2D,
             MMA_SHA_2C-Primary, MMA_SHA_2C-Secondary,
             MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,
