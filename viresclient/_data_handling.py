@@ -385,9 +385,25 @@ class ReturnedData(object):
             xarray.Dataset
 
         """
-        return xarray.concat(
-            [d.as_xarray() for d in self.contents], dim="Timestamp"
-            )
+        ds_list = []
+        for i, data in enumerate(self.contents):
+            try:
+                ds_part = data.as_xarray()
+            except Exception:
+                print("Warning: ",
+                      "Unable to create dataset from part {} of {}".format(
+                        i+1, len(self.contents)),
+                      "\n(This part is likely empty)")
+            ds_list.append(ds_part)
+        return xarray.concat(ds_list, dim="Timestamp")
+        # # Test this other option:
+        # ds = self.contents[0].as_xarray()
+        # for d in self.contents[1:]:
+        #     ds = xarray.concat([ds, d.as_xarray()], dim="Timestamp")
+        # return ds
+        #
+        # https://github.com/pydata/xarray/issues/1379
+        # concat is slow. Maybe try extracting numpy arrays and rebuilding ds
 
     def to_files(self, paths, overwrite=False):
         """Saves the data to the specified files.
