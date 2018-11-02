@@ -292,6 +292,7 @@ class SwarmRequest(ClientRequest):
             "EEF": "EEF,RelErr,flags".split(",")
             }
 
+        model_variables = ("F", "B_NEC")
         models = """
             IGRF12, SIFM, CHAOS-6-Combined, CHAOS-6-Core, CHAOS-6-Static,
             CHAOS-6-MMA-Primary, CHAOS-6-MMA-Secondary,
@@ -319,6 +320,7 @@ class SwarmRequest(ClientRequest):
             "collections_to_keys": collections_to_keys,
             "measurements": measurements,
             "models": models,
+            "model_variables": model_variables,
             "auxiliaries": auxiliaries
             }
 
@@ -466,45 +468,55 @@ class SwarmRequest(ClientRequest):
         """
         measurements = [] if measurements is None else measurements
         models = [] if models is None else models
+        model_variables = set(self._available["model_variables"])
         auxiliaries = [] if auxiliaries is None else auxiliaries
         # Check the chosen measurements are available for the set collection
         collection_key = self._available["collections_to_keys"][self._collection]
-        for x in measurements:
-            if x not in self._available["measurements"][collection_key]:
+        for variable in measurements:
+            if variable not in self._available["measurements"][collection_key]:
                 raise Exception(
                     "Measurement '{}' not available for collection '{}'. "
                     "Check available with "
                     "SwarmRequest.available_measurements({})".format(
-                        x, collection_key, collection_key
+                        variable, collection_key, collection_key
                     ))
+        # Check if at least one model defined when requesting residuals
+        if residuals and not models:
+            raise Exception("Residuals requested but no model defined!")
         # Check chosen model is available
-        for x in models:
-            if x not in self._available["models"]:
+        for model_name in models:
+            if model_name not in self._available["models"]:
                 raise Exception(
                     "Model '{}' not available. Check available with "
-                    "SwarmRequest.available_models()".format(x)
+                    "SwarmRequest.available_models()".format(model_name)
                     )
         # Check chosen aux is available
-        for x in auxiliaries:
-            if x not in self._available["auxiliaries"]:
+        for variable in auxiliaries:
+            if variable not in self._available["auxiliaries"]:
                 raise Exception(
                     "'{}' not available. Check available with "
-                    "SwarmRequest.available_auxiliaries()".format(x)
+                    "SwarmRequest.available_auxiliaries()".format(variable)
                     )
         # Set up the variables that actually get passed to the WPS request
         variables = []
-        if not residuals:
-            variables += measurements
-            # Model values
-            for model_name in models:
-                for measurement in measurements:
-                    variables += ["%s_%s" % (measurement, model_name)]
-        elif residuals:
-            # Model residuals
-            for model_name in models:
-                for measurement in measurements:
-                    variables += ["%s_res_%s" % (measurement, model_name)]
-        variables += auxiliaries
+
+        for variable in measurements:
+            if variable in model_variables:
+                if residuals:
+                    variables.extend(
+                        "%s_res_%s" % (variable, model_name)
+                        for model_name in models
+                    )
+                else:
+                    variables.append(variable)
+                    variables.extend(
+                        "%s_%s" % (variable, model_name)
+                        for model_name in models
+                    )
+            else: # not a model variable
+                variables.append(variable)
+
+        variables.extend(auxiliaries)
 
         # Set these in the SwarmWPSInputs object
         self._request_inputs.model_ids = models
