@@ -155,8 +155,8 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
             ds[k] = (("Timestamp",), cdf.varget(k))
         elif ((cdf.varinq(k)["Num_Dims"] == 1) &
                 (cdf.varinq(k)["Dim_Sizes"] == [3])):
-                # Common 3D (vector) case
-                ds[k] = (("Timestamp", "dim"), cdf.varget(k))
+            # Common 3D (vector) case
+            ds[k] = (("Timestamp", "dim"), cdf.varget(k))
         else:
             raise NotImplementedError("{}: array too complicated".format(k))
 
@@ -394,7 +394,8 @@ class ReturnedData(object):
                       "Unable to create dataset from part {} of {}".format(
                         i+1, len(self.contents)),
                       "\n(This part is likely empty)")
-            ds_list.append(ds_part)
+            else:
+                ds_list.append(ds_part)
         return xarray.concat(ds_list, dim="Timestamp")
         # # Test this other option:
         # ds = self.contents[0].as_xarray()
