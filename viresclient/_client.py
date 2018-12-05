@@ -34,7 +34,7 @@ import configparser
 import os
 
 from ._wps.wps_vires import ViresWPS10Service
-from ._wps.time_util import parse_duration
+from ._wps.time_util import parse_duration, parse_datetime
 from ._wps.http_util import encode_basic_auth
 from logging import getLogger, DEBUG, INFO, WARNING, ERROR, CRITICAL
 from ._wps.log_util import set_stream_handler
@@ -431,9 +431,14 @@ class ClientRequest(object):
             ReturnedData:
 
         """
-        if not (isinstance(start_time, datetime) &
-                isinstance(end_time, datetime)):
-            raise TypeError("start_time and end_time must be datetime objects")
+        try:
+            start_time = parse_datetime(start_time)
+            end_time = parse_datetime(end_time)
+        except TypeError:
+            raise TypeError(
+                "start_time and end_time must be datetime objects or ISO-8601 "
+                "date/time strings"
+            )
 
         if asynchronous not in [True, False]:
             raise TypeError("asynchronous must be set to either True or False")
