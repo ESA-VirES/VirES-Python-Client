@@ -66,6 +66,9 @@ NRECORDS_LIMIT = 4320000  # = 50 days at 1Hz
 # Store the config file in home directory
 CONFIG_FILE_PATH = os.path.join(os.environ["HOME"], ".viresclient.ini")
 
+# Maximum selectable time interval ~25 years
+MAX_TIME_SELECTION = timedelta(days=25*365.25)
+
 
 def get_log_level(level):
     if isinstance(level, str):
@@ -352,26 +355,21 @@ class ClientRequest(object):
             list of tuples of datetime pairs,
                 e.g. [(start1, end1), (start2, end2)]
         """
-        # Maximum allowable chunk length, in seconds
-        chunklength = nrecords_limit * parse_duration(sampling_step).total_seconds()
-        # Resulting number of chunks
-        nchunks = ceil((end_time-start_time).total_seconds() / chunklength)
+        # maximum chunk duration as a timedelta object
+        chunk_duration = timedelta(seconds=(
+            nrecords_limit * parse_duration(sampling_step).total_seconds()
+        ))
 
-        if nchunks == 1:
-            request_intervals = [(start_time, end_time)]
-            return request_intervals
+        # calculate the chunk intervals ...
+        request_intervals = []
 
-        # Calculate the interval times (start,end) at which to place the
-        # individual request bounds
-        # First interval
-        request_intervals = [(start_time,
-                              start_time + timedelta(seconds=chunklength))]
-        for i in range(1, nchunks-1):
-            last_time = request_intervals[i-1][1]
-            request_intervals += [(last_time,
-                                   last_time + timedelta(seconds=chunklength))]
-        # Last interval (has a different chunk length)
-        request_intervals += [(request_intervals[-1][1], end_time)]
+        last_time = start_time
+        while True:
+            next_time = last_time + chunk_duration
+            request_intervals.append((last_time, min(next_time, end_time)))
+            if next_time >= end_time:
+                break;
+            last_time = next_time
 
         return request_intervals
 
@@ -429,7 +427,6 @@ class ClientRequest(object):
 
         Returns:
             ReturnedData:
-
         """
         try:
             start_time = parse_datetime(start_time)
@@ -439,6 +436,12 @@ class ClientRequest(object):
                 "start_time and end_time must be datetime objects or ISO-8601 "
                 "date/time strings"
             )
+
+        if (end_time < start_time):
+            raise ValueError("Invalid time selection! end_time < start_time")
+
+        if (end_time - start_time) > MAX_TIME_SELECTION:
+            raise ValueError("Time selection is too long!")
 
         if asynchronous not in [True, False]:
             raise TypeError("asynchronous must be set to either True or False")
