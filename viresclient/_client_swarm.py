@@ -265,7 +265,7 @@ class SwarmRequest(ClientRequest):
     def _set_available_data():
         collections_grouped = {
             "MAG": ["SW_OPER_MAG{}_LR_1B".format(x) for x in ("ABC")],
-            "EFI": ["SW_OPER_EFI{}_PL_1B".format(x) for x in ("ABC")],
+            "EFI": ["SW_OPER_EFI{}_LP_1B".format(x) for x in ("ABC")],
             "IBI": ["SW_OPER_IBI{}TMS_2F".format(x) for x in ("ABC")],
             "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in ("ABC")],
             "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in ("ABC")] +
@@ -285,7 +285,7 @@ class SwarmRequest(ClientRequest):
 
         measurements = {
             "MAG": "F,dF_AOCS,dF_other,F_error,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_error,Flags_F,Flags_B,Flags_q,Flags_Platform,ASM_Freq_Dev".split(","),
-            "EFI": "v_SC,v_ion,v_ion_error,E,E_error,dt_LP,n,n_error,T_ion,T_ion_error,T_elec,T_elec_error,U_SC,U_SC_error,v_ion_H,v_ion_H_error,v_ion_V,v_ion_V_error,rms_fit_H,rms_fit_V,var_x_H,var_y_H,var_x_V,var_y_V,dv_mtq_H,dv_mtq_V,SAA,Flags_LP,Flags_LP_n,Flags_LP_T_elec,Flags_LP_U_SC,Flags_TII,Flags_Platform,Maneuver_Id".split(","),
+            "EFI": "U_orbit,Ne,Ne_error,Te,Te_error,Vs,Vs_error,Flags_LP,Flags_Ne,Flags_Te,Flags_Vs".split(","),
             "IBI": "Bubble_Index,Bubble_Probability,Flags_Bubble,Flags_F,Flags_B,Flags_q".split(","),
             "TEC": "GPS_Position,LEO_Position,PRN,L1,L2,P1,P2,S1,S2,Absolute_STEC,Relative_STEC,Relative_STEC_RMS,DCB,DCB_Error".split(","),
             "FAC": "IRC,IRC_Error,FAC,FAC_Error,Flags,Flags_F,Flags_B,Flags_q".split(","),
