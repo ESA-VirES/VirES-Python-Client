@@ -1,6 +1,7 @@
 import datetime
 import json
 from collections import OrderedDict
+import os
 
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps import time_util
@@ -106,7 +107,8 @@ class SwarmWPSInputs(WPSInputs):
                  variables=None,
                  filters=None,
                  sampling_step=None,
-                 response_type=None):
+                 response_type=None,
+                 custom_shc=None):
         # Set up default values
         # Obligatory - these must be replaced before the request is made
         self.collection_ids = None if collection_ids is None else collection_ids
@@ -119,6 +121,7 @@ class SwarmWPSInputs(WPSInputs):
         self.variables = [] if variables is None else variables
         self.filters = None if filters is None else filters
         self.sampling_step = None if sampling_step is None else sampling_step
+        self.custom_shc = None if custom_shc is None else custom_shc
 
         self.names = ('collection_ids',
                       'model_ids',
@@ -127,7 +130,8 @@ class SwarmWPSInputs(WPSInputs):
                       'variables',
                       'filters',
                       'sampling_step',
-                      'response_type'
+                      'response_type',
+                      'custom_shc'
                       )
 
     @property
@@ -226,6 +230,17 @@ class SwarmWPSInputs(WPSInputs):
         else:
             raise TypeError
 
+    @property
+    def custom_shc(self):
+        return self._custom_shc
+
+    @custom_shc.setter
+    def custom_shc(self, custom_shc):
+        if isinstance(custom_shc, str) or custom_shc is None:
+            self._custom_shc = custom_shc
+        else:
+            raise TypeError
+
 
 class SwarmRequest(ClientRequest):
     """Handles the requests to and downloads from the server.
@@ -300,7 +315,8 @@ class SwarmRequest(ClientRequest):
             MMA_SHA_2C-Primary, MMA_SHA_2C-Secondary,
             MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,
             MIO_SHA_2C-Primary, MIO_SHA_2C-Secondary,
-            MIO_SHA_2D-Primary, MIO_SHA_2D-Secondary
+            MIO_SHA_2D-Primary, MIO_SHA_2D-Secondary,
+            Custom_Model
             """.replace("\n", "").replace(" ", "").split(",")
 
         auxiliaries = """
@@ -450,8 +466,8 @@ class SwarmRequest(ClientRequest):
             self._collection = collection
             self._request_inputs.set_collection(collection)
 
-    def set_products(self, measurements=None, models=None, auxiliaries=None,
-                     residuals=False, sampling_step=None
+    def set_products(self, measurements=None, models=None, custom_model=None,
+                     auxiliaries=None, residuals=False, sampling_step=None
                      ):
         """Set the combination of products to retrieve.
 
@@ -461,6 +477,7 @@ class SwarmRequest(ClientRequest):
         Args:
             measurements (list(str)): from .available_measurements(collection_key)
             models (list(str)): from .available_models()
+            custom_model (str): path to a custom model in .shc format
             auxiliaries (list(str)): from .available_auxiliaries()
             residuals (bool): True if only returning measurement-model residual
             sampling_step (str): ISO_8601 duration, e.g. 10 seconds: PT10S, 1 minute: PT1M
@@ -497,6 +514,16 @@ class SwarmRequest(ClientRequest):
                     "'{}' not available. Check available with "
                     "SwarmRequest.available_auxiliaries()".format(variable)
                     )
+        # Load the custom .shc file
+        if custom_model:
+            if os.path.exists(custom_model):
+                with open(custom_model) as custom_shc_file:
+                    custom_shc = custom_shc_file.read()
+                models.append("Custom_Model")
+            else:
+                raise OSError("Custom model .shc file not found")
+        else:
+            custom_shc = None
         # Set up the variables that actually get passed to the WPS request
         variables = []
 
@@ -513,7 +540,7 @@ class SwarmRequest(ClientRequest):
                         "%s_%s" % (variable, model_name)
                         for model_name in models
                     )
-            else: # not a model variable
+            else:  # not a model variable
                 variables.append(variable)
 
         variables.extend(auxiliaries)
@@ -522,6 +549,7 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.model_ids = models
         self._request_inputs.variables = variables
         self._request_inputs.sampling_step = sampling_step
+        self._request_inputs.custom_shc = custom_shc
 
     def set_range_filter(self, parameter=None, minimum=None, maximum=None):
         """Set a filter to apply.

@@ -13,6 +13,7 @@ Welcome to VirES-Python-Client's documentation!
   :maxdepth: 2
   :caption: Example notebooks
 
+  notebook_intro
   notebooks/simple_example
 
 .. toctree::

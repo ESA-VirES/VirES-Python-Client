@@ -16,6 +16,14 @@
       </wps:Data>
     </wps:Input>
     {% endif -%}
+    {% if custom_shc -%}
+    <wps:Input>
+      <ows:Identifier>shc</ows:Identifier>
+      <wps:Data>
+        <wps:ComplexData>{{ custom_shc }}</wps:ComplexData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
     <wps:Input>
       <ows:Identifier>begin_time</ows:Identifier>
       <wps:Data>
