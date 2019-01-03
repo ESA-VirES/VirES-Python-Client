@@ -20,7 +20,7 @@ You can check which parameters are available with:
 (replace x with A, B, or C for Alpha, Bravo, or Charlie)::
 
   SW_OPER_MAGx_LR_1B
-  SW_OPER_EFIx_PL_1B
+  SW_OPER_EFIx_LP_1B
   SW_OPER_IBIxTMS_2F
   SW_OPER_TECxTMS_2F
   SW_OPER_FACxTMS_2F
@@ -43,7 +43,7 @@ For MAG::
 
 For EFI::
 
-  v_SC,v_ion,v_ion_error,E,E_error,dt_LP,n,n_error,T_ion,T_ion_error,T_elec,T_elec_error,U_SC,U_SC_error,v_ion_H,v_ion_H_error,v_ion_V,v_ion_V_error,rms_fit_H,rms_fit_V,var_x_H,var_y_H,var_x_V,var_y_V,dv_mtq_H,dv_mtq_V,SAA,Flags_LP,Flags_LP_n,Flags_LP_T_elec,Flags_LP_U_SC,Flags_TII,Flags_Platform,Maneuver_Id
+  U_orbit,Ne,Ne_error,Te,Te_error,Vs,Vs_error,Flags_LP,Flags_Ne,Flags_Te,Flags_Vs
 
 For IBI::
 

@@ -1,7 +1,15 @@
 Release notes
 =============
 
-Changes from v0.2.1 to v0.2.2
+Changes from v0.2.4 to 0.2.5
+----------------------------
+
+- EFI collections have changed from ``SW_OPER_EFIx_PL_1B`` to ``SW_OPER_EFIx_LP_1B``, with different measurement variables
+- Added support for user-defined models by providing a .shc file path as the ``custom_model`` in :meth:`viresclient.SwarmRequest.set_products`. Model evaluations and residuals will then be returned, named as "Custom_Model", in the same way as other models behave.
+- Added alternative input start and end times as ISO-8601 strings to :meth:`viresclient.SwarmRequest.get_between`
+- Minor bug fixes
+
+Changes from v0.2.1 to v0.2.4
 -----------------------------
 
 - Added models CHAOS-6-MMA-Primary and CHAOS-6-MMA-Secondary

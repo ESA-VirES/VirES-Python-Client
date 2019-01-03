@@ -40,6 +40,10 @@ Dependencies::
   tqdm
   xarray
 
+There is an unresolved bug with Windows support - see here_.
+
+.. _here: https://github.com/ESA-VirES/VirES-Python-Client/issues/1
+
 Example usage
 -------------
 
