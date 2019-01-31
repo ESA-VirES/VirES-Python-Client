@@ -69,10 +69,8 @@ def make_pandas_DataFrame_from_csv(csv_filename):
         time_util.parse_datetime
         )
     # Convert the columns of vectors from strings to lists
-    if len(df) == 0:
-        # Returns empty dataframe when retrieval from server is empty
-        print("No data available")
-    else:
+    # Returns empty dataframe when retrieval from server is empty
+    if len(df) != 0:
         # Convert the columns of vectors from strings to lists
         for col in df:
             if type(df[col][0]) is str:
@@ -110,7 +108,6 @@ def make_pandas_DataFrame_from_cdf(cdf_filename):
     if all(v is None for v in vals):
         # Returns empty dataframe when retrieval from server is empty
         df = pandas.DataFrame(columns=keys)
-        print("No data available")
     else:
         # Set up the output dataframe
         # Convert timestamps to datetime objects
@@ -201,6 +198,11 @@ class ReturnedDataFile(object):
         """
         self._file.seek(0)
         return self._file
+
+    def open_cdf(self):
+        """Returns the opened file as cdflib.CDF
+        """
+        return cdflib.CDF(self.file.name)
 
     # @property
     # def _data(self):
