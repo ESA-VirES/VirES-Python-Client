@@ -1,6 +1,10 @@
 language: python
 dist: "xenial"
 sudo: true
+addons:
+  apt:
+    packages:
+      - libhdf5-dev
 python:
 - '3.5'
 - '3.6'
