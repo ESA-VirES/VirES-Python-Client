@@ -302,7 +302,7 @@ class SwarmRequest(ClientRequest):
             "MAG": "F,dF_AOCS,dF_other,F_error,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_error,Flags_F,Flags_B,Flags_q,Flags_Platform,ASM_Freq_Dev".split(","),
             "EFI": "U_orbit,Ne,Ne_error,Te,Te_error,Vs,Vs_error,Flags_LP,Flags_Ne,Flags_Te,Flags_Vs".split(","),
             "IBI": "Bubble_Index,Bubble_Probability,Flags_Bubble,Flags_F,Flags_B,Flags_q".split(","),
-            "TEC": "GPS_Position,LEO_Position,PRN,L1,L2,P1,P2,S1,S2,Absolute_STEC,Relative_STEC,Relative_STEC_RMS,DCB,DCB_Error".split(","),
+            "TEC": "GPS_Position,LEO_Position,PRN,L1,L2,P1,P2,S1,S2,Elevation_Angle,Absolute_VTEC,Absolute_STEC,Relative_STEC,Relative_STEC_RMS,DCB,DCB_Error".split(","),
             "FAC": "IRC,IRC_Error,FAC,FAC_Error,Flags,Flags_F,Flags_B,Flags_q".split(","),
             "EEF": "EEF,RelErr,flags".split(",")
             }
