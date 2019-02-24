@@ -8,11 +8,11 @@
         <wps:ComplexData mimeType="application/json"><![CDATA[{{ collection_ids|o2j }}]]></wps:ComplexData>
       </wps:Data>
     </wps:Input>
-    {% if model_ids -%}
+    {% if model_expression -%}
     <wps:Input>
       <ows:Identifier>model_ids</ows:Identifier>
       <wps:Data>
-        <wps:LiteralData>{{ model_ids|l2s }}</wps:LiteralData>
+        <wps:LiteralData>{{ model_expression }}</wps:LiteralData>
       </wps:Data>
     </wps:Input>
     {% endif -%}

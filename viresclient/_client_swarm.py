@@ -101,7 +101,7 @@ class SwarmWPSInputs(WPSInputs):
 
     def __init__(self,
                  collection_ids=None,
-                 model_ids=None,
+                 model_expression=None,
                  begin_time=None,
                  end_time=None,
                  variables=None,
@@ -117,14 +117,14 @@ class SwarmWPSInputs(WPSInputs):
         self.response_type = None if response_type is None else response_type
         # Optional - these defaults will be used if not replaced before the
         #            request is made
-        self.model_ids = [] if model_ids is None else model_ids
+        self.model_expression = str() if model_expression is None else model_expression
         self.variables = [] if variables is None else variables
         self.filters = None if filters is None else filters
         self.sampling_step = None if sampling_step is None else sampling_step
         self.custom_shc = None if custom_shc is None else custom_shc
 
         self.names = ('collection_ids',
-                      'model_ids',
+                      'model_expression',
                       'begin_time',
                       'end_time',
                       'variables',
@@ -154,15 +154,15 @@ class SwarmWPSInputs(WPSInputs):
             raise TypeError("collection must be a string")
 
     @property
-    def model_ids(self):
-        return self._model_ids
+    def model_expression(self):
+        return self._model_expression
 
-    @model_ids.setter
-    def model_ids(self, model_ids):
-        if isinstance(model_ids, list):
-            self._model_ids = model_ids
+    @model_expression.setter
+    def model_expression(self, model_expression):
+        if isinstance(model_expression, str):
+            self._model_expression = model_expression
         else:
-            raise TypeError("tag must be a string and collections a list")
+            raise TypeError("model_expression must be a string")
 
     @property
     def begin_time(self):
@@ -467,7 +467,8 @@ class SwarmRequest(ClientRequest):
             self._request_inputs.set_collection(collection)
 
     def set_products(self, measurements=None, models=None, custom_model=None,
-                     auxiliaries=None, residuals=False, sampling_step=None
+                     auxiliaries=None, residuals=False, sampling_step=None,
+                     model_expressions=None
                      ):
         """Set the combination of products to retrieve.
 
@@ -478,6 +479,7 @@ class SwarmRequest(ClientRequest):
             measurements (list(str)): from .available_measurements(collection_key)
             models (list(str)): from .available_models()
             custom_model (str): path to a custom model in .shc format
+            model_expressions (list(tuple)): list of tuples mapping new model names to the expressions which define them
             auxiliaries (list(str)): from .available_auxiliaries()
             residuals (bool): True if only returning measurement-model residual
             sampling_step (str): ISO_8601 duration, e.g. 10 seconds: PT10S, 1 minute: PT1M
@@ -487,6 +489,7 @@ class SwarmRequest(ClientRequest):
         models = [] if models is None else models
         model_variables = set(self._available["model_variables"])
         auxiliaries = [] if auxiliaries is None else auxiliaries
+        model_expressions = [] if model_expressions is None else model_expressions
         # Check the chosen measurements are available for the set collection
         collection_key = self._available["collections_to_keys"][self._collection]
         for variable in measurements:
@@ -498,8 +501,15 @@ class SwarmRequest(ClientRequest):
                         variable, collection_key, collection_key
                     ))
         # Check if at least one model defined when requesting residuals
-        if residuals and not models:
+        if residuals and not (models or model_expressions):
             raise Exception("Residuals requested but no model defined!")
+        # Check format of model_expressions and convert to OrderedDict
+        for name_expression_pair in model_expressions:
+            if not (isinstance(name_expression_pair, tuple) and
+                    len(name_expression_pair) == 2
+                    ):
+                raise Exception("Invalid model_expression!")
+        model_expressions = OrderedDict(model_expressions)
         # Check chosen model is available
         for model_name in models:
             if model_name not in self._available["models"]:
@@ -524,9 +534,15 @@ class SwarmRequest(ClientRequest):
                 raise OSError("Custom model .shc file not found")
         else:
             custom_shc = None
+        # Create the combined model expression string passed to the request
+        model_expression_string = ', '.join(
+            [' = '.join(["'{}'".format(name), expression])
+             for name, expression in model_expressions.items()] +
+            ["'{}'".format(name) for name in models]
+        )
+        models.extend(model_expressions.keys())
         # Set up the variables that actually get passed to the WPS request
         variables = []
-
         for variable in measurements:
             if variable in model_variables:
                 if residuals:
@@ -546,7 +562,7 @@ class SwarmRequest(ClientRequest):
         variables.extend(auxiliaries)
 
         # Set these in the SwarmWPSInputs object
-        self._request_inputs.model_ids = models
+        self._request_inputs.model_expression = model_expression_string
         self._request_inputs.variables = variables
         self._request_inputs.sampling_step = sampling_step
         self._request_inputs.custom_shc = custom_shc
