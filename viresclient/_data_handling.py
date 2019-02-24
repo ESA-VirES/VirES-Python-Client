@@ -134,18 +134,21 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
         xarray.Dataset
 
     """
-
     cdf = cdflib.CDF(cdf_filename)
-
     # Load time and convert to Unix time
-    time = (cdf.varget("Timestamp")-CDF_EPOCH_1970)/1e3
+    time = cdf.varget("Timestamp")
+    # Return None when the CDF is empty
+    if time is None:
+        return None
+    time = (time-CDF_EPOCH_1970)/1e3
     # Now convert to a DatetimeIndex
     time = pandas.to_datetime(time, unit='s')
-
+    # Initialise the Dataset with the Timestamp index
     ds = xarray.Dataset(coords={"Timestamp": time})
-
+    # Loop through each variable available in the CDF and append them to the
+    #   Dataset, attaching the Timestamp index to each. In the 3-vector case,
+    #   e.g. B_NEC, also attach dimension "dim". Other cases not supported.
     keys = [k for k in cdf.cdf_info()["zVariables"] if k != "Timestamp"]
-
     for k in keys:
         if cdf.varinq(k)["Num_Dims"] == 0:
             # 1D (scalar) data
@@ -156,9 +159,7 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
             ds[k] = (("Timestamp", "dim"), cdf.varget(k))
         else:
             raise NotImplementedError("{}: array too complicated".format(k))
-
     cdf.close()
-
     return ds
 
 
@@ -389,16 +390,21 @@ class ReturnedData(object):
         """
         ds_list = []
         for i, data in enumerate(self.contents):
-            try:
-                ds_part = data.as_xarray()
-            except Exception:
+            ds_part = data.as_xarray()
+            if ds_part is None:
                 print("Warning: ",
                       "Unable to create dataset from part {} of {}".format(
                         i+1, len(self.contents)),
                       "\n(This part is likely empty)")
             else:
                 ds_list.append(ds_part)
-        return xarray.concat(ds_list, dim="Timestamp")
+        if len(ds_list) == 1:
+            return ds_list[0]
+        else:
+            ds_list = [i for i in ds_list if i is not None]
+            if ds_list == []:
+                return None
+            return xarray.concat(ds_list, dim="Timestamp")
         # # Test this other option:
         # ds = self.contents[0].as_xarray()
         # for d in self.contents[1:]:
