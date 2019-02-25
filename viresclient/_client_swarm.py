@@ -10,7 +10,8 @@ from ._data_handling import ReturnedDataFile
 
 TEMPLATE_FILES = {
     'sync': "vires_fetch_filtered_data.xml",
-    'async': "vires_fetch_filtered_data_async.xml"
+    'async': "vires_fetch_filtered_data_async.xml",
+    'model_info': "vires_get_model_info.xml"
 }
 
 REFERENCES = {
@@ -34,7 +35,8 @@ MODEL_REFERENCES = {
          " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
     'CHAOS-6-Core': "",
     'CHAOS-6-Static': "",
-    'CHAOS-6-MMA': "",
+    'CHAOS-6-MMA-Primary': "",
+    'CHAOS-6-MMA-Secondary': "",
     'MCO_SHA_2C':
         ("[Comprehensive Inversion]: Core field of CIY4",
          " A comprehensive model of Earth’s magnetic field determined from 4 years of Swarm satellite observations, https://doi.org/10.1186/s40623-018-0896-3 ",
@@ -315,8 +317,7 @@ class SwarmRequest(ClientRequest):
             MMA_SHA_2C-Primary, MMA_SHA_2C-Secondary,
             MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,
             MIO_SHA_2C-Primary, MIO_SHA_2C-Secondary,
-            MIO_SHA_2D-Primary, MIO_SHA_2D-Secondary,
-            Custom_Model
+            MIO_SHA_2D-Primary, MIO_SHA_2D-Secondary
             """.replace("\n", "").replace(" ", "").split(",")
 
         auxiliaries = """
@@ -474,7 +475,15 @@ class SwarmRequest(ClientRequest):
             return d
 
         if details:
-            d = MODEL_REFERENCES
+            mod_refs = MODEL_REFERENCES
+            # Extend the dictionary to include information from get_model_info
+            models_info = self.get_model_info(self._available["models"])
+            d = {}
+            for model_name in self._available["models"]:
+                d[model_name] = {
+                    "description": mod_refs[model_name],
+                    "details": models_info[model_name]
+                }
         else:
             d = self._available["models"]
         # Filter the dict/list to only include those that contain param
@@ -483,10 +492,13 @@ class SwarmRequest(ClientRequest):
 
         if nice_output and details:
             d = OrderedDict(sorted(d.items()))
-            for key, val in d.items():
-                print(key)
-                for i in val:
-                    print(i)
+            for model_name, desc_details in d.items():
+                print(model_name, "=", desc_details["details"]["expression"])
+                print("  START:", desc_details["details"]["validity"]["start"])
+                print("  END:  ", desc_details["details"]["validity"]["end"])
+                print("DESCRIPTION:")
+                for line in desc_details["description"]:
+                    print(line)
                 print()
         else:
             return d
@@ -684,3 +696,64 @@ class SwarmRequest(ClientRequest):
         )
         self._wps_service.retrieve(request, handler=response_handler)
         return retdata.as_dataframe()["OrbitNumber"][0]
+
+    def get_model_info(
+            self, models=None, custom_model=None, original_response=False
+            ):
+        """Get model info from server.
+
+        Handles the same models input as .set_products(), and returns a dict
+        like:
+        {'IGRF12': {
+            'expression': 'IGRF12(max_degree=13,min_degree=0)',
+            'validity': {
+                'start': '1900-01-01T00:00:00Z',
+                'end': '2020-01-01T00:00:00Z'
+            }
+        ...}
+
+        If original_response=True, return the list of dicts like:
+        {'expression': 'MCO_SHA_2C(max_degree=16,min_degree=0)',
+         'name': 'MCO_SHA_2C',
+         'validity': {'start': '2013-11-30T14:38:24Z',
+          'end': '2018-01-01T00:00:00Z'}},
+
+        Args:
+            models (list/dict)
+            custom_model (str)
+            original_response (bool)
+
+        Returns:
+            dict or list
+        """
+        # Check models format, extract model_ids and string to pass to server
+        model_ids, model_expression_string = self._parse_models_input(models)
+        if custom_model:
+            with open(custom_model) as custom_shc_file:
+                custom_shc = custom_shc_file.read()
+            model_ids.append("Custom_Model")
+            model_expression_string = ",".join(
+                [model_expression_string, "Custom_Model"]
+            )
+        else:
+            custom_shc = None
+        templatefile = "vires_get_model_info.xml"
+        template = JINJA2_ENVIRONMENT.get_template(templatefile)
+        request = template.render(
+            model_expression=model_expression_string,
+            custom_shc=custom_shc,
+            response_type="application/json"
+        ).encode('UTF-8')
+        response = self._wps_service.retrieve(request)
+        response_list = json.loads(response.decode('UTF-8'))
+        if original_response:
+            return response_list
+        else:
+            # Build dictionary output organised by model name
+            dict_out = {}
+            for model_dict in response_list:
+                dict_out[model_dict["name"]] = {
+                    "expression": model_dict["expression"],
+                    "validity": model_dict["validity"]
+                }
+            return dict_out
