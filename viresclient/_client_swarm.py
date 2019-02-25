@@ -340,6 +340,54 @@ class SwarmRequest(ClientRequest):
             "auxiliaries": auxiliaries
             }
 
+    @staticmethod
+    def _parse_models_input(models=None):
+        """Verify and parse models input.
+
+        Args:
+            models (list/dict): User-provided values
+
+        Returns:
+            list: model_ids, list of model_id strings
+            str: model_expression_string to be passed to the server
+        """
+        models = [] if models is None else models
+        # Convert input to OrderedDict
+        #  e.g. {"model_name": "model_expression", ..}
+        # Check if models input is basic list of strings,
+        #  If not, then handle inputs given as dicts or list of tuples
+        if (isinstance(models, list) and
+                all(isinstance(item, str) for item in models)):
+            # Convert the models list to an OrderedDict
+            model_expressions = OrderedDict()
+            for model in models:
+                model_id, _, model_expression = [
+                    s.strip() for s in model.partition("=")
+                ]
+                model_expressions[model_id] = model_expression
+        else:
+            try:
+                model_expressions = OrderedDict(models)
+                # Check that everything is a string
+                if not all(isinstance(item, str)for item in
+                           [*model_expressions.values()] +
+                           [*model_expressions.keys()]):
+                    raise ValueError
+            except ValueError:
+                raise ValueError("Invalid models input!")
+        # TODO: Verify input model names
+        #  (use self._available["models"])
+        # Create the combined model expression string passed to the request
+        model_expression_string = ""
+        for model_id, model_expression in model_expressions.items():
+            if model_expression == "":
+                s = model_id
+            else:
+                s = "=".join([model_id, model_expression])
+            model_expression_string = ",".join([model_expression_string, s])
+        model_ids = list(s.strip("\'\"") for s in model_expressions.keys())
+        return model_ids, model_expression_string[1:]
+
     def available_collections(self, details=True):
         """Show details of available collections.
 
@@ -467,8 +515,7 @@ class SwarmRequest(ClientRequest):
             self._request_inputs.set_collection(collection)
 
     def set_products(self, measurements=None, models=None, custom_model=None,
-                     auxiliaries=None, residuals=False, sampling_step=None,
-                     model_expressions=None
+                     auxiliaries=None, residuals=False, sampling_step=None
                      ):
         """Set the combination of products to retrieve.
 
@@ -489,7 +536,6 @@ class SwarmRequest(ClientRequest):
         models = [] if models is None else models
         model_variables = set(self._available["model_variables"])
         auxiliaries = [] if auxiliaries is None else auxiliaries
-        model_expressions = [] if model_expressions is None else model_expressions
         # Check the chosen measurements are available for the set collection
         collection_key = self._available["collections_to_keys"][self._collection]
         for variable in measurements:
@@ -501,22 +547,10 @@ class SwarmRequest(ClientRequest):
                         variable, collection_key, collection_key
                     ))
         # Check if at least one model defined when requesting residuals
-        if residuals and not (models or model_expressions):
+        if residuals and not models:
             raise Exception("Residuals requested but no model defined!")
-        # Check format of model_expressions and convert to OrderedDict
-        for name_expression_pair in model_expressions:
-            if not (isinstance(name_expression_pair, tuple) and
-                    len(name_expression_pair) == 2
-                    ):
-                raise Exception("Invalid model_expression!")
-        model_expressions = OrderedDict(model_expressions)
-        # Check chosen model is available
-        for model_name in models:
-            if model_name not in self._available["models"]:
-                raise Exception(
-                    "Model '{}' not available. Check available with "
-                    "SwarmRequest.available_models()".format(model_name)
-                    )
+        # Check models format, extract model_ids and string to pass to server
+        model_ids, model_expression_string = self._parse_models_input(models)
         # Check chosen aux is available
         for variable in auxiliaries:
             if variable not in self._available["auxiliaries"]:
@@ -529,18 +563,11 @@ class SwarmRequest(ClientRequest):
             if os.path.exists(custom_model):
                 with open(custom_model) as custom_shc_file:
                     custom_shc = custom_shc_file.read()
-                models.append("Custom_Model")
+                model_ids.append("Custom_Model")
             else:
                 raise OSError("Custom model .shc file not found")
         else:
             custom_shc = None
-        # Create the combined model expression string passed to the request
-        model_expression_string = ', '.join(
-            [' = '.join(["'{}'".format(name), expression])
-             for name, expression in model_expressions.items()] +
-            ["'{}'".format(name) for name in models]
-        )
-        models.extend(model_expressions.keys())
         # Set up the variables that actually get passed to the WPS request
         variables = []
         for variable in measurements:
@@ -548,19 +575,17 @@ class SwarmRequest(ClientRequest):
                 if residuals:
                     variables.extend(
                         "%s_res_%s" % (variable, model_name)
-                        for model_name in models
+                        for model_name in model_ids
                     )
                 else:
                     variables.append(variable)
                     variables.extend(
                         "%s_%s" % (variable, model_name)
-                        for model_name in models
+                        for model_name in model_ids
                     )
             else:  # not a model variable
                 variables.append(variable)
-
         variables.extend(auxiliaries)
-
         # Set these in the SwarmWPSInputs object
         self._request_inputs.model_expression = model_expression_string
         self._request_inputs.variables = variables
