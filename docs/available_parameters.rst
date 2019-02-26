@@ -79,6 +79,10 @@ Models are evaluated along the satellite track at the positions of the measureme
 
 (``residuals`` available when combined with MAG ``measurements`` ``F`` and/or ``B_NEC``)
 
+Custom models can be provided as a .shc file and become accessible in the same way as pre-defined models, under the name ``"Custom_Model"``.
+
+Flexible evaluation of models and defining new derived models is possible with the "model expressions" functionality whereby models can be defined like ``"Combined_model = 'MMA_SHA_2F-Primary'(min_degree=1,max_degree=1) + 'MMA_SHA_2F-Secondary'(min_degree=1,max_degree=1)"``
+
 ----
 
 ``auxiliaries``

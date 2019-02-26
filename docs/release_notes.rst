@@ -1,6 +1,15 @@
 Release notes
 =============
 
+Changes from v0.2.5 to 0.2.6
+----------------------------
+
+- New model expression behaviour is implemented, extending what is possible with the ``models`` kwarg in :meth:`viresclient.SwarmRequest.set_products` (with backwards compatibility). See demo in https://github.com/smithara/viresclient_examples/blob/master/model_residuals_and_cartopy.ipynb
+- New method :meth:`viresclient.SwarmRequest.get_model_info` to fetch model details from server.
+- :meth:`viresclient.SwarmRequest.available_models` is updated with these details.
+- TEC data now includes Elevation_Angle and Absolute_VTEC
+- Updated dependency on cdflib to v0.3.9, and xarray to allow both v0.10.x and v0.11.x.
+
 Changes from v0.2.4 to 0.2.5
 ----------------------------
 

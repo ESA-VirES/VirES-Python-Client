@@ -6,6 +6,7 @@ Welcome to VirES-Python-Client's documentation!
   :caption: Overview
 
   readme
+  about
   available_parameters
   release_notes
 

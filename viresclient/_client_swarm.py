@@ -536,9 +536,8 @@ class SwarmRequest(ClientRequest):
 
         Args:
             measurements (list(str)): from .available_measurements(collection_key)
-            models (list(str)): from .available_models()
+            models (list(str)/dict): from .available_models() or defineable with custom expressions
             custom_model (str): path to a custom model in .shc format
-            model_expressions (list(tuple)): list of tuples mapping new model names to the expressions which define them
             auxiliaries (list(str)): from .available_auxiliaries()
             residuals (bool): True if only returning measurement-model residual
             sampling_step (str): ISO_8601 duration, e.g. 10 seconds: PT10S, 1 minute: PT1M
@@ -704,27 +703,27 @@ class SwarmRequest(ClientRequest):
 
         Handles the same models input as .set_products(), and returns a dict
         like:
+
         {'IGRF12': {
-            'expression': 'IGRF12(max_degree=13,min_degree=0)',
-            'validity': {
-                'start': '1900-01-01T00:00:00Z',
-                'end': '2020-01-01T00:00:00Z'
-            }
-        ...}
+        'expression': 'IGRF12(max_degree=13,min_degree=0)',
+        'validity': {'start': '1900-01-01T00:00:00Z', 'end': '2020-01-01T00:00:00Z'
+        }, ...}
 
         If original_response=True, return the list of dicts like:
+
         {'expression': 'MCO_SHA_2C(max_degree=16,min_degree=0)',
-         'name': 'MCO_SHA_2C',
-         'validity': {'start': '2013-11-30T14:38:24Z',
-          'end': '2018-01-01T00:00:00Z'}},
+        'name': 'MCO_SHA_2C',
+        'validity': {'start': '2013-11-30T14:38:24Z',
+        'end': '2018-01-01T00:00:00Z'}}, ...
 
         Args:
-            models (list/dict)
-            custom_model (str)
+            models (list/dict): as with set_products
+            custom_model (str): as with set_products
             original_response (bool)
 
         Returns:
             dict or list
+
         """
         # Check models format, extract model_ids and string to pass to server
         model_ids, model_expression_string = self._parse_models_input(models)
