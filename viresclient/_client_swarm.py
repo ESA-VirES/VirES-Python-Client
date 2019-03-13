@@ -285,7 +285,8 @@ class SwarmRequest(ClientRequest):
             "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in ("ABC")],
             "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in ("ABC")] +
                    ["SW_OPER_FAC_TMS_2F"],
-            "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in ("ABC")]
+            "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in ("ABC")],
+            "IPD": ["SW_OPER_IPD{}IRR_2F".format(x) for x in ("ABC")],
             }
         collections_flat = [
             item for sublist in list(collections_grouped.values())
@@ -304,7 +305,15 @@ class SwarmRequest(ClientRequest):
             "IBI": "Bubble_Index,Bubble_Probability,Flags_Bubble,Flags_F,Flags_B,Flags_q".split(","),
             "TEC": "GPS_Position,LEO_Position,PRN,L1,L2,P1,P2,S1,S2,Elevation_Angle,Absolute_VTEC,Absolute_STEC,Relative_STEC,Relative_STEC_RMS,DCB,DCB_Error".split(","),
             "FAC": "IRC,IRC_Error,FAC,FAC_Error,Flags,Flags_F,Flags_B,Flags_q".split(","),
-            "EEF": "EEF,RelErr,flags".split(",")
+            "EEF": "EEF,RelErr,flags".split(","),
+            "IPD": [
+                "Ne", "Te", "background Ne", "foreground Ne", "PCP_flag",
+                "Grad_Ne@100km", "Grad_Ne@50km", "Grad_Ne@20km", "Grad_Ne@PCP_edge",
+                "ROD", "RODI10s", "RODI20s", "delta_Ne10s", "delta_Ne20s",
+                "delta_Ne40s", "Num_GPS_satellites", "mVTEC", "mROT", "mROTI10s",
+                "mROTI20s", "IBI_flag", "Ionpshere_region_flag", "IPIR_index",
+                "Ne_quality_flag", "TEC_STD"
+                ],
             }
 
         model_variables = ("F", "B_NEC")
