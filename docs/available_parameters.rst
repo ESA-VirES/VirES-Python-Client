@@ -90,7 +90,8 @@ Flexible evaluation of models and defining new derived models is possible with t
 
 ::
 
-  SyncStatus, Kp, Dst, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F10_INDEX,
+  SyncStatus, Kp10, Kp, Dst, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F10_INDEX,
+  OrbitDirection, QDOrbitDirection,
   OrbitSource, OrbitNumber, AscendingNodeTime,
   AscendingNodeLongitude, QDLat, QDLon, QDBasis, MLT, SunDeclination,
   SunHourAngle, SunRightAscension, SunAzimuthAngle, SunZenithAngle,
