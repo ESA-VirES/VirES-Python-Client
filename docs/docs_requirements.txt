@@ -7,4 +7,3 @@ cdflib
 tables
 tqdm
 xarray
-h5py
