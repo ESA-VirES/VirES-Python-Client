@@ -1,7 +1,7 @@
 Introduction
 ============
 
-This is the documentation for the ``viresclient`` Python package. This is a tool which connects to a VirES_ server through the WPS_ interface and handles product requests and downloads.
+This is the documentation for the ``viresclient`` Python package. This is a tool which connects to a VirES_ server through the WPS_ interface and handles product requests and downloads. This enables easy access to ESA's Swarm mission data and models. If you would like access (a user account is required) or need help, please email info@vires.services
 
 .. _VirES: https://vires.services
 .. _WPS: http://www.opengeospatial.org/standards/wps
@@ -23,9 +23,9 @@ A repository of example notebooks can be found at https://github.com/smithara/vi
 Installation
 ------------
 
-Python ≥ 3.5 is required for full support (since cdflib requires ≥ 3.5).
+Linux/Unix and Python ≥ 3.5 is required for full support (since cdflib requires ≥ 3.5).
 
-Python 3.4 can also be used, but conversion from CDF to pandas/xarray is not supported - you can still download and save CDF files - :meth:`viresclient.ReturnedData.to_file`, or download as CSV files and convert to pandas - :meth:`viresclient.ReturnedData.as_dataframe`. (Partial?) support for 2.7 and 3.4 could be added in the future, but their usage is not recommended (https://python3statement.org/).
+Python 3.4 can also be used, but conversion from CDF to pandas/xarray is not supported - you can still download and save CDF files - :meth:`viresclient.ReturnedData.to_file`, or download as CSV files and convert to pandas - :meth:`viresclient.ReturnedData.as_dataframe`.
 
 It can currently be installed with::
 
@@ -33,12 +33,12 @@ It can currently be installed with::
 
 Dependencies::
 
-  Jinja2
-  pandas
-  cdflib
-  tables
-  tqdm
-  xarray
+  Jinja2 ≥ 2.10.0
+  pandas ≥ 0.18.0
+  cdflib = 0.3.9
+  tables ≥ 3.4.4
+  tqdm   ≥ 4.23.0
+  xarray ≥ 0.10.0
 
 There is an unresolved bug with Windows support - see here_.
 
