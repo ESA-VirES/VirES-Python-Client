@@ -10,6 +10,23 @@ TEMPLATE_FILES = {
 
 class AeolusWPSInputs(WPSInputs):
 
+    NAMES = [
+        'processId',
+        'collection_ids',
+        'begin_time',
+        'end_time',
+        'response_type',
+        'fields',
+        'filters',
+        'aux_type',
+        'observation_fields',
+        'mie_profile_fields',
+        'rayleigh_profile_fields',
+        'mie_wind_fields',
+        'rayleigh_wind_fields',
+        'bbox',
+        ]
+
     def __init__(self,
                  processId=None,
                  collection_ids=None,
@@ -42,22 +59,6 @@ class AeolusWPSInputs(WPSInputs):
         self.mie_wind_fields = mie_wind_fields
         self.rayleigh_wind_fields = rayleigh_wind_fields
         self.bbox = bbox
-
-        self.names = ('processId',
-                      'collection_ids',
-                      'begin_time',
-                      'end_time',
-                      'response_type',
-                      'fields',
-                      'filters',
-                      'aux_type',
-                      'observation_fields',
-                      'mie_profile_fields',
-                      'rayleigh_profile_fields',
-                      'mie_wind_fields',
-                      'rayleigh_wind_fields',
-                      'bbox'
-                      )
 
     @property
     def as_dict(self):
@@ -164,15 +165,18 @@ class AeolusRequest(ClientRequest):
         url (str):
         username (str):
         password (str):
+        token (str):
+        config (str or ClientConfig):
         logging_level (str):
 
     """
 
-    def __init__(self, url=None, username=None, password=None,
-                 logging_level="NO_LOGGING"):
-        super().__init__(url, username, password, logging_level,
-                         server_type="Aeolus"
-                         )
+    def __init__(self, url=None, username=None, password=None, token=None,
+                 config=None, logging_level="NO_LOGGING"):
+        super().__init__(
+            url, username, password, token, config, logging_level,
+            server_type="Aeolus"
+            )
         # self._available = self._set_available_data()
         self._request_inputs = AeolusWPSInputs()
         self._request_inputs.processId = 'aeolus:level1B:AUX'

@@ -101,6 +101,18 @@ class SwarmWPSInputs(WPSInputs):
     """Holds the set of inputs to be passed to the request template for Swarm
     """
 
+    NAMES = [
+        'collection_ids',
+        'model_expression',
+        'begin_time',
+        'end_time',
+        'variables',
+        'filters',
+        'sampling_step',
+        'response_type',
+        'custom_shc',
+        ]
+
     def __init__(self,
                  collection_ids=None,
                  model_expression=None,
@@ -124,17 +136,6 @@ class SwarmWPSInputs(WPSInputs):
         self.filters = None if filters is None else filters
         self.sampling_step = None if sampling_step is None else sampling_step
         self.custom_shc = None if custom_shc is None else custom_shc
-
-        self.names = ('collection_ids',
-                      'model_expression',
-                      'begin_time',
-                      'end_time',
-                      'variables',
-                      'filters',
-                      'sampling_step',
-                      'response_type',
-                      'custom_shc'
-                      )
 
     @property
     def collection_ids(self):
@@ -263,15 +264,19 @@ class SwarmRequest(ClientRequest):
         url (str):
         username (str):
         password (str):
+        token (str):
+        config (str or ClientConfig):
         logging_level (str):
 
     """
 
-    def __init__(self, url=None, username=None, password=None,
-                 logging_level="NO_LOGGING"):
-        super().__init__(url, username, password, logging_level,
-                         server_type="Swarm"
-                         )
+    def __init__(self, url=None, username=None, password=None, token=None,
+                 config=None, logging_level="NO_LOGGING"):
+        super().__init__(
+            url, username, password, token, config, logging_level,
+            server_type="Swarm"
+            )
+
         self._available = self._set_available_data()
         self._request_inputs = SwarmWPSInputs()
         self._templatefiles = TEMPLATE_FILES
@@ -697,9 +702,8 @@ class SwarmRequest(ClientRequest):
         self._wps_service.retrieve(request, handler=response_handler)
         return retdata.as_dataframe()["OrbitNumber"][0]
 
-    def get_model_info(
-            self, models=None, custom_model=None, original_response=False
-            ):
+    def get_model_info(self, models=None, custom_model=None,
+                       original_response=False):
         """Get model info from server.
 
         Handles the same models input as .set_products(), and returns a dict
