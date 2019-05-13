@@ -1,6 +1,12 @@
 Release notes
 =============
 
+Changes from v0.2.6 to 0.3.0
+----------------------------
+
+- Service officially open to public through self-registration on https://vires.services
+- Token-based authentication added
+
 Changes from v0.2.5 to 0.2.6
 ----------------------------
 
