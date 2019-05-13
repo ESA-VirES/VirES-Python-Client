@@ -27,22 +27,23 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from tqdm import tqdm
-from datetime import datetime, timedelta
-from math import ceil
-import configparser
 import os
+from datetime import timedelta
+from logging import getLogger, DEBUG, INFO, WARNING, ERROR, CRITICAL
+from tqdm import tqdm
 
 from ._wps.wps_vires import ViresWPS10Service
 from ._wps.time_util import parse_duration, parse_datetime
-from ._wps.http_util import encode_basic_auth
-from logging import getLogger, DEBUG, INFO, WARNING, ERROR, CRITICAL
+from ._wps.http_util import (
+    encode_basic_auth, encode_token_auth, encode_no_auth,
+)
 from ._wps.log_util import set_stream_handler
 # from jinja2 import Environment, FileSystemLoader
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.wps import WPSError
 
 from ._data_handling import ReturnedData
+from ._config import ClientConfig
 
 # Logging levels
 LEVELS = {
@@ -71,14 +72,16 @@ MAX_TIME_SELECTION = timedelta(days=25*365.25)
 
 
 def get_log_level(level):
+    """ Translate log-level string to an actual log level number accepted by
+    the python logging. """
     if isinstance(level, str):
-        return LEVELS[level]
-    else:
-        return level
+        level = LEVELS[level]
+    return level
 
 
 class WPSInputs(object):
-    """Holds the set of inputs to be passed to the request template
+    """ Base WPS inputs class holding the set of inputs to be passed
+    to the request template.
 
     Properties of this class are the set of valid inputs to a WPS request.
     See SwarmWPSInputs and AeolusWPSInputs.
@@ -86,22 +89,17 @@ class WPSInputs(object):
     dictionary to be passed as kwargs to as_xml() which fills the xml
     template.
     """
-
-    def __init__(self):
-        self.names = ()
+    NAMES = [] # to be overridden in the sub-classes
 
     def __str__(self):
-        if len(self.names) == 0:
-            return None
-        else:
-            return "Request details:\n{}".format('\n'.join(
-                ['{}: {}'.format(key, value) for (key, value) in
-                 self.as_dict.items()
-                 ]))
+        return "Request details:\n{}".format('\n'.join([
+            '{}: {}'.format(key, value)
+            for (key, value) in self.as_dict.items()
+            ]))
 
     @property
     def as_dict(self):
-        return {key: self.__dict__['_{}'.format(key)] for key in self.names}
+        return {key: self.__dict__['_{}'.format(key)] for key in self.NAMES}
 
     def as_xml(self, templatefile):
         """Renders a WPS request template (xml) that can later be executed
@@ -205,71 +203,28 @@ class ProgressBarDownloading(ProgressBar):
             self.refresh_tqdm()
 
 
-def load_config():
-    config = configparser.ConfigParser()
-    config.read(CONFIG_FILE_PATH)
-    return config
-
-
-def save_config(url, username, password):
-    config = load_config()
-    # Replace the username and password for an already stored url
-    if url in config:
-        config.set(url, "username", username)
-        config.set(url, "password", password)
-    # Store an extra config section for a new url
-    else:
-        config[url] = {"username": username,
-                       "password": password}
-    with open(CONFIG_FILE_PATH, 'w') as configfile:
-        config.write(configfile)
-
-
 class ClientRequest(object):
-    """Handles the requests to and downloads from the server.
-
-    See SwarmClientRequest and AeolusClientRequest
+    """Base class handling the requests to and downloads from the server.
     """
 
-    def __init__(self, url=None, username=None, password=None,
-                 logging_level="NO_LOGGING", server_type="Swarm"
-                 ):
-
-        url = "" if url is None else url
-        username = "" if username is None else username
-        password = "" if password is None else password
-
-        for i in [url, username, password]:
-            if not isinstance(i, str):
-                raise TypeError(
-                    "url, username, and password must all be strings"
-                )
-
-        # Try to load a previously stored username and password that match the
-        # url, if none have been provided
-        if (url != "") & (username == "") & (password == ""):
-            config = load_config()
-            if url in config:
-                username = config[url].get("username", "")
-                password = config[url].get("password", "")
-        # If they have been provided, update the config file with them
-        elif "" not in [url, username, password]:
-            save_config(url, username, password)
+    def __init__(self, url=None, username=None, password=None, token=None,
+                 config=None, logging_level="NO_LOGGING", server_type=None):
 
         self._server_type = server_type
+        self._available = {}
+        self._collection = None
         self._request_inputs = None
-        self._templatefiles = None
-        self._supported_filetypes = None
+        self._request = None
+        self._templatefiles = {}
+        self._supported_filetypes = ()
 
         logging_level = get_log_level(logging_level)
         self._logger = getLogger()
         set_stream_handler(self._logger, logging_level)
 
         # service proxy with basic HTTP authentication
-        self._wps_service = ViresWPS10Service(
-            url,
-            encode_basic_auth(username, password),
-            logger=self._logger
+        self._wps_service = self._create_service_proxy_(
+            config, url, username, password, token
         )
 
         # self.files_dir = files_dir
@@ -278,6 +233,52 @@ class ClientRequest(object):
         # self._logger.info(
         #     "Set directory for saving files locally: ".format(self.files_dir)
         # )
+
+    def _create_service_proxy_(self, config, url, username, password, token):
+
+        if not isinstance(config, ClientConfig):
+            config = ClientConfig(config)
+
+        url = self._check_input(url, "url") or config.default_url
+        username = self._check_input(username, "username")
+        password = self._check_input(password, "password")
+        token = self._check_input(token, "token")
+
+        if not url:
+            raise ValueError(
+                "The URL must be provided when no default URL is "
+                "configured."
+            )
+
+        if token:
+            credentials = {"token": token}
+            encode_headers = encode_token_auth
+        elif username and password:
+            credentials = {"username": username, "password": password}
+            encode_headers = encode_basic_auth
+        else:
+            credentials = config.get_site_config(url)
+            if 'token' in credentials:
+                encode_headers = encode_token_auth
+            elif 'username' in credentials and 'password' in credentials:
+                encode_headers = encode_basic_auth
+            else:
+                encode_headers = encode_no_auth
+
+        # service proxy with authentication
+        return ViresWPS10Service(
+            url, encode_headers(**credentials), logger=self._logger
+        )
+
+    @staticmethod
+    def _check_input(value, label):
+        if not value:
+            return None
+        if not isinstance(value, str):
+            raise TypeError("%s must be strings" % label)
+        return value
+
+
 
     def __str__(self):
         if self._request_inputs is None:
@@ -333,9 +334,7 @@ class ClientRequest(object):
             return write_response_without_reporting
 
     @staticmethod
-    def _chunkify_request(
-            start_time, end_time, sampling_step, nrecords_limit
-            ):
+    def _chunkify_request(start_time, end_time, sampling_step, nrecords_limit):
         """Split the start and end times into several as necessary, as specified
         by the NRECORDS_LIMIT
 
@@ -368,7 +367,7 @@ class ClientRequest(object):
             next_time = last_time + chunk_duration
             request_intervals.append((last_time, min(next_time, end_time)))
             if next_time >= end_time:
-                break;
+                break
             last_time = next_time
 
         return request_intervals
@@ -406,7 +405,8 @@ class ClientRequest(object):
                 )
         except WPSError:
             raise RuntimeError(
-                "Server error - perhaps you are requesting a period outside of product availability?"
+                "Server error - perhaps you are requesting a period outside of "
+                "product availability?"
                 )
 
     def get_between(self, start_time=None, end_time=None,
@@ -437,7 +437,7 @@ class ClientRequest(object):
                 "date/time strings"
             )
 
-        if (end_time < start_time):
+        if end_time < start_time:
             raise ValueError("Invalid time selection! end_time < start_time")
 
         if (end_time - start_time) > MAX_TIME_SELECTION:
@@ -450,9 +450,9 @@ class ClientRequest(object):
         retdatagroup = ReturnedData(filetype=filetype)
 
         if retdatagroup.filetype not in self._supported_filetypes:
-            raise TypeError("filetype: {} not supported by server"
-                            .format(filetype)
-                            )
+            raise TypeError(
+                "filetype: {} not supported by server".format(filetype)
+                )
         self._request_inputs.response_type = RESPONSE_TYPES[retdatagroup.filetype]
 
         if asynchronous:
@@ -511,14 +511,14 @@ class ClientRequest(object):
             # Make the request, as either asynchronous or synchronous
             # The response handler streams the data to the ReturnedData object
             response_handler = self._response_handler(
-                                retdata.file,
-                                show_progress=show_progress
-                               )
-            self._get(request=self._request,
-                      asynchronous=asynchronous,
-                      response_handler=response_handler,
-                      message=message,
-                      show_progress=show_progress
-                      )
+                retdata.file, show_progress=show_progress
+                )
+            self._get(
+                request=self._request,
+                asynchronous=asynchronous,
+                response_handler=response_handler,
+                message=message,
+                show_progress=show_progress
+                )
 
         return retdatagroup

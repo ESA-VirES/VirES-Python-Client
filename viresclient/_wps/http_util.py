@@ -28,7 +28,13 @@
 
 from base64 import standard_b64encode
 
-def encode_basic_auth(username, password):
+
+def encode_no_auth(**kwargs):
+    """ Dummy encoder.  """
+    return {}
+
+
+def encode_basic_auth(username, password, **kwargs):
     """ Encode username and password as the basic HTTP access authentication
     header.
     """
@@ -36,4 +42,13 @@ def encode_basic_auth(username, password):
         b"Authorization": b"Basic " + standard_b64encode(
             ("%s:%s" % (username, password)).encode("UTF-8")
         )
+    }
+
+
+def encode_token_auth(token, **kwargs):
+    """ Encode token as the bearer authentication header.
+    """
+    # NOTE: Only ASCII characters are allowed in HTTP headers.
+    return {
+        b"Authorization": b"Bearer " + token.encode("ascii")
     }

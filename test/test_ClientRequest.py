@@ -8,15 +8,15 @@ import viresclient
 def test_ClientRequest():
     """Test that a ClientRequest gets set up correctly.
     """
-    request = ClientRequest('', '', '')
+    request = ClientRequest('dummy_url')
     assert isinstance(request._wps_service,
                       viresclient._wps.wps_vires.ViresWPS10Service
                       )
-    request = SwarmRequest('', '', '')
+    request = SwarmRequest('dummy_url')
     assert isinstance(request._wps_service,
                       viresclient._wps.wps_vires.ViresWPS10Service
                       )
-    request = AeolusRequest('', '', '')
+    request = AeolusRequest('dummy_url')
     assert isinstance(request._wps_service,
                       viresclient._wps.wps_vires.ViresWPS10Service
                       )
