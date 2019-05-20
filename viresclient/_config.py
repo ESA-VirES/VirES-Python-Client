@@ -44,7 +44,7 @@ class ClientConfig():
     >> cc = ClientConfig("./viresconf.ini")  # use custom configuration file
 
     >> print(cc.path)           # print path
-    >> print(cc)                # print  whole configuration
+    >> print(cc)                # print the whole configuration
 
     >> cc.default_url = "https://foo.bar/ows"  # set default server
 
@@ -123,7 +123,7 @@ class ClientConfig():
         """ Save the configuration file. """
         with open(self._path, 'w') as file_:
             self._config.write(file_)
-            # make file private
+            # make the saved file private
             if os_name == 'posix':
                 chmod(file_.fileno(), 0o0600)
 
