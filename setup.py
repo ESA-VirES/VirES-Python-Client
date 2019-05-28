@@ -69,5 +69,10 @@ setup(
                       'tqdm>=4.23.0, <5.0.0',
                       'xarray>=0.10.0, <0.12.0'],
     setup_requires=['pytest-runner'],
-    tests_require=['pytest']
+    tests_require=['pytest'],
+    entry_points={
+        'console_scripts': [
+            'viresclient=viresclient.commands.viresclient:start',
+        ],
+    },
 )
