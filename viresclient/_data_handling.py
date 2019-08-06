@@ -356,6 +356,17 @@ class ReturnedData(object):
         self._filetype = value
 
     @property
+    def sources(self):
+        """ Get list of source product identifiers.
+        """
+        sources = set()
+        for item in self._contents:
+            sources.update(
+                item.open_cdf().globalattsget().get('ORIGINAL_PRODUCT_NAMES', [])
+            )
+        return sorted(sources)
+
+    @property
     def contents(self):
         """List of ReturnedDataFile objects
         """
