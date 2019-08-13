@@ -399,6 +399,10 @@ class ReturnedData(object):
             xarray.Dataset
 
         """
+        # ds_list is a list of xarray.Dataset objects
+        #  - they are created from each file in self.contents
+        # Some of them may be empty because of the time window they cover
+        #  and the filtering that has been applied.
         ds_list = []
         for i, data in enumerate(self.contents):
             ds_part = data.as_xarray()
@@ -408,14 +412,15 @@ class ReturnedData(object):
                         i+1, len(self.contents)),
                       "\n(This part is likely empty)")
             else:
+                # Collect the non-empty Datasets
                 ds_list.append(ds_part)
         if len(ds_list) == 1:
-            return ds_list[0]
+            ds = ds_list[0]
         else:
             ds_list = [i for i in ds_list if i is not None]
             if ds_list == []:
                 return None
-            return xarray.concat(ds_list, dim="Timestamp")
+            ds = xarray.concat(ds_list, dim="Timestamp")
         # # Test this other option:
         # ds = self.contents[0].as_xarray()
         # for d in self.contents[1:]:
@@ -424,6 +429,10 @@ class ReturnedData(object):
         #
         # https://github.com/pydata/xarray/issues/1379
         # concat is slow. Maybe try extracting numpy arrays and rebuilding ds
+
+        # Set the original data sources as metadata
+        ds.attrs["Sources"] = self.sources
+        return ds
 
     def to_files(self, paths, overwrite=False):
         """Saves the data to the specified files.
