@@ -386,6 +386,17 @@ class ReturnedData(object):
         return sorted(models)
 
     @property
+    def range_filters(self):
+        """ Get list of filters applied.
+        """
+        filters = set()
+        for item in self._contents:
+            filters.update(
+                item.open_cdf().globalattsget().get('DATA_FILTERS', [])
+            )
+        return sorted(filters)
+
+    @property
     def contents(self):
         """List of ReturnedDataFile objects
         """
@@ -452,6 +463,7 @@ class ReturnedData(object):
         # Set the original data sources and models used as metadata
         ds.attrs["Sources"] = self.sources
         ds.attrs["MagneticModels"] = self.magnetic_models
+        ds.attrs["RangeFilters"] = self.range_filters
         return ds
 
     def to_files(self, paths, overwrite=False):
