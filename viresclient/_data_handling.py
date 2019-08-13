@@ -367,6 +367,17 @@ class ReturnedData(object):
         return sorted(sources)
 
     @property
+    def magnetic_models(self):
+        """ Get list of magnetic models used.
+        """
+        models = set()
+        for item in self._contents:
+            models.update(
+                item.open_cdf().globalattsget().get('MAGNETIC_MODELS', [])
+            )
+        return sorted(models)
+
+    @property
     def contents(self):
         """List of ReturnedDataFile objects
         """
@@ -430,8 +441,9 @@ class ReturnedData(object):
         # https://github.com/pydata/xarray/issues/1379
         # concat is slow. Maybe try extracting numpy arrays and rebuilding ds
 
-        # Set the original data sources as metadata
+        # Set the original data sources and models used as metadata
         ds.attrs["Sources"] = self.sources
+        ds.attrs["MagneticModels"] = self.magnetic_models
         return ds
 
     def to_files(self, paths, overwrite=False):
