@@ -153,10 +153,18 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
         if cdf.varinq(k)["Num_Dims"] == 0:
             # 1D (scalar) data
             ds[k] = (("Timestamp",), cdf.varget(k))
+        # Common 3D (vector) case
         elif ((cdf.varinq(k)["Num_Dims"] == 1) &
                 (cdf.varinq(k)["Dim_Sizes"] == [3])):
-            # Common 3D (vector) case
+
             ds[k] = (("Timestamp", "dim"), cdf.varget(k))
+        # 4D case, e.g. q_NEC_CRF
+        elif ((cdf.varinq(k)["Num_Dims"] == 1) &
+                (cdf.varinq(k)["Dim_Sizes"] == [4])):
+            ds[k] = (("Timestamp", "dim_2"), cdf.varget(k))
+        # 2x2 case, e.g. QDBasis
+        elif (cdf.varinq(k)["Num_Dims"] == 2):
+            ds[k] = (("Timestamp", "dim_3", "dim_4"), cdf.varget(k))
         else:
             raise NotImplementedError("{}: array too complicated".format(k))
     cdf.close()
