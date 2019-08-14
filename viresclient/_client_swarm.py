@@ -10,7 +10,8 @@ from ._data_handling import ReturnedDataFile
 
 TEMPLATE_FILES = {
     'sync': "vires_fetch_filtered_data.xml",
-    'async': "vires_fetch_filtered_data_async.xml"
+    'async': "vires_fetch_filtered_data_async.xml",
+    'model_info': "vires_get_model_info.xml"
 }
 
 REFERENCES = {
@@ -34,7 +35,8 @@ MODEL_REFERENCES = {
          " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
     'CHAOS-6-Core': "",
     'CHAOS-6-Static': "",
-    'CHAOS-6-MMA': "",
+    'CHAOS-6-MMA-Primary': "",
+    'CHAOS-6-MMA-Secondary': "",
     'MCO_SHA_2C':
         ("[Comprehensive Inversion]: Core field of CIY4",
          " A comprehensive model of Earth’s magnetic field determined from 4 years of Swarm satellite observations, https://doi.org/10.1186/s40623-018-0896-3 ",
@@ -99,9 +101,21 @@ class SwarmWPSInputs(WPSInputs):
     """Holds the set of inputs to be passed to the request template for Swarm
     """
 
+    NAMES = [
+        'collection_ids',
+        'model_expression',
+        'begin_time',
+        'end_time',
+        'variables',
+        'filters',
+        'sampling_step',
+        'response_type',
+        'custom_shc',
+        ]
+
     def __init__(self,
                  collection_ids=None,
-                 model_ids=None,
+                 model_expression=None,
                  begin_time=None,
                  end_time=None,
                  variables=None,
@@ -117,22 +131,11 @@ class SwarmWPSInputs(WPSInputs):
         self.response_type = None if response_type is None else response_type
         # Optional - these defaults will be used if not replaced before the
         #            request is made
-        self.model_ids = [] if model_ids is None else model_ids
+        self.model_expression = str() if model_expression is None else model_expression
         self.variables = [] if variables is None else variables
         self.filters = None if filters is None else filters
         self.sampling_step = None if sampling_step is None else sampling_step
         self.custom_shc = None if custom_shc is None else custom_shc
-
-        self.names = ('collection_ids',
-                      'model_ids',
-                      'begin_time',
-                      'end_time',
-                      'variables',
-                      'filters',
-                      'sampling_step',
-                      'response_type',
-                      'custom_shc'
-                      )
 
     @property
     def collection_ids(self):
@@ -154,15 +157,15 @@ class SwarmWPSInputs(WPSInputs):
             raise TypeError("collection must be a string")
 
     @property
-    def model_ids(self):
-        return self._model_ids
+    def model_expression(self):
+        return self._model_expression
 
-    @model_ids.setter
-    def model_ids(self, model_ids):
-        if isinstance(model_ids, list):
-            self._model_ids = model_ids
+    @model_expression.setter
+    def model_expression(self, model_expression):
+        if isinstance(model_expression, str):
+            self._model_expression = model_expression
         else:
-            raise TypeError("tag must be a string and collections a list")
+            raise TypeError("model_expression must be a string")
 
     @property
     def begin_time(self):
@@ -261,15 +264,19 @@ class SwarmRequest(ClientRequest):
         url (str):
         username (str):
         password (str):
+        token (str):
+        config (str or ClientConfig):
         logging_level (str):
 
     """
 
-    def __init__(self, url=None, username=None, password=None,
-                 logging_level="NO_LOGGING"):
-        super().__init__(url, username, password, logging_level,
-                         server_type="Swarm"
-                         )
+    def __init__(self, url=None, username=None, password=None, token=None,
+                 config=None, logging_level="NO_LOGGING"):
+        super().__init__(
+            url, username, password, token, config, logging_level,
+            server_type="Swarm"
+            )
+
         self._available = self._set_available_data()
         self._request_inputs = SwarmWPSInputs()
         self._templatefiles = TEMPLATE_FILES
@@ -325,13 +332,13 @@ class SwarmRequest(ClientRequest):
             MMA_SHA_2C-Primary, MMA_SHA_2C-Secondary,
             MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,
             MIO_SHA_2C-Primary, MIO_SHA_2C-Secondary,
-            MIO_SHA_2D-Primary, MIO_SHA_2D-Secondary,
-            Custom_Model
+            MIO_SHA_2D-Primary, MIO_SHA_2D-Secondary
             """.replace("\n", "").replace(" ", "").split(",")
 
         auxiliaries = """
             Timestamp, Latitude, Longitude, Radius, Spacecraft,
-            SyncStatus, Kp, Dst, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F10_INDEX,
+            OrbitDirection, QDOrbitDirection,
+            SyncStatus, Kp10, Kp, Dst, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F10_INDEX,
             OrbitSource, OrbitNumber, AscendingNodeTime,
             AscendingNodeLongitude, QDLat, QDLon, QDBasis, MLT, SunDeclination,
             SunHourAngle, SunRightAscension, SunAzimuthAngle, SunZenithAngle,
@@ -349,6 +356,54 @@ class SwarmRequest(ClientRequest):
             "model_variables": model_variables,
             "auxiliaries": auxiliaries
             }
+
+    @staticmethod
+    def _parse_models_input(models=None):
+        """Verify and parse models input.
+
+        Args:
+            models (list/dict): User-provided values
+
+        Returns:
+            list: model_ids, list of model_id strings
+            str: model_expression_string to be passed to the server
+        """
+        models = [] if models is None else models
+        # Convert input to OrderedDict
+        #  e.g. {"model_name": "model_expression", ..}
+        # Check if models input is basic list of strings,
+        #  If not, then handle inputs given as dicts or list of tuples
+        if (isinstance(models, list) and
+                all(isinstance(item, str) for item in models)):
+            # Convert the models list to an OrderedDict
+            model_expressions = OrderedDict()
+            for model in models:
+                model_id, _, model_expression = [
+                    s.strip() for s in model.partition("=")
+                ]
+                model_expressions[model_id] = model_expression
+        else:
+            try:
+                model_expressions = OrderedDict(models)
+                # Check that everything is a string
+                if not all(isinstance(item, str)for item in
+                           [*model_expressions.values()] +
+                           [*model_expressions.keys()]):
+                    raise ValueError
+            except ValueError:
+                raise ValueError("Invalid models input!")
+        # TODO: Verify input model names
+        #  (use self._available["models"])
+        # Create the combined model expression string passed to the request
+        model_expression_string = ""
+        for model_id, model_expression in model_expressions.items():
+            if model_expression == "":
+                s = model_id
+            else:
+                s = "=".join([model_id, model_expression])
+            model_expression_string = ",".join([model_expression_string, s])
+        model_ids = list(s.strip("\'\"") for s in model_expressions.keys())
+        return model_ids, model_expression_string[1:]
 
     def available_collections(self, details=True):
         """Show details of available collections.
@@ -436,7 +491,15 @@ class SwarmRequest(ClientRequest):
             return d
 
         if details:
-            d = MODEL_REFERENCES
+            mod_refs = MODEL_REFERENCES
+            # Extend the dictionary to include information from get_model_info
+            models_info = self.get_model_info(self._available["models"])
+            d = {}
+            for model_name in self._available["models"]:
+                d[model_name] = {
+                    "description": mod_refs[model_name],
+                    "details": models_info[model_name]
+                }
         else:
             d = self._available["models"]
         # Filter the dict/list to only include those that contain param
@@ -445,10 +508,13 @@ class SwarmRequest(ClientRequest):
 
         if nice_output and details:
             d = OrderedDict(sorted(d.items()))
-            for key, val in d.items():
-                print(key)
-                for i in val:
-                    print(i)
+            for model_name, desc_details in d.items():
+                print(model_name, "=", desc_details["details"]["expression"])
+                print("  START:", desc_details["details"]["validity"]["start"])
+                print("  END:  ", desc_details["details"]["validity"]["end"])
+                print("DESCRIPTION:")
+                for line in desc_details["description"]:
+                    print(line)
                 print()
         else:
             return d
@@ -486,7 +552,7 @@ class SwarmRequest(ClientRequest):
 
         Args:
             measurements (list(str)): from .available_measurements(collection_key)
-            models (list(str)): from .available_models()
+            models (list(str)/dict): from .available_models() or defineable with custom expressions
             custom_model (str): path to a custom model in .shc format
             auxiliaries (list(str)): from .available_auxiliaries()
             residuals (bool): True if only returning measurement-model residual
@@ -510,13 +576,8 @@ class SwarmRequest(ClientRequest):
         # Check if at least one model defined when requesting residuals
         if residuals and not models:
             raise Exception("Residuals requested but no model defined!")
-        # Check chosen model is available
-        for model_name in models:
-            if model_name not in self._available["models"]:
-                raise Exception(
-                    "Model '{}' not available. Check available with "
-                    "SwarmRequest.available_models()".format(model_name)
-                    )
+        # Check models format, extract model_ids and string to pass to server
+        model_ids, model_expression_string = self._parse_models_input(models)
         # Check chosen aux is available
         for variable in auxiliaries:
             if variable not in self._available["auxiliaries"]:
@@ -529,34 +590,31 @@ class SwarmRequest(ClientRequest):
             if os.path.exists(custom_model):
                 with open(custom_model) as custom_shc_file:
                     custom_shc = custom_shc_file.read()
-                models.append("Custom_Model")
+                model_ids.append("Custom_Model")
             else:
                 raise OSError("Custom model .shc file not found")
         else:
             custom_shc = None
         # Set up the variables that actually get passed to the WPS request
         variables = []
-
         for variable in measurements:
             if variable in model_variables:
                 if residuals:
                     variables.extend(
                         "%s_res_%s" % (variable, model_name)
-                        for model_name in models
+                        for model_name in model_ids
                     )
                 else:
                     variables.append(variable)
                     variables.extend(
                         "%s_%s" % (variable, model_name)
-                        for model_name in models
+                        for model_name in model_ids
                     )
             else:  # not a model variable
                 variables.append(variable)
-
         variables.extend(auxiliaries)
-
         # Set these in the SwarmWPSInputs object
-        self._request_inputs.model_ids = models
+        self._request_inputs.model_expression = model_expression_string
         self._request_inputs.variables = variables
         self._request_inputs.sampling_step = sampling_step
         self._request_inputs.custom_shc = custom_shc
@@ -653,3 +711,63 @@ class SwarmRequest(ClientRequest):
         )
         self._wps_service.retrieve(request, handler=response_handler)
         return retdata.as_dataframe()["OrbitNumber"][0]
+
+    def get_model_info(self, models=None, custom_model=None,
+                       original_response=False):
+        """Get model info from server.
+
+        Handles the same models input as .set_products(), and returns a dict
+        like:
+
+        {'IGRF12': {
+        'expression': 'IGRF12(max_degree=13,min_degree=0)',
+        'validity': {'start': '1900-01-01T00:00:00Z', 'end': '2020-01-01T00:00:00Z'
+        }, ...}
+
+        If original_response=True, return the list of dicts like:
+
+        {'expression': 'MCO_SHA_2C(max_degree=16,min_degree=0)',
+        'name': 'MCO_SHA_2C',
+        'validity': {'start': '2013-11-30T14:38:24Z',
+        'end': '2018-01-01T00:00:00Z'}}, ...
+
+        Args:
+            models (list/dict): as with set_products
+            custom_model (str): as with set_products
+            original_response (bool)
+
+        Returns:
+            dict or list
+
+        """
+        # Check models format, extract model_ids and string to pass to server
+        model_ids, model_expression_string = self._parse_models_input(models)
+        if custom_model:
+            with open(custom_model) as custom_shc_file:
+                custom_shc = custom_shc_file.read()
+            model_ids.append("Custom_Model")
+            model_expression_string = ",".join(
+                [model_expression_string, "Custom_Model"]
+            )
+        else:
+            custom_shc = None
+        templatefile = "vires_get_model_info.xml"
+        template = JINJA2_ENVIRONMENT.get_template(templatefile)
+        request = template.render(
+            model_expression=model_expression_string,
+            custom_shc=custom_shc,
+            response_type="application/json"
+        ).encode('UTF-8')
+        response = self._wps_service.retrieve(request)
+        response_list = json.loads(response.decode('UTF-8'))
+        if original_response:
+            return response_list
+        else:
+            # Build dictionary output organised by model name
+            dict_out = {}
+            for model_dict in response_list:
+                dict_out[model_dict["name"]] = {
+                    "expression": model_dict["expression"],
+                    "validity": model_dict["validity"]
+                }
+            return dict_out

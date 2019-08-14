@@ -134,31 +134,40 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
         xarray.Dataset
 
     """
-
     cdf = cdflib.CDF(cdf_filename)
-
     # Load time and convert to Unix time
-    time = (cdf.varget("Timestamp")-CDF_EPOCH_1970)/1e3
+    time = cdf.varget("Timestamp")
+    # Return None when the CDF is empty
+    if time is None:
+        return None
+    time = (time-CDF_EPOCH_1970)/1e3
     # Now convert to a DatetimeIndex
     time = pandas.to_datetime(time, unit='s')
-
+    # Initialise the Dataset with the Timestamp index
     ds = xarray.Dataset(coords={"Timestamp": time})
-
+    # Loop through each variable available in the CDF and append them to the
+    #   Dataset, attaching the Timestamp index to each. In the 3-vector case,
+    #   e.g. B_NEC, also attach dimension "dim". Other cases not supported.
     keys = [k for k in cdf.cdf_info()["zVariables"] if k != "Timestamp"]
-
     for k in keys:
         if cdf.varinq(k)["Num_Dims"] == 0:
             # 1D (scalar) data
             ds[k] = (("Timestamp",), cdf.varget(k))
+        # Common 3D (vector) case
         elif ((cdf.varinq(k)["Num_Dims"] == 1) &
                 (cdf.varinq(k)["Dim_Sizes"] == [3])):
-            # Common 3D (vector) case
+
             ds[k] = (("Timestamp", "dim"), cdf.varget(k))
+        # 4D case, e.g. q_NEC_CRF
+        elif ((cdf.varinq(k)["Num_Dims"] == 1) &
+                (cdf.varinq(k)["Dim_Sizes"] == [4])):
+            ds[k] = (("Timestamp", "dim_2"), cdf.varget(k))
+        # 2x2 case, e.g. QDBasis
+        elif (cdf.varinq(k)["Num_Dims"] == 2):
+            ds[k] = (("Timestamp", "dim_3", "dim_4"), cdf.varget(k))
         else:
             raise NotImplementedError("{}: array too complicated".format(k))
-
     cdf.close()
-
     return ds
 
 
@@ -355,6 +364,39 @@ class ReturnedData(object):
         self._filetype = value
 
     @property
+    def sources(self):
+        """ Get list of source product identifiers.
+        """
+        sources = set()
+        for item in self._contents:
+            sources.update(
+                item.open_cdf().globalattsget().get('ORIGINAL_PRODUCT_NAMES', [])
+            )
+        return sorted(sources)
+
+    @property
+    def magnetic_models(self):
+        """ Get list of magnetic models used.
+        """
+        models = set()
+        for item in self._contents:
+            models.update(
+                item.open_cdf().globalattsget().get('MAGNETIC_MODELS', [])
+            )
+        return sorted(models)
+
+    @property
+    def range_filters(self):
+        """ Get list of filters applied.
+        """
+        filters = set()
+        for item in self._contents:
+            filters.update(
+                item.open_cdf().globalattsget().get('DATA_FILTERS', [])
+            )
+        return sorted(filters)
+
+    @property
     def contents(self):
         """List of ReturnedDataFile objects
         """
@@ -387,18 +429,28 @@ class ReturnedData(object):
             xarray.Dataset
 
         """
+        # ds_list is a list of xarray.Dataset objects
+        #  - they are created from each file in self.contents
+        # Some of them may be empty because of the time window they cover
+        #  and the filtering that has been applied.
         ds_list = []
         for i, data in enumerate(self.contents):
-            try:
-                ds_part = data.as_xarray()
-            except Exception:
+            ds_part = data.as_xarray()
+            if ds_part is None:
                 print("Warning: ",
                       "Unable to create dataset from part {} of {}".format(
                         i+1, len(self.contents)),
                       "\n(This part is likely empty)")
             else:
+                # Collect the non-empty Datasets
                 ds_list.append(ds_part)
-        return xarray.concat(ds_list, dim="Timestamp")
+        if len(ds_list) == 1:
+            ds = ds_list[0]
+        else:
+            ds_list = [i for i in ds_list if i is not None]
+            if ds_list == []:
+                return None
+            ds = xarray.concat(ds_list, dim="Timestamp")
         # # Test this other option:
         # ds = self.contents[0].as_xarray()
         # for d in self.contents[1:]:
@@ -407,6 +459,12 @@ class ReturnedData(object):
         #
         # https://github.com/pydata/xarray/issues/1379
         # concat is slow. Maybe try extracting numpy arrays and rebuilding ds
+
+        # Set the original data sources and models used as metadata
+        ds.attrs["Sources"] = self.sources
+        ds.attrs["MagneticModels"] = self.magnetic_models
+        ds.attrs["RangeFilters"] = self.range_filters
+        return ds
 
     def to_files(self, paths, overwrite=False):
         """Saves the data to the specified files.

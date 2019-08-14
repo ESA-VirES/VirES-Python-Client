@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<wps:Execute xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" version="1.0.0" service="WPS">
+  <ows:Identifier>vires:get_model_info</ows:Identifier>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier>model_ids</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ model_expression }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% if custom_shc -%}
+    <wps:Input>
+      <ows:Identifier>shc</ows:Identifier>
+      <wps:Data>
+        <wps:ComplexData>{{ custom_shc }}</wps:ComplexData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput mimeType="{{ response_type }}">
+      <ows:Identifier>output</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>

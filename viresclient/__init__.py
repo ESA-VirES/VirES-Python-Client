@@ -27,9 +27,10 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+from ._client import ClientConfig
 from ._client_swarm import SwarmRequest
 from ._client_aeolus import AeolusRequest
 from ._data_handling import ReturnedData
 from ._data_handling import ReturnedDataFile
 
-__version__ = "0.2.6"
+__version__ = "0.3.1"

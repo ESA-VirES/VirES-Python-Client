@@ -1,6 +1,23 @@
 Release notes
 =============
 
+Changes from v0.2.6 to 0.3.0
+----------------------------
+
+- Service officially open to public through self-registration on https://vires.services
+- Token-based authentication added
+
+Changes from v0.2.5 to 0.2.6
+----------------------------
+
+- New model composition behaviour is implemented, extending what is possible with the ``models`` kwarg in :meth:`viresclient.SwarmRequest.set_products` (with backwards compatibility). See demo in https://github.com/smithara/viresclient_examples/blob/master/model_residuals_and_cartopy.ipynb
+- New method :meth:`viresclient.SwarmRequest.get_model_info` to fetch model details from server.
+- :meth:`viresclient.SwarmRequest.available_models` is updated with these details.
+- New parameters in TEC collections: ``Elevation_Angle``, ``Absolute_VTEC``.
+- New parameters in auxiliaries: ``OrbitDirection``, ``QDOrbitDirection``.
+- The auxiliary ``Kp`` is now provided as the proper Kp value, and ``Kp10`` is provided with the old behaviour with the value of Kp*10.
+- Updated dependency on cdflib to v0.3.9, and xarray to allow both v0.10.x and v0.11.x.
+
 Changes from v0.2.4 to 0.2.5
 ----------------------------
 

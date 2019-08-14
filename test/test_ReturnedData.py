@@ -213,10 +213,8 @@ def test_ReturnedDataFile_xarray():
     ds = data_cdf.as_xarray()
     # Check equivalency to the pre-made dataframe
     df_json = pandas.read_json(TEST_FILES["json_from_cdf"])
-    # NB Dataset has "Timestamp" as a key as well as an index
-    assert set(ds.keys()) == set(list(df_json.keys()) + ["Timestamp"])
-    # Warning here: may need to instead use: set(data.as_xarray().variables)
-    # And may drop "Timestamp" with xarray v0.11?
+    # NB Since xarray v0.11.0, Dataset keys no longer includes "Timestamp"
+    assert set(ds.keys()) == set(df_json.keys())
     assert ds.indexes["Timestamp"].equals(df_json.index)
 
 
@@ -233,8 +231,6 @@ def test_ReturnedData_xarray():
     ds = data_cdf.as_xarray()
     # Check equivalency to the pre-made dataframe
     df_json = pandas.read_json(TEST_FILES["json_from_cdf"])
-    # NB Dataset has "Timestamp" as a key as well as an index
-    assert set(ds.keys()) == set(list(df_json.keys()) + ["Timestamp"])
-    # Warning here: may need to instead use: set(data.as_xarray().variables)
-    # And may drop "Timestamp" with xarray v0.11?
+    # NB Since xarray v0.11.0, Dataset keys no longer includes "Timestamp"
+    assert set(ds.keys()) == set(df_json.keys())
     assert ds.indexes["Timestamp"].equals(df_json.index)
