@@ -93,7 +93,9 @@ COLLECTION_REFERENCES = {
             " https://earth.esa.int/documents/10174/1514862/Swarm_L2_FAC_single_product_description ",
             " https://earth.esa.int/documents/10174/1514862/Swarm-L2-FAC-Dual-Product-Description "),
     "EEF": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#EEFxTMS_2F ",
-            " https://earth.esa.int/documents/10174/1514862/Swarm-Level-2-EEF-Product-Description ")
+            " https://earth.esa.int/documents/10174/1514862/Swarm-Level-2-EEF-Product-Description "),
+    "IPD": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#IPDxIPR_2F ",
+            )
 }
 
 
