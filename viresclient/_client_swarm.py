@@ -542,22 +542,17 @@ class SwarmRequest(ClientRequest):
         """
         return self._available["auxiliaries"]
 
-    def set_collection(self, collection):
-        """Set the collection to use (sets satellite implicitly).
-
-        Note:
-            Currently limited to one collection, one satellite.
+    def set_collection(self, *args):
+        """Set the collection(s) to use.
 
         Args:
-            collection (str): one of .available_collections()
+            (str): one or several from .available_collections()
 
         """
-        if isinstance(collection, str):
-            collections = [collection]
-        elif isinstance(collection, list):
-            collections = collection
-        else:
-            raise TypeError("collection must be str or list")
+        collections = [*args]
+        for collection in collections:
+            if not isinstance(collection, str):
+                raise TypeError(f"{collection} invalid. Must be string.")
         for collection in collections:
             if collection not in self._available["collections"]:
                 raise ValueError(
