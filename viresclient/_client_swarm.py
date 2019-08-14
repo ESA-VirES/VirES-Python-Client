@@ -328,7 +328,7 @@ class SwarmRequest(ClientRequest):
         auxiliaries = """
             Timestamp, Latitude, Longitude, Radius, Spacecraft,
             OrbitDirection, QDOrbitDirection,
-            SyncStatus, Kp10, Kp, Dst, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F10_INDEX,
+            SyncStatus, Kp10, Kp, Dst, F107, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F10_INDEX,
             OrbitSource, OrbitNumber, AscendingNodeTime,
             AscendingNodeLongitude, QDLat, QDLon, QDBasis, MLT, SunDeclination,
             SunHourAngle, SunRightAscension, SunAzimuthAngle, SunZenithAngle,
