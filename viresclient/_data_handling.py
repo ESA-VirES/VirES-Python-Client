@@ -367,10 +367,14 @@ class ReturnedData(object):
     def sources(self):
         """ Get list of source product identifiers.
         """
+        # .globalattsget().get(...) returns either a string of one variable
+        #  or a list of strings. The lambda function converts these to a list.
+        # Unique values from each file are collected within a set.
         sources = set()
         for item in self._contents:
             sources.update(
-                item.open_cdf().globalattsget().get('ORIGINAL_PRODUCT_NAMES', [])
+                (lambda x: [x] if type(x) is str else x)
+                (item.open_cdf().globalattsget().get('ORIGINAL_PRODUCT_NAMES', [])),
             )
         return sorted(sources)
 
@@ -381,7 +385,8 @@ class ReturnedData(object):
         models = set()
         for item in self._contents:
             models.update(
-                item.open_cdf().globalattsget().get('MAGNETIC_MODELS', [])
+                (lambda x: [x] if type(x) is str else x)
+                (item.open_cdf().globalattsget().get('MAGNETIC_MODELS', [])),
             )
         return sorted(models)
 
@@ -392,7 +397,8 @@ class ReturnedData(object):
         filters = set()
         for item in self._contents:
             filters.update(
-                item.open_cdf().globalattsget().get('DATA_FILTERS', [])
+                (lambda x: [x] if type(x) is str else x)
+                (item.open_cdf().globalattsget().get('DATA_FILTERS', [])),
             )
         return sorted(filters)
 
