@@ -583,6 +583,14 @@ class SwarmRequest(ClientRequest):
         models = [] if models is None else models
         model_variables = set(self._available["model_variables"])
         auxiliaries = [] if auxiliaries is None else auxiliaries
+        # If inputs are strings (when providing only one parameter)
+        #  put them in lists
+        if isinstance(measurements, str):
+            measurements = [measurements]
+        if isinstance(models, str):
+            models = [models]
+        if isinstance(auxiliaries, str):
+            auxiliaries = [auxiliaries]
         # Check the chosen measurements are available for the set collections
         available_measurements = []
         for collection in self._collection_list:
