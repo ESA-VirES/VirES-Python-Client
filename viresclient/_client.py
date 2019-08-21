@@ -287,10 +287,10 @@ class ClientRequest(object):
             return self._request_inputs.__str__()
 
     @staticmethod
-    def _response_handler(out_file, show_progress=True):
+    def _response_handler(retdatafile, show_progress=True):
         """Creates the response handler function for the WPS request
 
-        Streams the remote file to the local (out_file),
+        Streams the remote file to the local (retdatafile),
         with a download progress bar
         """
 
@@ -320,13 +320,15 @@ class ClientRequest(object):
             """
             size = int(file_obj.info()['Content-Length'])
             with ProgressBarDownloading(size) as pbar:
-                copyfileobj(
-                    file_obj, out_file, callback=copy_progress(pbar),
-                    total=size
-                    )
+                with open(retdatafile._file.name, "wb") as out_file:
+                    copyfileobj(
+                        file_obj, out_file, callback=copy_progress(pbar),
+                        total=size
+                        )
 
         def write_response_without_reporting(file_obj):
-            copyfileobj(file_obj, out_file)
+            with open(retdatafile._file.name, "wb") as out_file:
+                copyfileobj(file_obj, out_file)
 
         if show_progress:
             return write_response
@@ -508,11 +510,11 @@ class ClientRequest(object):
             # self._request = wps_xml_request(templatefile, self._request_inputs)
             self._request = self._request_inputs.as_xml(templatefile)
             # Identify the individual ReturnedData object within the group
-            retdata = retdatagroup.contents[i]
+            retdatafile = retdatagroup.contents[i]
             # Make the request, as either asynchronous or synchronous
             # The response handler streams the data to the ReturnedData object
             response_handler = self._response_handler(
-                retdata.file, show_progress=show_progress
+                retdatafile, show_progress=show_progress
                 )
             self._get(
                 request=self._request,
