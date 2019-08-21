@@ -36,6 +36,8 @@ except ImportError:
     import StringIO as BytesIO
 import tempfile
 import shutil
+if os.name == "nt":
+    import atexit
 
 import numpy
 import pandas
@@ -187,13 +189,15 @@ class ReturnedDataFile(object):
         if tmpdir is not None:
             if not os.path.exists(tmpdir):
                 raise Exception("tmpdir does not exist")
-        # SpooledTemporaryFile may be quicker on very small file sizes (<1MB?)
-        # Depends on the machine it is running on
-        #  - choose the directory of the temp file?
-        # But need to do some extra work for cdf->dataframe support
-        # self._file = tempfile.SpooledTemporaryFile(max_size=1e8)
-        self._file = tempfile.NamedTemporaryFile(dir=tmpdir)
-        # Add an option for storing to a regular file directly?
+        if os.name == "nt":
+            self._file = tempfile.NamedTemporaryFile(
+                prefix="vires_", dir=tmpdir, delete=False)
+            self._file.close()
+            atexit.register(os.remove, self._file.name)
+        else:
+            self._file = tempfile.NamedTemporaryFile(
+                prefix="vires_", dir=tmpdir)
+
 
     def __str__(self):
         return "viresclient ReturnedDataFile object of type " + self.filetype + \
@@ -201,22 +205,10 @@ class ReturnedDataFile(object):
             "\nLoad it as a pandas dataframe with .as_dataframe()" + \
             "\nLoad it as an xarray dataset with .as_xarray()"
 
-    @property
-    def file(self):
-        """Points to the actual file object
-        """
-        self._file.seek(0)
-        return self._file
-
     def open_cdf(self):
         """Returns the opened file as cdflib.CDF
         """
-        return cdflib.CDF(self.file.name)
-
-    # @property
-    # def _data(self):
-    #     self.file.seek(0)
-    #     return self.file.read()
+        return cdflib.CDF(self._file.name)
 
     def _write_new_data(self, data):
         """Replace the tempfile contents with 'data' (bytes)
@@ -224,16 +216,17 @@ class ReturnedDataFile(object):
         """
         if not isinstance(data, bytes):
             raise TypeError("data must be of type bytes")
-        # self.file.seek(0)
-        self.file.write(data)
+        # If on Windows, the file will be closed so needs to be re-opened:
+        with open(self._file.name, "wb") as temp_file:
+            temp_file.write(data)
 
     def _write_file(self, filename):
         """Write the tempfile out to a regular file
 
         """
-        # self.file.seek(0)
-        with open(filename, 'wb') as out_file:
-            shutil.copyfileobj(self.file, out_file)
+        with open(self._file.name, "rb") as temp_file:
+            with open(filename, 'wb') as out_file:
+                shutil.copyfileobj(temp_file, out_file)
 
     @property
     def filetype(self):
@@ -295,7 +288,7 @@ class ReturnedDataFile(object):
         ds.to_netcdf(path)
         print("Data written to", path)
 
-    def as_dataframe(self):
+    def as_dataframe(self, expand=False):
         """Convert the data to a pandas DataFrame.
 
         Returns:
@@ -303,9 +296,11 @@ class ReturnedDataFile(object):
 
         """
         if self.filetype == 'csv':
-            df = make_pandas_DataFrame_from_csv(self.file.name)
+            if expand:
+                raise NotImplementedError
+            df = make_pandas_DataFrame_from_csv(self._file.name)
         elif self.filetype == 'cdf':
-            df = make_pandas_DataFrame_from_cdf(self.file.name)
+            df = make_pandas_DataFrame_from_cdf(self._file.name, expand=expand)
         return df
 
     def as_xarray(self, group=None):
@@ -323,9 +318,9 @@ class ReturnedDataFile(object):
         if self.filetype == 'csv':
             raise NotImplementedError("csv to xarray is not supported")
         elif self.filetype == 'cdf':
-            ds = make_xarray_Dataset_from_cdf(self.file.name)
+            ds = make_xarray_Dataset_from_cdf(self._file.name)
         elif self.filetype == 'nc':
-            ds = xarray.open_dataset(self.file.name, group=group)
+            ds = xarray.open_dataset(self._file.name, group=group)
         return ds
 
 
