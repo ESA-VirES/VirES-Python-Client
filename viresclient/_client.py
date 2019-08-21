@@ -65,7 +65,7 @@ RESPONSE_TYPES = {
 NRECORDS_LIMIT = 4320000  # = 50 days at 1Hz
 
 # Store the config file in home directory
-CONFIG_FILE_PATH = os.path.join(os.environ["HOME"], ".viresclient.ini")
+CONFIG_FILE_PATH = os.path.join(os.path.expanduser("~"), ".viresclient,ini")
 
 # Maximum selectable time interval ~25 years
 MAX_TIME_SELECTION = timedelta(days=25*365.25)
