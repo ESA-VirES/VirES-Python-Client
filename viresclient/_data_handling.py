@@ -158,7 +158,7 @@ def make_pandas_DataFrame_from_cdf(cdf_filename, expand=False):
                     col_base_name = col
                 for component, suffix in enumerate(
                         COLUMN_INFO[col_base_name][1]):
-                    df[f"{col}{suffix}"] = None
+                    df[col + suffix] = None
             else:
                 df[col] = None
         df = df.set_index("Timestamp")
@@ -173,7 +173,7 @@ def make_pandas_DataFrame_from_cdf(cdf_filename, expand=False):
                     col_base_name = col
                 for component, suffix in enumerate(
                         COLUMN_INFO[col_base_name][1]):
-                    df[f"{col}{suffix}"] = cdf.varget(col)[:, component]
+                    df[col + suffix] = cdf.varget(col)[:, component]
             else:
                 df[col] = list(cdf.varget(col))
         # Convert timestamps to datetime objects
