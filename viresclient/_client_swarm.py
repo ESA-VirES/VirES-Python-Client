@@ -552,12 +552,16 @@ class SwarmRequest(ClientRequest):
         collections = [*args]
         for collection in collections:
             if not isinstance(collection, str):
-                raise TypeError(f"{collection} invalid. Must be string.")
+                raise TypeError(
+                    "{} invalid. Must be string."
+                    .format(collection)
+                    )
         for collection in collections:
             if collection not in self._available["collections"]:
                 raise ValueError(
-                    f"Invalid collection: {collection}. "
+                    "Invalid collection: {}. "
                     "Check available with SwarmRequest.available_collections()"
+                    .format(collection)
                     )
         self._collection_list = collections
         self._request_inputs.set_collections(collections)
