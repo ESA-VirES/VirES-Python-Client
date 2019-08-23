@@ -150,13 +150,29 @@ class SwarmWPSInputs(WPSInputs):
         else:
             raise TypeError("collection_ids must be a dict")
 
-    def set_collection(self, collection):
-        if isinstance(collection, str):
-            tag = 'X'
-            collections = [collection]
-            self.collection_ids = {tag: collections}
+    @staticmethod
+    def _spacecraft_from_collection(collection):
+        """Identify spacecraft from collection name."""
+        # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
+        sc = collection[11]
+        sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie", "_": "NSC"}
+        return sc_to_name[sc]
+
+    def set_collections(self, collections):
+        """Restructure given list of collections as dict required by VirES."""
+        # Build the output dictionary in the form:
+        #  {"Alpha": ["SW..A..", "SW..A.."], "Bravo": ["SW..B.."], "NSC": [..]}
+        if isinstance(collections, list):
+            collection_dict = {}
+            for collection in collections:
+                tag = self._spacecraft_from_collection(collection)
+                if tag in collection_dict.keys():
+                    collection_dict[tag].append(collection)
+                else:
+                    collection_dict[tag] = [collection]
+            self.collection_ids = collection_dict
         else:
-            raise TypeError("collection must be a string")
+            raise TypeError("collections must be a list")
 
     @property
     def model_expression(self):
@@ -526,23 +542,25 @@ class SwarmRequest(ClientRequest):
         """
         return self._available["auxiliaries"]
 
-    def set_collection(self, collection):
-        """Set the collection to use (sets satellite implicitly).
-
-        Note:
-            Currently limited to one collection, one satellite.
+    def set_collection(self, *args):
+        """Set the collection(s) to use.
 
         Args:
-            collection (str): one of .available_collections()
+            (str): one or several from .available_collections()
 
         """
-        if collection not in self._available["collections"]:
-            raise Exception(
-                "Invalid collection. "
-                "Check available with SwarmRequest.available_collections()")
-        else:
-            self._collection = collection
-            self._request_inputs.set_collection(collection)
+        collections = [*args]
+        for collection in collections:
+            if not isinstance(collection, str):
+                raise TypeError(f"{collection} invalid. Must be string.")
+        for collection in collections:
+            if collection not in self._available["collections"]:
+                raise ValueError(
+                    f"Invalid collection: {collection}. "
+                    "Check available with SwarmRequest.available_collections()"
+                    )
+        self._collection_list = collections
+        self._request_inputs.set_collections(collections)
 
     def set_products(self, measurements=None, models=None, custom_model=None,
                      auxiliaries=None, residuals=False, sampling_step=None
@@ -565,10 +583,23 @@ class SwarmRequest(ClientRequest):
         models = [] if models is None else models
         model_variables = set(self._available["model_variables"])
         auxiliaries = [] if auxiliaries is None else auxiliaries
-        # Check the chosen measurements are available for the set collection
-        collection_key = self._available["collections_to_keys"][self._collection]
+        # If inputs are strings (when providing only one parameter)
+        #  put them in lists
+        if isinstance(measurements, str):
+            measurements = [measurements]
+        if isinstance(models, str):
+            models = [models]
+        if isinstance(auxiliaries, str):
+            auxiliaries = [auxiliaries]
+        # Check the chosen measurements are available for the set collections
+        available_measurements = []
+        for collection in self._collection_list:
+            collection_key = self._available["collections_to_keys"][collection]
+            available_measurements.extend(
+                self._available["measurements"][collection_key]
+            )
         for variable in measurements:
-            if variable not in self._available["measurements"][collection_key]:
+            if variable not in available_measurements:
                 raise Exception(
                     "Measurement '{}' not available for collection '{}'. "
                     "Check available with "

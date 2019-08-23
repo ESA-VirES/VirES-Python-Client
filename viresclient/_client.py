@@ -407,8 +407,10 @@ class ClientRequest(object):
                 )
         except WPSError:
             raise RuntimeError(
-                "Server error - perhaps you are requesting a period outside of "
-                "product availability?"
+                "Server error. Perhaps you are requesting a period outside of"
+                "product availability? or the request is otherwise invalid."
+                "Check the output of: print(request) and "
+                "print(request._request.decode())"
                 )
 
     def get_between(self, start_time=None, end_time=None,
@@ -478,7 +480,7 @@ class ClientRequest(object):
         if sampling_step_estimate is None:
             # Move this to _client_swarm at some point
             # Identify choice of ("MAG", "EFI", "IBI", "TEC", "FAC", "EEF")
-            collection_key = self._available['collections_to_keys'][self._collection]
+            collection_key = self._available['collections_to_keys'][self._collection_list[0]]
             # These are not necessarily real sampling steps,
             # but are good enough to make the split correctly
             default_sampling_steps = {"MAG": "PT1S",
