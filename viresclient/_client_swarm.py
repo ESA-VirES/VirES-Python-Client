@@ -310,7 +310,7 @@ class SwarmRequest(ClientRequest):
             "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in ("ABC")],
             "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in ("ABC")] +
                    ["SW_OPER_FAC_TMS_2F"],
-            "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in ("ABC")],
+            "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in ("AB")],
             "IPD": ["SW_OPER_IPD{}IRR_2F".format(x) for x in ("ABC")],
             }
         collections_flat = [
