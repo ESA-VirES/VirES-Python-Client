@@ -1,6 +1,42 @@
 Release notes
 =============
 
+Changes from 0.3.0 to 0.4.0
+---------------------------
+
+- Fixed issues with running on Windows
+
+- Enforcing Python v3.5+ for installation
+
+- Allowing higher versions of cdflib, pandas, and xarray
+
+- Added CLI configuration for setting server address and token
+
+- Metadata for source lineage is now easier to access (names of original ESA data files, details of models used, and filters applied). These are set as properties of :meth:`viresclient.ReturnedData` (i.e. ``data``) and as metadata (``.attrs``) in the ``Dataset`` returned from ``.as_xarray()``::
+
+    data.sources
+    data.magnetic_models
+    data.range_filters
+
+    ds = data.as_xarray()
+    ds.Sources
+    ds.MagneticModels
+    ds.RangeFilters
+
+- Added access to collections ``SW_OPER_IPDxIRR_2F``
+
+- Added auxiliary data ``F107`` which is the hourly F10.7 value. This is in addition to ``F10_INDEX`` which was already present, which is a daily average.
+
+- Added possibility of accessing multiple collections simultaneously, e.g.::
+
+    request.set_collection("SW_OPER_MAGA_LR_1B", "SW_OPER_MAGC_LR_1B")
+
+- Added optional "expansion" of dataframes with::
+
+    data.as_dataframe(expand=True)
+
+  This expands columns which contain vectors (e.g. ``B_NEC``) into separate columns named like: ``B_NEC_N``, ``B_NEC_E``, ``B_NEC_C``. This is recommended so that numpy operations will work on the columns. The default is ``expand=False`` to preserve the older behaviour.
+
 Changes from v0.2.6 to 0.3.0
 ----------------------------
 

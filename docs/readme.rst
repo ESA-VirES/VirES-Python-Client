@@ -19,6 +19,12 @@ Some links where you can read more about VirES:
  .. _`EOX blog posts`: https://eox.at/category/vires/
  .. _`Swarm mission`: https://earth.esa.int/web/guest/missions/esa-operational-eo-missions/swarm
 
+``viresclient`` is installed on the "Virtual Research Environment" (VRE), which is a managed Jupyter-based system provided by ESA:
+
+ - `VRE documentation`_
+
+ .. _`VRE documentation`: https://swarm-vre.readthedocs.io/
+
 Data can be accessed from the server as CSV or CDF files and saved to disk, or loaded directly into Python objects pandas.DataFrame_, or xarray.Dataset_.
 
 .. _pandas.DataFrame: https://pandas.pydata.org/pandas-docs/stable/dsintro.html#dataframe
@@ -31,7 +37,7 @@ cdflib_ is used to read CDF files.
 
 The project is on GitHub at https://github.com/ESA-VirES/VirES-Python-Client - please feel free to contribute with any code/suggestions/comments.
 
-A repository of example notebooks can be found at https://github.com/smithara/viresclient_examples. We welcome contribution of notebooks to this repository that show some short analyses or generating useful figures.
+A repository of example notebooks can be found at https://github.com/smithara/viresclient_examples. We welcome contribution of notebooks to this repository that show some short analyses or generating useful figures. It can be hard to remember or figure how do things (e.g. remembering Swarm product names; understanding the VirES "language" and what is possible; making certain kinds of figures with various libraries) so these notebooks are meant to act as recipes we can follow, to demonstrate code that can be copied and adapted for other purposes.
 
 How to acknowledge VirES
 ------------------------

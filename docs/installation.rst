@@ -1,12 +1,16 @@
 Installation and first usage
 ============================
 
-Installation
-------------
+1. Installation
+---------------
 
-Linux/Unix and Python ≥ 3.5 is required for full support (since cdflib requires ≥ 3.5).
+.. note:: For VRE (Virtual Research Environment) users:
 
-Python 3.4 can also be used, but conversion from CDF to pandas/xarray is not supported - you can still download and save CDF files - :meth:`viresclient.ReturnedData.to_file`, or download as CSV files and convert to pandas - :meth:`viresclient.ReturnedData.as_dataframe`.
+  viresclient is already installed so skip this step. Log in at https://vre.vires.services/ and refer to documentation at https://swarm-vre.readthedocs.io/
+
+  You will still need to configure viresclient (see step 2)
+
+Python ≥ 3.5 is required. Tested primarily on Linux, but macOS and Windows should also work (on v0.4+).
 
 It can currently be installed with::
 
@@ -15,20 +19,49 @@ It can currently be installed with::
 Dependencies::
 
   Jinja2 ≥ 2.10.0
-  pandas ≥ 0.18.0
-  cdflib = 0.3.9
   tables ≥ 3.4.4
   tqdm   ≥ 4.23.0
-  xarray ≥ 0.10.0
+  cdflib ≥ 0.3.9
+  pandas ≥ 0.18.0
+  xarray ≥ 0.11.0
 
-(pip will fetch these automatically - if you are using conda, it may be better to install these first using conda instead)
+(pip will fetch these automatically - if you are using conda, it may be better to install these first using conda instead::
 
-There is an unresolved bug with Windows support - see here_.
+    conda install jinja2 pytables tqdm pandas xarray
+    pip install viresclient
 
-.. _here: https://github.com/ESA-VirES/VirES-Python-Client/issues/1
+Recommended setup if starting without Python already
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-First usage / Configuration
----------------------------
+1. Install Miniconda for Python 3.7: https://docs.conda.io/en/latest/miniconda.html
+2. Create a new conda environment with some recommended packages::
+
+    conda create --name py37 scipy matplotlib pandas xarray cartopy jupyter jupyterlab flake8 dask h5py netCDF4 jinja2 pytables tqdm
+
+  Activate the new environment (you do this each time you want to use it)::
+
+    conda activate py37
+
+3. Use pip to install viresclient::
+
+    pip install viresclient
+
+
+
+2. First usage / Configuration
+------------------------------
+
+.. note:: For Jupyter notebook users:
+
+  The instructions for first time usage are also provided as a Jupyter notebook which you might find easier to use. Download the notebook to your environment and follow the instructions.
+
+  https://github.com/smithara/viresclient_examples/blob/master/0_first_usage.ipynb
+
+  To download the whole example repository, open a terminal and do::
+
+    git clone https://github.com/smithara/viresclient_examples.git
+
+  then launch the notebook, ``viresclient_examples/0_first_usage.ipynb``
 
 Access to the service is through the same user account as on the web interface (https://vires.services/) and is enabled through a token. To get a token, log in to the website and click on your name on the top right to access the settings. From here, click on "Manage access tokens" and follow the instructions to create a new token.
 
@@ -124,8 +157,12 @@ When creating the configuration file manually make sure the file is readable by 
     request = SwarmRequest(url="https://staging.viresdisc.vires.services/ows")
 
 
-Example use
------------
+3. Example use
+--------------
+
+.. note::
+
+  A brief introduction is given here. For more possibilities, see :doc:`notebook_intro`
 
 Choose which collection to access (see :doc:`available_parameters` for more options):
 
@@ -162,14 +199,12 @@ Set a parameter range filter to apply. You can add multiple filters in sequence
 
   request.set_range_filter("Longitude", 0, 90)
 
-Specify the time range from which to retrieve data, make the request to the server (specifying the output file format, currently either csv or cdf):
+Specify the time range from which to retrieve data, make the request to the server:
 
 .. code-block:: python
 
   data = request.get_between(start_time=dt.datetime(2016,1,1),
-                             end_time=dt.datetime(2016,1,2),
-                             filetype="cdf",
-                             asynchronous=True)
+                             end_time=dt.datetime(2016,1,2))
 
 Transfer your data to a pandas.DataFrame_, or a xarray.Dataset_, or just save it as is:
 
@@ -184,9 +219,12 @@ Transfer your data to a pandas.DataFrame_, or a xarray.Dataset_, or just save it
   data.to_file('outfile.cdf', overwrite=False)
 
 The returned data has columns for:
+
  - ``Spacecraft, Timestamp, Latitude, Longitude, Radius``
  - those specified by ``measurements`` and ``auxiliaries``
+
 ... and model values and residuals, named as:
+
    - ``F_<model_id>``           -- scalar field
    - ``B_NEC_<model_id>``       -- vector field
    - ``F_res_<model_id>``       -- scalar field residual (``F - F_<model_id>``)

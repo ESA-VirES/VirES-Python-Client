@@ -486,9 +486,11 @@ class ReturnedData(object):
     def as_dataframe(self, expand=False):
         """Convert the data to a pandas DataFrame.
 
-        If expand is True, expand some columns:
-        e.g. B_NEC -> B_NEC_N, B_NEC_E, B_NEC_C
-             B_VFM -> B_VFM_i, B_VFM_j, B_VFM_k
+        If expand is True, expand some columns, e.g.:
+
+        B_NEC -> B_NEC_N, B_NEC_E, B_NEC_C
+
+        B_VFM -> B_VFM_i, B_VFM_j, B_VFM_k
 
         Args:
             expand (bool)

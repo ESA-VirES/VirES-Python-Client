@@ -560,7 +560,7 @@ class SwarmRequest(ClientRequest):
             if collection not in self._available["collections"]:
                 raise ValueError(
                     "Invalid collection: {}. "
-                    "Check available with SwarmRequest.available_collections()"
+                    "Check available with SwarmRequest().available_collections()"
                     .format(collection)
                     )
         self._collection_list = collections

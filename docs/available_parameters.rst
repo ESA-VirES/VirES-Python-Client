@@ -25,6 +25,7 @@ You can check which parameters are available with:
   SW_OPER_TECxTMS_2F
   SW_OPER_FACxTMS_2F
   SW_OPER_EEFxTMS_2F
+  SW_OPER_IPDxIRR_2F
 
 For Alpha-Charlie FAC: ``collection="SW_OPER_FAC_TMS_2F"``.
 
@@ -61,6 +62,10 @@ For EEF::
 
   EEF,RelErr,flags
 
+For IPD::
+
+  Ne,Te,Background_Ne,Foreground_Ne,PCP_flag,Grad_Ne_at_100km,Grad_Ne_at_50km,Grad_Ne_at_20km,Grad_Ne_at_PCP_edge,ROD,RODI10s,RODI20s,delta_Ne10s,delta_Ne20s,delta_Ne40s,Num_GPS_satellites,mVTEC,mROT,mROTI10s,mROTI20s,IBI_flag,Ionosphere_region_flag,IPIR_index,Ne_quality_flag,TEC_STD
+
 ----
 
 ``models``
@@ -90,7 +95,7 @@ Flexible evaluation of models and defining new derived models is possible with t
 
 ::
 
-  SyncStatus, Kp10, Kp, Dst, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F10_INDEX,
+  SyncStatus, Kp10, Kp, Dst, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F107, F10_INDEX,
   OrbitDirection, QDOrbitDirection,
   OrbitSource, OrbitNumber, AscendingNodeTime,
   AscendingNodeLongitude, QDLat, QDLon, QDBasis, MLT, SunDeclination,
@@ -98,10 +103,17 @@ Flexible evaluation of models and defining new derived models is possible with t
   SunLongitude, SunVector, DipoleAxisVector, NGPLatitude, NGPLongitude,
   DipoleTiltAngle,
 
-  UpwardCurrent, TotalCurrent,
-  DivergenceFreeCurrentFunction, F_AMPS, B_NEC_AMPS
+  UpwardCurrent, TotalCurrent,                        # AMPS
+  DivergenceFreeCurrentFunction, F_AMPS, B_NEC_AMPS   # AMPS
 
-NB: the AMPS model is currently accessible as "auxiliaries" instead of a "model".
+
+.. note::
+
+  - The AMPS model is currently accessible as "auxiliaries" instead of a "model"
+  - ``Kp`` provides the Kp values in fractional form (e.g 2.2), and ``Kp10`` is multiplied by 10 (as integers)
+  - ``F107`` is the hourly 10.7 cm solar radio flux value, and ``F10_INDEX`` is the daily average
+  - ``QDLat`` and ``QDLon`` are quasi-dipole coordinates
+  - ``OrbitDirection`` and ``QDOrbitDirection`` flags indicate if the satellite is moving towards or away from each pole, respectively for geographic and quasi-dipole magnetic poles. +1 for ascending, and -1 for descending (in latitude); 0 for no data.
 
 ----
 
