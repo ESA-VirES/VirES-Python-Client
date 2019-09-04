@@ -35,13 +35,41 @@ from .._wps.http_util import encode_token_auth
 
 
 class DataUpload():
+    """ VirES for Swarm data upload API proxy.
+
+    Example usage::
+
+      from viresclient import ClientConfig, DataUpload
+
+      du = DataUpload("https://vires.services", token="...")
+
+      cc = ClientConfig()
+      url = cc.default_url
+      du = DataUpload(url, **cc.get_site_config(url))
+
+      # upload file
+      info = du.post("example.csv")
+      print(info)
+
+      # get information about the uploaded file
+      info = du.get()
+      print(info)
+
+      # remove any uploaded file
+      for id in du.ids:
+          du.delete(id)
+
+    For more information about the supported file format see the
+    `file format specification <https://github.com/ESA-VirES/VirES-Server/blob/master/vires/custom_data_format_description.md>`_
+
+    """
     PATH_OWS = "/ows"
     PATH_UPLOAD = "/custom_data/"
 
     class Error(Exception):
         """ Data upload error exception. """
 
-    def __init__(self, url, token):
+    def __init__(self, url, token, **kwargs):
         self.url = self.get_api_url(url) # translates path from /ows to /custom_data/
         self.token = token
         self.headers = encode_token_auth(token=token)
@@ -53,7 +81,7 @@ class DataUpload():
 
     def post(self, file, filename=None):
         """ HTTP POST multipart/form-data
-        Upload file to the server.
+        Upload file to the server and get info about the uploaded file.
         """
         def _post(file, filename):
             return requests.post(self.url, headers=self.headers, files={

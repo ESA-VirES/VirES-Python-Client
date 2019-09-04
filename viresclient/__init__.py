@@ -32,5 +32,6 @@ from ._client_swarm import SwarmRequest
 from ._client_aeolus import AeolusRequest
 from ._data_handling import ReturnedData
 from ._data_handling import ReturnedDataFile
+from ._api.upload import DataUpload
 
 __version__ = "0.4.0"

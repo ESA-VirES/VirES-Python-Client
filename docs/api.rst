@@ -21,3 +21,23 @@ ReturnedData
     :undoc-members:
     :show-inheritance:
     :inherited-members:
+
+
+ClientConfig
+============
+
+.. autoclass:: viresclient.ClientConfig
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :inherited-members:
+
+
+DataUpload
+==========
+
+.. autoclass:: viresclient.DataUpload
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :inherited-members:
