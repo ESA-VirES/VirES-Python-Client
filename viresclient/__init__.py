@@ -33,4 +33,4 @@ from ._client_aeolus import AeolusRequest
 from ._data_handling import ReturnedData
 from ._data_handling import ReturnedDataFile
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
