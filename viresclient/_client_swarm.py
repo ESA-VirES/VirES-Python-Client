@@ -26,17 +26,25 @@ MODEL_REFERENCES = {
     'IGRF12':
         (" International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
          " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
-    'SIFM':
-        ("Swarm Initial Field Model",
-         " The Swarm Initial Field Model for the 2014 geomagnetic field, https://doi.org/10.1002/2014GL062659 "),
-    'CHAOS-6-Combined':
-        ("CHAOS-6 Core + Static, NB: no magnetospheric part",
+    'CHAOS-6-Core':
+        ("CHAOS-6 Core field",
          " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS-6 geomagnetic field model, http://doi.org/10.1186/s40623-016-0486-1 ",
          " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
-    'CHAOS-6-Core': "",
-    'CHAOS-6-Static': "",
-    'CHAOS-6-MMA-Primary': "",
-    'CHAOS-6-MMA-Secondary': "",
+    'CHAOS-6-Static': ("CHAOS-6 crust field",
+         " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS-6 geomagnetic field model, http://doi.org/10.1186/s40623-016-0486-1 ",
+         " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
+    'CHAOS-6-MMA-Primary': ("CHAOS-6 Primary (external) magnetospheric field",
+         " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS-6 geomagnetic field model, http://doi.org/10.1186/s40623-016-0486-1 ",
+         " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
+    'CHAOS-6-MMA-Secondary': ("CHAOS-6 Secondary (internal) magnetospheric field",
+         " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS-6 geomagnetic field model, http://doi.org/10.1186/s40623-016-0486-1 ",
+         " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
+    'MF7':
+        ("MF7 crustal field model, derived from CHAMP satellite observations",
+         " http://geomag.org/models/MF7.html"),
+    'LCS-1':
+        ("The LCS-1 high-resolution lithospheric field model, derived from CHAMP and Swarm satellite observations",
+         " http://www.spacecenter.dk/files/magnetic-models/LCS-1/"),
     'MCO_SHA_2C':
         ("[Comprehensive Inversion]: Core field of CIY4",
          " A comprehensive model of Earth’s magnetic field determined from 4 years of Swarm satellite observations, https://doi.org/10.1186/s40623-018-0896-3 ",
@@ -45,8 +53,6 @@ MODEL_REFERENCES = {
         ("[Dedicated Chain]: Core field",
          "An algorithm for deriving core magnetic field models from the Swarm data set, https://doi.org/10.5047/eps.2013.07.005 ",
          "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MCO/SW_OPER_MCO_VAL_2D_20131126T000000_20180101T000000_0401.ZIP "),
-    'MCO_SHA_2F':
-        ("[Fast-Track Product]: Core field",),
     'MLI_SHA_2C':
         ("[Comprehensive Inversion]: Lithospheric field of CIY4",
          "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2C_00000000T000000_99999999T999999_0401.ZIP"),
@@ -344,9 +350,9 @@ class SwarmRequest(ClientRequest):
 
         model_variables = ("F", "B_NEC")
         models = """
-            IGRF12, SIFM, CHAOS-6-Combined, CHAOS-6-Core, CHAOS-6-Static,
+            IGRF12, LCS-1, MF7, CHAOS-6-Core, CHAOS-6-Static,
             CHAOS-6-MMA-Primary, CHAOS-6-MMA-Secondary,
-            MCO_SHA_2C, MCO_SHA_2D, MCO_SHA_2F, MLI_SHA_2C, MLI_SHA_2D,
+            MCO_SHA_2C, MCO_SHA_2D, MLI_SHA_2C, MLI_SHA_2D,
             MMA_SHA_2C-Primary, MMA_SHA_2C-Secondary,
             MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,
             MIO_SHA_2C-Primary, MIO_SHA_2C-Secondary,
