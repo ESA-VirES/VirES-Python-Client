@@ -27,7 +27,7 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-from ._client import ClientConfig
+from ._config import ClientConfig, set_token
 from ._client_swarm import SwarmRequest
 from ._client_aeolus import AeolusRequest
 from ._data_handling import ReturnedData

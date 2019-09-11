@@ -30,9 +30,43 @@
 from io import StringIO
 from os import name as os_name, chmod
 from os.path import expanduser, join
+from getpass import getpass
 from configparser import ConfigParser
 
 DEFAULT_CONFIG_PATH = join(expanduser("~"), ".viresclient.ini")
+
+
+def set_token(url="https://vires.services/ows", token=None):
+    """ Set the access token for a given URL, using user input.
+
+    Login to https://vires.services/ and use the settings panel
+    "Manage access tokens" to generate a token and use this function to set it.
+
+    This will create a configuration file if not already present, and input a
+    token configuration for a given URL, replacing the current token. It sets
+    the given URL as the default if one is not already set. It uses getpass to
+    hide the token from view.
+
+    Example usage::
+
+      set_token()
+      # user prompted for input of token, for https://vires.services/ows
+
+      set_token(url="https://vires.services/ows")
+      # user prompted for input of token, for given url
+
+      set_token(url="https://vires.services/ows", token="...")
+      # set a given url and token (no prompting)
+
+    """
+    if not token:
+        token = getpass("Enter access token:")
+    config = ClientConfig()
+    config.set_site_config(url, token=token)
+    # Use the current URL as default if none has been set before
+    if not config.default_url:
+        config.default_url = url
+    config.save()
 
 
 class ClientConfig():
