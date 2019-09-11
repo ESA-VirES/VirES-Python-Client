@@ -23,6 +23,12 @@ Welcome to VirES-Python-Client's documentation!
 
   api
 
+.. toctree::
+  :maxdepth: 2
+  :caption: CLI
+
+  cli
+
 
 Indices and tables
 ==================

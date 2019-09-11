@@ -38,21 +38,21 @@ DEFAULT_CONFIG_PATH = join(expanduser("~"), ".viresclient.ini")
 class ClientConfig():
     """ Client configuration.
 
-    Example usage:
+    Example usage::
 
-    >> cc = ClientConfig()      # use default configuration file
-    >> cc = ClientConfig("./viresconf.ini")  # use custom configuration file
+      cc = ClientConfig()      # use default configuration file
+      cc = ClientConfig("./viresconf.ini")  # use custom configuration file
 
-    >> print(cc.path)           # print path
-    >> print(cc)                # print the whole configuration
+      print(cc.path)           # print path
+      print(cc)                # print the whole configuration
 
-    >> cc.default_url = "https://foo.bar/ows"  # set default server
+      cc.default_url = "https://foo.bar/ows"  # set default server
 
-    # access credentials configuration ...
-    >> cc.set_site_config("https://foo.bar/ows", username="...", password="...")
-    >> cc.set_site_config("https://foo2.bar/ows", token="...")
+      # access to credentials configuration ...
+      cc.set_site_config("https://foo.bar/ows", username="...", password="...")
+      cc.set_site_config("https://foo2.bar/ows", token="...")
 
-    >> cc.save()    # save configuration
+      cc.save()    # save configuration
 
     """
 

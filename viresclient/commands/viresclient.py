@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #-------------------------------------------------------------------------------
 #
 # viresclient CLI
@@ -30,145 +29,34 @@
 # pylint: disable=missing-docstring,arguments-differ
 
 import sys
-from getpass import getpass, getuser
-from os.path import exists
 from argparse import ArgumentParser
-from viresclient import ClientConfig
+from .common import Command
+from .configuration import (
+    SetTokenCommand, SetPasswordCommand, RemoveServerCommand,
+    SetDefaultServerCommand, RemoveDefaultServerCommand,
+    ShowConfigurationCommand,
+)
+from .upload import (
+    UploadDataFileCommand, ShowUploadsCommand, RemoveUploadsCommand,
+    RemoveConstantParameters, SetConstantParameters,
+)
 
-COMMANDS = {} # dictionary of registered commands
-
-
-class Command():
-    """ Base command class. """
-    help = None #command help
-
-    class Error(Exception):
-        """ Generic command error exception. """
-
-    def add_arguments_to_parser(self, parser):
-        raise NotImplementedError
-
-    def execute(self, **kwargs):
-        raise NotImplementedError
-
-
-class ConfigurationCommand(Command):
-    """ Base class for commands working with a configuration file. """
-
-    def add_arguments_to_parser(self, parser):
-        parser.add_argument(
-            "-c", "--config", action="store", type=str, dest="config_path",
-            help="Path to a configuration file."
-        )
-
-
-class UrlConfigurationCommand(ConfigurationCommand):
-    """ Base class for commands working with a URL configuration file. """
-
-    def add_arguments_to_parser(self, parser):
-        super().add_arguments_to_parser(parser)
-        parser.add_argument(
-            "server_url", action="store", type=str, help="server URL"
-        )
-
-
-class SetTokenCommand(UrlConfigurationCommand):
-    help = "Set an access token for the given server URL."
-
-    def add_arguments_to_parser(self, parser):
-        super().add_arguments_to_parser(parser)
-        parser.add_argument(
-            "token", action="store", nargs="?", type=str, help="access token"
-        )
-
-    def execute(self, config_path, server_url, token):
-        if token is None:
-            token = input("Enter access token: ")
-        config = ClientConfig(path=config_path)
-        config.set_site_config(server_url, token=token)
-        config.save()
-
-COMMANDS["set_token"] = SetTokenCommand()
-
-
-class SetPasswordCommand(UrlConfigurationCommand):
-    help = "Set username and password for the given server URL."
-
-    def add_arguments_to_parser(self, parser):
-        super().add_arguments_to_parser(parser)
-        parser.add_argument(
-            "username", action="store", nargs="?", type=str, help="username"
-        )
-        parser.add_argument(
-            "password", action="store", nargs="?", type=str, help="password"
-        )
-
-    def execute(self, config_path, server_url, username, password):
-        config = ClientConfig(path=config_path)
-
-        if username is None:
-            default_username = (
-                config.get_site_config(server_url).get("username") or getuser()
-            )
-            username = input(
-                "Enter username [%s]: " % default_username
-            ) or default_username
-
-        if password is None:
-            password = getpass("Enter password: ")
-
-        config.set_site_config(server_url, username=username, password=password)
-        config.save()
-
-COMMANDS["set_password"] = SetPasswordCommand()
-
-
-class RemoveServerCommand(UrlConfigurationCommand):
-    help = "Remove any stored configuration for the given server URL."
-
-    def execute(self, config_path, server_url):
-        config = ClientConfig(path=config_path)
-        config.set_site_config(server_url)
-        config.save()
-
-COMMANDS["remove_server"] = RemoveServerCommand()
-
-
-class SetDefaultServerCommand(UrlConfigurationCommand):
-    help = "Set the default server URL."
-
-    def execute(self, config_path, server_url):
-        config = ClientConfig(path=config_path)
-        config.default_url = server_url
-        config.save()
-
-COMMANDS["set_default_server"] = SetDefaultServerCommand()
-
-
-class RemoveDefaultServerCommand(ConfigurationCommand):
-    help = "Remove the default server URL."
-
-    def execute(self, config_path):
-        config = ClientConfig(path=config_path)
-        config.default_url = None
-        config.save()
-
-COMMANDS["remove_default_server"] = RemoveDefaultServerCommand()
-
-
-class ShowConfigurationCommand(ConfigurationCommand):
-    """ Command dumping configuration to a standard output. """
-    help = "Print the configuration to standard output."
-
-    def execute(self, config_path):
-        config = ClientConfig(path=config_path)
-        if not exists(config.path):
-            raise self.Error(
-                "Configuration file %s does not exist!" % config.path
-            )
-        sys.stdout.write(str(config))
-
-COMMANDS["show_configuration"] = ShowConfigurationCommand()
+# dictionary of registered commands
+COMMANDS = {
+    # configuration commands
+    "set_token": SetTokenCommand(),
+    "set_password": SetPasswordCommand(),
+    "remove_server": RemoveServerCommand(),
+    "set_default_server": SetDefaultServerCommand(),
+    "remove_default_server": RemoveDefaultServerCommand(),
+    "show_configuration": ShowConfigurationCommand(),
+    # data upload commands
+    "upload_file": UploadDataFileCommand(),
+    "show_uploads": ShowUploadsCommand(),
+    "clear_uploads": RemoveUploadsCommand(),
+    "clear_upload_parameters": RemoveConstantParameters(),
+    "set_upload_parameters": SetConstantParameters(),
+}
 
 
 def main(*cli_args):

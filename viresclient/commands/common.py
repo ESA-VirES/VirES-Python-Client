@@ -1,12 +1,12 @@
 #-------------------------------------------------------------------------------
 #
-# Handles the WPS requests to the VirES server
+# viresclient CLI - data upload
 #
-# Authors: Ashley Smith <ashley.smith@ed.ac.uk>
-#          Martin Paces <martin.paces@eox.at>
+# Project: VirES-Python-Client
+# Authors: Martin Paces <martin.paces@eox.at>
 #
 #-------------------------------------------------------------------------------
-# Copyright (C) 2018 EOX IT Services GmbH
+# Copyright (C) 2019 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +26,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
+# pylint: disable=missing-docstring,arguments-differ
 
-from ._client import ClientConfig
-from ._client_swarm import SwarmRequest
-from ._client_aeolus import AeolusRequest
-from ._data_handling import ReturnedData
-from ._data_handling import ReturnedDataFile
-from ._api.upload import DataUpload
 
-__version__ = "0.4.0"
+class Command():
+    """ Base command class. """
+    help = None #command help
+
+    class Error(Exception):
+        """ Generic command error exception. """
+
+    def add_arguments_to_parser(self, parser):
+        raise NotImplementedError
+
+    def execute(self, **kwargs):
+        raise NotImplementedError
+
+
+class ConfigurationCommand(Command):
+    """ Base class for commands working with a configuration file. """
+
+    def add_arguments_to_parser(self, parser):
+        parser.add_argument(
+            "-c", "--config", action="store", type=str, dest="config_path",
+            help="Path to a configuration file."
+        )
+
+
+class UrlConfigurationCommand(ConfigurationCommand):
+    """ Base class for commands working with a URL configuration file. """
+
+    def add_arguments_to_parser(self, parser):
+        super().add_arguments_to_parser(parser)
+        parser.add_argument(
+            "server_url", action="store", type=str, help="server URL"
+        )
