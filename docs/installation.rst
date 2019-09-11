@@ -18,16 +18,17 @@ It can currently be installed with::
 
 Dependencies::
 
-  Jinja2 ≥ 2.10.0
-  tables ≥ 3.4.4
-  tqdm   ≥ 4.23.0
-  cdflib ≥ 0.3.9
-  pandas ≥ 0.18.0
-  xarray ≥ 0.11.0
+  requests ≥ 2.0.0
+  Jinja2   ≥ 2.10.0
+  tables   ≥ 3.4.4
+  tqdm     ≥ 4.23.0
+  cdflib   ≥ 0.3.9
+  pandas   ≥ 0.18.0
+  xarray   ≥ 0.11.0
 
-(pip will fetch these automatically - if you are using conda, it may be better to install these first using conda instead::
+pip will fetch these automatically - if you are using conda, it may be better to install these first using conda instead::
 
-    conda install jinja2 pytables tqdm pandas xarray
+    conda install requests jinja2 pytables tqdm pandas xarray
     pip install viresclient
 
 Recommended setup if starting without Python already
@@ -53,7 +54,7 @@ Recommended setup if starting without Python already
 
 .. note:: For Jupyter notebook users:
 
-  The instructions for first time usage are also provided as a Jupyter notebook which you might find easier to use. Download the notebook to your environment and follow the instructions.
+  The guide for first time usage are also provided as a Jupyter notebook. Download the notebook to your environment and follow the instructions.
 
   https://github.com/smithara/viresclient_examples/blob/master/0_first_usage.ipynb
 
@@ -63,99 +64,24 @@ Recommended setup if starting without Python already
 
   then launch the notebook, ``viresclient_examples/0_first_usage.ipynb``
 
-Access to the service is through the same user account as on the web interface (https://vires.services/) and is enabled through a token. To get a token, log in to the website and click on your name on the top right to access the settings. From here, click on "Manage access tokens" and follow the instructions to create a new token.
+Access to the service is through the same user account as on the web interface (https://vires.services/) and is enabled through an access token (essentially a password). To get a token, log in to the website and click on your name on the top right to access the settings. From here, click on "Manage access tokens" and follow the instructions to create a new token.
 
-While it is possible to enter the server URL and access credentials each time a new request object is created
-
-.. code-block:: python
-
-  from viresclient import SwarmRequest
-
-  # both URL and access token passed as request object's parameters
-  request = SwarmRequest(
-      url="https://vires.services/ows",
-      token="r-8-mlkP_RBx4mDv0di5Bzt3UZ52NGg-"
-  )
-
-it is more convenient to omit them from the code and store them in a private configuration file
+To set your token in the client, use either the Python interface:
 
 .. code-block:: python
 
-  # access token read from configuration
-  request = SwarmRequest(url="https://vires.services/ows")
+  from viresclient import set_token
+  set_token("https://vires.services/ows")
+  # (you will now be prompted to enter the token)
 
-  # both default URL and access token read from configuration
-  request = SwarmRequest()
-
-The server access configuration can be set either by command line interface (CLI), Python code, or editing of the configuration file, as described in the following sections.
-
-Configuration via CLI
-^^^^^^^^^^^^^^^^^^^^^
-
-The ``viresclient`` shell command can be used to set the server access configuration::
+or the command line tool::
 
   $ viresclient set_token https://vires.services/ows
   Enter access token: r-8-mlkP_RBx4mDv0di5Bzt3UZ52NGg-
 
   $ viresclient set_default_server https://vires.services/ows
 
-Configuration via Python
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Use the following code to store the token in the ``viresclient`` configuration
-
-.. code-block:: python
-
-  from viresclient import ClientConfig
-
-  cc = ClientConfig()
-  cc.set_site_config("https://vires.services/ows", token="r-8-mlkP_RBx4mDv0di5Bzt3UZ52NGg-")
-  cc.default_url = "https://vires.services/ows"
-  cc.save()
-
-
-Configuration File
-^^^^^^^^^^^^^^^^^^
-
-The client configuration is saved as a text file at ``~/.viresclient.ini``.  This configuration file can edited in a text editor::
-
-  [https://vires.services/ows]
-  token = r-8-mlkP_RBx4mDv0di5Bzt3UZ52NGg-
-
-  [default]
-  url = https://vires.services/ows
-
-When creating the configuration file manually make sure the file is readable by its owner only::
-
-  $ chmod 0600 ~/.viresclient.ini
-  $ ls -l ~/.viresclient.ini
-  -rw-------  1 owner owner  361 May 12 09:12 /home/owner/.viresclient.ini
-
-
-.. note:: For DISC users / developers:
-
-  The user account for the DISC server is separate. A token can be generated in the same way and stored in the configuration alongside the token for other site::
-
-    $ viresclient set_token https://vires.services/ows
-    Enter access token: r-8-mlkP_RBx4mDv0di5Bzt3UZ52NGg-
-
-    $ viresclient set_token https://staging.viresdisc.vires.services/ows
-    Enter access token: VymMHhWjZ-9nSVs-FuPC27ca8C6cOyij
-
-    $ viresclient set_default_server https://vires.services/ows
-
-  Using ``SwarmRequest()`` without the URL parameter will use the default URL set above. To access a non-default server the URL parameter must be used:
-
-  .. code-block:: python
-
-    from viresclient import SwarmRequest
-
-    # request using the default server (https://vires.services/ows)
-    request = SwarmRequest()
-
-    # request to an alternative, non-default server
-    request = SwarmRequest(url="https://staging.viresdisc.vires.services/ows")
-
+See also: see :doc:`config_details`
 
 3. Example use
 --------------

@@ -9,6 +9,10 @@ viresclient
     :target: http://viresclient.readthedocs.io/
     :alt: Documentation Status
 
+.. image:: https://requires.io/github/ESA-VirES/VirES-Python-Client/requirements.svg?branch=master
+    :target: https://requires.io/github/ESA-VirES/VirES-Python-Client/requirements/?branch=master
+    :alt: Requirements Status
+
 .. image:: https://travis-ci.org/ESA-VirES/VirES-Python-Client.svg?branch=master
     :target: https://travis-ci.org/ESA-VirES/VirES-Python-Client
 

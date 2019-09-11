@@ -12,6 +12,12 @@ You can check which parameters are available with:
   req.available_models()
   req.available_auxiliaries()
 
+The available measurements are segregated according to the "collection" (essentially Swarm products): each ``collection`` has a number of ``measurements`` associated with it, and the appropriate collection must be set in order to access the measurements. ``auxiliaries`` are available together with any set ``collection``. ``models`` provide magnetic model evaluation on demand, at the locations of the time series which is being accessed.
+
+See the `Swarm Data Handbook`_ for details about the products.
+
+.. _`Swarm Data Handbook`: https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/
+
 ----
 
 ``collections``
@@ -71,22 +77,41 @@ For IPD::
 ``models``
 ----------
 
-Models are evaluated along the satellite track at the positions of the measurements.
+Models are evaluated along the satellite track at the positions of the time series that has been requested. These must be used together with one of the MAG collections, and one or both of the "F" and "B_NEC" measurements. This can yield either the model values together with the measurements, or the data-model residuals.
 
 ::
 
-  IGRF12, SIFM, CHAOS-6-Combined, CHAOS-6-Core, CHAOS-6-Static,
-  MCO_SHA_2C, MCO_SHA_2D, MCO_SHA_2F, MLI_SHA_2C, MLI_SHA_2D,
-  MMA_SHA_2C-Primary, MMA_SHA_2C-Secondary,
-  MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,
-  MIO_SHA_2C-Primary, MIO_SHA_2C-Secondary,
+  IGRF12,
+
+  # Comprehensive inversion (CI) models:
+  MCO_SHA_2C,                                # Core
+  MLI_SHA_2C,                                # Lithosphere
+  MMA_SHA_2C-Primary, MMA_SHA_2C-Secondary,  # Magnetosphere
+  MIO_SHA_2C-Primary, MIO_SHA_2C-Secondary,  # Ionosphere
+
+  # Dedicated inversion models:
+  MCO_SHA_2D,
+  MLI_SHA_2D,
   MIO_SHA_2D-Primary, MIO_SHA_2D-Secondary
 
-(``residuals`` available when combined with MAG ``measurements`` ``F`` and/or ``B_NEC``)
+  # Fast-track models:
+  MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,
 
-Custom models can be provided as a .shc file and become accessible in the same way as pre-defined models, under the name ``"Custom_Model"``.
+  # CHAOS models:
+  CHAOS-6-Core,
+  CHAOS-6-Static,
+  CHAOS-6-MMA-Primary, CHAOS-6-MMA-Secondary
 
-Flexible evaluation of models and defining new derived models is possible with the "model expressions" functionality whereby models can be defined like ``"Combined_model = 'MMA_SHA_2F-Primary'(min_degree=1,max_degree=1) + 'MMA_SHA_2F-Secondary'(min_degree=1,max_degree=1)"``
+  # Other lithospheric models:
+  MF7, LCS-1
+
+Custom (user uploaded) models can be provided as a .shc file and become accessible in the same way as pre-defined models, under the name ``"Custom_Model"``.
+
+Flexible evaluation of models and defining new derived models is possible with the "model expressions" functionality whereby models can be defined like:
+
+.. code-block:: python
+
+  "Combined_model = 'MMA_SHA_2F-Primary'(min_degree=1,max_degree=1) + 'MMA_SHA_2F-Secondary'(min_degree=1,max_degree=1)"
 
 ----
 

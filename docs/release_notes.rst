@@ -1,17 +1,23 @@
 Release notes
 =============
 
+Changes from 0.4.0 to 0.4.1
+---------------------------
+
+- Added low level data upload API and CLI
+- Added set_token convenience function for quick configuration
+- Changed list of accessible models:
+
+  - Removed ``MCO_SHA_2F``, ``SIFM``
+  - Added ``MF7``, ``LCS-1``
+
 Changes from 0.3.0 to 0.4.0
 ---------------------------
 
 - Fixed issues with running on Windows
-
 - Enforcing Python v3.5+ for installation
-
 - Allowing higher versions of cdflib, pandas, and xarray
-
 - Added CLI configuration for setting server address and token
-
 - Metadata for source lineage is now easier to access (names of original ESA data files, details of models used, and filters applied). These are set as properties of :meth:`viresclient.ReturnedData` (i.e. ``data``) and as metadata (``.attrs``) in the ``Dataset`` returned from ``.as_xarray()``::
 
     data.sources
@@ -24,9 +30,7 @@ Changes from 0.3.0 to 0.4.0
     ds.RangeFilters
 
 - Added access to collections ``SW_OPER_IPDxIRR_2F``
-
 - Added auxiliary data ``F107`` which is the hourly F10.7 value. This is in addition to ``F10_INDEX`` which was already present, which is a daily average.
-
 - Added possibility of accessing multiple collections simultaneously, e.g.::
 
     request.set_collection("SW_OPER_MAGA_LR_1B", "SW_OPER_MAGC_LR_1B")

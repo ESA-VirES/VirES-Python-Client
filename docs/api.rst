@@ -32,6 +32,10 @@ ClientConfig
     :show-inheritance:
     :inherited-members:
 
+set_token
+=========
+
+.. autofunction:: viresclient.set_token
 
 DataUpload
 ==========
