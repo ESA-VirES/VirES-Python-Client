@@ -51,13 +51,31 @@ class DataUpload():
       info = du.post("example.csv")
       print(info)
 
-      # get information about the uploaded file
+      # get information about the uploaded files
       info = du.get()
       print(info)
 
-      # remove any uploaded file
-      for id in du.ids:
-          du.delete(id)
+      # remove any uploaded files
+      du.clear()
+
+      # check if the upload is valid and get list of missing mandatory parameters
+      info = du.post("example.cdf")
+      is_valid = info.get('is_valid', True)
+      missing_fields = info.get('missing_fields', {}).keys()
+      print(is_valid, missing_fields)
+
+      # get constant parameters
+      id = info['identifier']
+      parameters = du.get_constant_parameters(id)
+      print(parameters)
+
+      # set new constant parameters
+      parameters = du.set_constant_parameters(id, {'Radius': 7000000, 'Latitude': 24.0})
+      print(parameters)
+
+      # clear all constant parameters
+      parameters = du.set_constant_parameters(id, {}, replace=True)
+      print(parameters)
 
     For more information about the supported file format see the
     `file format specification <https://github.com/ESA-VirES/VirES-Server/blob/master/vires/custom_data_format_description.md>`_
@@ -78,6 +96,11 @@ class DataUpload():
     def ids(self):
         """ Get list of identifiers. """
         return [item['identifier'] for item in self.get()]
+
+    def clear(self):
+        """ Remove all uploaded items.  """
+        for id_ in self.ids:
+            self.delete(id_)
 
     def post(self, file, filename=None):
         """ HTTP POST multipart/form-data
@@ -101,6 +124,42 @@ class DataUpload():
                 response.status_code, response.reason, response.text
             ))
 
+        return json.loads(response.text)
+
+
+    def get_constant_parameters(self, identifier):
+        """ Get dictionary of the currently set constant parameters. """
+        return self._extract_constant_values(self.get(identifier))
+
+    def set_constant_parameters(self, identifier, parameters, replace=False):
+        """ Set constant parameters form from give key value dictionary.
+        Set replace to True if you prefer to replace the already set parameters
+        rather then update them.
+        """
+        if replace:
+            parameters_all = parameters
+        else:
+            parameters_all = self.get_constant_parameters(identifier)
+            parameters_all.update(parameters)
+
+        return self._extract_constant_values(self.patch(identifier, {
+            "constant_fields": {
+                name: {"value": value} for name, value in parameters_all.items()
+            }
+        }))
+
+    def patch(self, identifier, data):
+        """ REST/API PATCH
+        Update metadata of the uploaded dataset.
+        """
+        url = self.url + (identifier or "")
+        headers = {'Content-Type': 'application/json'}
+        headers.update(self.headers)
+        response = requests.patch(url, data=json.dumps(data), headers=headers)
+        if response.status_code != 200:
+            raise self.Error("%s %s: %s" % (
+                response.status_code, response.reason, response.text
+            ))
         return json.loads(response.text)
 
     def get(self, identifier=None):
@@ -146,3 +205,10 @@ class DataUpload():
         if path_old and url.endswith(path_old):
             return url[:-len(path_old)] + path_new
         return None
+
+    @staticmethod
+    def _extract_constant_values(data):
+        return {
+            name: info['value'] for name, info
+            in data.get('constant_fields', {}).items()
+        }
