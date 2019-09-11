@@ -97,6 +97,66 @@ class RemoveUploadsCommand(DataUploadCommand):
             print("%s[%s] removed" % (item['identifier'], item['filename']))
 
 
+class SetConstantParameters(DataUploadCommand):
+    help = """ Set constant parameters. """
+
+    def add_arguments_to_parser(self, parser):
+        super().add_arguments_to_parser(parser)
+        parser.add_argument(
+            "-p", "--parameter", action="append", type=str,
+            help="key=value parameter"
+        )
+
+    def execute(self, config_path, server_url, parameter):
+        if not parameter:
+            return # nothing to be done
+
+        new_parameters = dict(self._parse_parameter(item) for item in parameter)
+
+        api_proxy = self.get_data_upload_instance(config_path, server_url)
+        for item in api_proxy.get():
+            if item.get("constant_fields") is not None:
+                parmeters = {
+                    field: data['value']
+                    for field, data in item["constant_fields"].items()
+                }
+                parmeters.update(new_parameters)
+                api_proxy.set_constant_parameters(
+                    item['identifier'], parmeters, replace=True
+                )
+                print("%s: parameters updated" % (item['identifier']))
+
+            else:
+                raise self.Error(
+                    "Constant parameters not supported by the old server API."
+                )
+
+    @classmethod
+    def _parse_parameter(cls, raw_parameter):
+        name, assignment, value = raw_parameter.partition("=")
+        name = name.strip()
+        try:
+            if assignment != "=" or not value or not name:
+                raise ValueError
+            return name, float(value)
+        except ValueError:
+            raise cls.Error(
+                "Invalid parameter specification '%s' !" % raw_parameter
+            )
+
+class RemoveConstantParameters(DataUploadCommand):
+    help = """ Remove constant parameters. """
+
+    def execute(self, config_path, server_url):
+        api_proxy = self.get_data_upload_instance(config_path, server_url)
+        for item in api_proxy.get():
+            if item.get("constant_fields"):
+                api_proxy.set_constant_parameters(
+                    item['identifier'], {}, replace=True
+                )
+                print("%s: parameters removed" % (item['identifier']))
+
+
 class ShowUploadsCommand(DataUploadCommand):
     help = """ Print info about the uploaded file. """
 
@@ -109,12 +169,26 @@ class ShowUploadsCommand(DataUploadCommand):
     def print_info(info):
         print(info['identifier'])
         print("  filename:     ", info['filename'])
+        print("  is valid:     ", info.get('is_valid', True))
         print("  data start:   ", info['start'])
         print("  data end:     ", info['end'])
         print("  uploaded on:  ", info['created'])
         print("  content type: ", info['content_type'])
         print("  size:         ", info['size'])
         print("  MD5 checksum: ", info['checksum'])
+
+        missing_fields = info.get("missing_fields", {})
+        if missing_fields:
+            print("  missing mandatory fields:")
+            for field in sorted(list(missing_fields)):
+                print("    %s" % field)
+
+        constant_fields = info.get("constant_fields", {})
+        if constant_fields:
+            print("  constant fields:")
+            for field, data in sorted(constant_fields.items()):
+                print("    %s=%s" % (field, data['value']))
+
         print("  fields:")
         for field in sorted(info.get('fields') or info.get('info') or []):
             print("    %s" % field)

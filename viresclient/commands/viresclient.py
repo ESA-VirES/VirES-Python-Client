@@ -38,6 +38,7 @@ from .configuration import (
 )
 from .upload import (
     UploadDataFileCommand, ShowUploadsCommand, RemoveUploadsCommand,
+    RemoveConstantParameters, SetConstantParameters,
 )
 
 # dictionary of registered commands
@@ -53,6 +54,8 @@ COMMANDS = {
     "upload_file": UploadDataFileCommand(),
     "show_uploads": ShowUploadsCommand(),
     "clear_uploads": RemoveUploadsCommand(),
+    "clear_upload_parameters": RemoveConstantParameters(),
+    "set_upload_parameters": SetConstantParameters(),
 }
 
 
