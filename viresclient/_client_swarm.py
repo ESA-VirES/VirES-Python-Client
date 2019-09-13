@@ -318,6 +318,10 @@ class SwarmRequest(ClientRequest):
                    ["SW_OPER_FAC_TMS_2F"],
             "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in ("AB")],
             "IPD": ["SW_OPER_IPD{}IRR_2F".format(x) for x in ("ABC")],
+             "AEJ_LPL": ["SW_OPER_AEJ{}LPL_2F".format(x) for x in ("ABC")],
+             "AEJ_LPS": ["SW_OPER_AEJ{}LPS_2F".format(x) for x in ("ABC")],
+             "AEJ_PBL": ["SW_OPER_AEJ{}PBL_2F".format(x) for x in ("ABC")],
+             "AOB_FAC": ["SW_OPER_AOB{}FAC_2F".format(x) for x in ("ABC")],
             }
         collections_flat = [
             item for sublist in list(collections_grouped.values())
@@ -346,6 +350,19 @@ class SwarmRequest(ClientRequest):
                 "IBI_flag", "Ionosphere_region_flag", "IPIR_index",
                 "Ne_quality_flag", "TEC_STD"
                 ],
+             "AEJ_LPL": ["Latitude_QD", "Longitude_QD", "MLT_QD", "J", "J_JQ"],
+             "AEJ_LPS": [
+                 "Latitude_QD", "Longitude_QD", "MLT_QD",
+                 "J_CF", "J_DF", "J_CF_SemiQD", "J_DF_SemiQD", "J_C"
+                 ],
+             "AEJ_PBL": [
+                 "Latitude_QD", "Longitude_QD", "MLT_QD",
+                 "J_QD",  "Flags", "PointType"
+                 ],
+             "AOB_FAC": [
+                 "Latitude_QD", "Longitude_QD", "MLT_QD",
+                 "Boundary_Flag", "Quality", "Pair_Indicator"
+                 ],
             }
 
         model_variables = ("F", "B_NEC")
