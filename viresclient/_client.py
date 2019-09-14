@@ -489,7 +489,11 @@ class ClientRequest(object):
                                       "TEC": "PT1S",  # Actually more complicated
                                       "FAC": "PT1S",
                                       "EEF": "PT90M",
-                                      "IPD": "PT1S"
+                                      "IPD": "PT1S",
+                                      "AEJ_LPS": "PT1S",
+                                      "AEJ_LPL": "PT1S",
+                                      "AEJ_PBL": "PT1S",
+                                      "AOB_FAC": "PT1S"
                                       }
             sampling_step_estimate = default_sampling_steps[collection_key]
         nrecords_limit = NRECORDS_LIMIT if nrecords_limit is None else nrecords_limit

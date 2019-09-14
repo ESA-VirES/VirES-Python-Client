@@ -68,6 +68,15 @@ COLUMN_INFO = {
     "GPS_Position": ["_X", "_Y", "_Z"],
     "LEO_Position": ["_X", "_Y", "_Z"],
 
+    # AEJ_LPS
+    # ???
+
+    # AEJ_LPL - NEED TO CHECK WHAT IS THE CORRECT COORDINATES
+    "J": ("NEC", ["_N", "_E"]),
+
+    # AOB_FAC
+    "Quality": ("", ["_0", "_1"])
+
     # auxiliaries
 #     "SunVector":
 #     "DipoleAxisVector":
