@@ -231,20 +231,14 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
     keys = [k for k in cdf.cdf_info()["zVariables"] if k != "Timestamp"]
     for k in keys:
         if cdf.varinq(k)["Num_Dims"] == 0:
-            # 1D (scalar) data
+            # 1D (scalar series) data
             ds[k] = (("Timestamp",), cdf.varget(k))
-        # Common 3D (vector) case
-        elif ((cdf.varinq(k)["Num_Dims"] == 1) &
-                (cdf.varinq(k)["Dim_Sizes"] == [3])):
-
-            ds[k] = (("Timestamp", "dim"), cdf.varget(k))
-        # 4D case, e.g. q_NEC_CRF
-        elif ((cdf.varinq(k)["Num_Dims"] == 1) &
-                (cdf.varinq(k)["Dim_Sizes"] == [4])):
-            ds[k] = (("Timestamp", "dim_2"), cdf.varget(k))
-        # 2x2 case, e.g. QDBasis
-        elif (cdf.varinq(k)["Num_Dims"] == 2):
-            ds[k] = (("Timestamp", "dim_3", "dim_4"), cdf.varget(k))
+        # 2D (vector series) case
+        elif cdf.varinq(k)["Num_Dims"] == 1:
+            ds[k] = (("Timestamp", "%s_dim1" % k ), cdf.varget(k))
+        # 3D case (matrix series), e.g. QDBasis
+        elif cdf.varinq(k)["Num_Dims"] == 2:
+            ds[k] = (("Timestamp", "%s_dim1" % k, "%s_dim2" % k), cdf.varget(k))
         else:
             raise NotImplementedError("{}: array too complicated".format(k))
     cdf.close()
