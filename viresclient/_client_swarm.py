@@ -4,7 +4,7 @@ from collections import OrderedDict
 import os
 
 from ._wps.environment import JINJA2_ENVIRONMENT
-from ._wps import time_util
+from ._wps.time_util import parse_datetime
 from ._client import WPSInputs, ClientRequest
 from ._data_handling import ReturnedDataFile
 
@@ -720,8 +720,8 @@ class SwarmRequest(ClientRequest):
         ).encode('UTF-8')
         response = self._wps_service.retrieve(request)
         responsedict = json.loads(response.decode('UTF-8'))
-        start_time = time_util.parse_datetime(responsedict['start_time'])
-        end_time = time_util.parse_datetime(responsedict['end_time'])
+        start_time = parse_datetime(responsedict['start_time'])
+        end_time = parse_datetime(responsedict['end_time'])
         return start_time, end_time
 
     def get_orbit_number(self, spacecraft, input_time):
@@ -736,6 +736,13 @@ class SwarmRequest(ClientRequest):
             int: The current orbit number at the input_time
 
         """
+        try:
+            input_time = parse_datetime(input_time)
+        except TypeError:
+            raise TypeError(
+                "input_time must be datetime object or ISO-8601 "
+                "date/time string"
+            )
         # Change to spacecraft = "A" etc. for this request
         if spacecraft in ("Alpha", "Bravo", "Charlie"):
             spacecraft = spacecraft[0]
@@ -750,7 +757,7 @@ class SwarmRequest(ClientRequest):
         request = request_inputs.as_xml(self._templatefiles['sync'])
         retdata = ReturnedDataFile(filetype="csv")
         response_handler = self._response_handler(
-            retdata.file, show_progress=False
+            retdata, show_progress=False
         )
         self._wps_service.retrieve(request, handler=response_handler)
         return retdata.as_dataframe()["OrbitNumber"][0]
