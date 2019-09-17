@@ -323,16 +323,15 @@ class SwarmRequest(ClientRequest):
              "AEJ_PBL": ["SW_OPER_AEJ{}PBL_2F".format(x) for x in ("ABC")],
              "AOB_FAC": ["SW_OPER_AOB{}FAC_2F".format(x) for x in ("ABC")],
             }
-        # Build a list of just the actual product names without the group names
-        #  ["SW_OPER_MAGA_LR_1B", "SW_OPER_MAGB_LR_1B", ...]
-        flatten = lambda l: [item for sublist in l for item in sublist]
-        collections_flat = flatten(collections_grouped.values())
-        # Build the reverse mapping
-        #  {"SW_OPER_MAGA_LR_1B": "MAG", "SW_OPER_MAGB_LR_1B": "MAG", ...}
-        collections_to_keys = dict.fromkeys(collections_flat)
-        for groupname in collections_grouped.keys():
-            for collection in collections_grouped[groupname]:
-                collections_to_keys[collection] = groupname
+
+        # Build the reverse mapping: "SW_OPER_MAGA_LR_1B": "MAG" etc
+        collections_to_keys = {}
+        for key, collections in collections_grouped.items():
+            collections_to_keys.update({
+                collection: key for collection in collections
+            })
+
+        collections_flat = list(collections_to_keys)
 
         measurements = {
             "MAG": "F,dF_AOCS,dF_other,F_error,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_error,Flags_F,Flags_B,Flags_q,Flags_Platform,ASM_Freq_Dev".split(","),
