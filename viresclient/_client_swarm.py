@@ -349,7 +349,7 @@ class SwarmRequest(ClientRequest):
                 "IBI_flag", "Ionosphere_region_flag", "IPIR_index",
                 "Ne_quality_flag", "TEC_STD"
                 ],
-             "AEJ_LPL": ["Latitude_QD", "Longitude_QD", "MLT_QD", "J", "J_JQ"],
+             "AEJ_LPL": ["Latitude_QD", "Longitude_QD", "MLT_QD", "J", "J_QD"],
              "AEJ_LPS": [
                  "Latitude_QD", "Longitude_QD", "MLT_QD",
                  "J_CF", "J_DF", "J_CF_SemiQD", "J_DF_SemiQD", "J_C"
