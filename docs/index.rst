@@ -30,10 +30,12 @@ Welcome to VirES-Python-Client's documentation!
 
   cli
 
+.. toctree::
+  :maxdepth: 2
+  :caption: External Links
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+  Notebook repository <https://nbviewer.jupyter.org/github/smithara/viresclient_examples/>
+  VirES web interface <https://vires.services/>
+  VirES-VRE <https://vre.vires.services/>
+  viresclient GitHub <https://github.com/ESA-VirES/VirES-Python-Client/>
+  Swarm-DISC GitHub <https://github.com/Swarm-DISC/>
