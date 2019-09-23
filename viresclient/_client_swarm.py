@@ -321,6 +321,7 @@ class SwarmRequest(ClientRequest):
              "AEJ_LPL": ["SW_OPER_AEJ{}LPL_2F".format(x) for x in ("ABC")],
              "AEJ_LPS": ["SW_OPER_AEJ{}LPS_2F".format(x) for x in ("ABC")],
              "AEJ_PBL": ["SW_OPER_AEJ{}PBL_2F".format(x) for x in ("ABC")],
+             "AEJ_PBS": ["SW_OPER_AEJ{}PBS_2F".format(x) for x in ("ABC")],
              "AOB_FAC": ["SW_OPER_AOB{}FAC_2F".format(x) for x in ("ABC")],
             }
 
@@ -357,6 +358,9 @@ class SwarmRequest(ClientRequest):
              "AEJ_PBL": [
                  "Latitude_QD", "Longitude_QD", "MLT_QD",
                  "J_QD",  "Flags", "PointType"
+                 ],
+             "AEJ_PBS": [
+                 "Latitude_QD", "Longitude_QD", "MLT_QD", "Flags", "PointType"
                  ],
              "AOB_FAC": [
                  "Latitude_QD", "Longitude_QD", "MLT_QD",
