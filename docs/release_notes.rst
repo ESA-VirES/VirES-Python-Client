@@ -1,6 +1,12 @@
 Release notes
 =============
 
+Changes from 0.4.1 to 0.4.2
+---------------------------
+
+- Fixed orbit number queries (get_orbit_number)
+- Added model sources to model info
+
 Changes from 0.4.0 to 0.4.1
 ---------------------------
 
