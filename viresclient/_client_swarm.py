@@ -556,6 +556,9 @@ class SwarmRequest(ClientRequest):
                 print("DESCRIPTION:")
                 for line in desc_details["description"]:
                     print(line)
+                print("SOURCES:")
+                for line in desc_details["details"]["sources"]:
+                    print(" ", line)
                 print()
         else:
             return d
@@ -833,8 +836,5 @@ class SwarmRequest(ClientRequest):
             # Build dictionary output organised by model name
             dict_out = {}
             for model_dict in response_list:
-                dict_out[model_dict["name"]] = {
-                    "expression": model_dict["expression"],
-                    "validity": model_dict["validity"]
-                }
+                dict_out[model_dict.pop("name")] = model_dict
             return dict_out
