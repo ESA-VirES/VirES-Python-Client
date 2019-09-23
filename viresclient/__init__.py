@@ -34,4 +34,4 @@ from ._data_handling import ReturnedData
 from ._data_handling import ReturnedDataFile
 from ._api.upload import DataUpload
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
