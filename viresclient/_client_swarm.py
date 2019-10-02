@@ -307,6 +307,7 @@ class SwarmRequest(ClientRequest):
         "AEJ_PBL": ["SW_OPER_AEJ{}PBL_2F".format(x) for x in "ABC"],
         "AEJ_PBS": ["SW_OPER_AEJ{}PBS_2F".format(x) for x in "ABC"],
         "AOB_FAC": ["SW_OPER_AOB{}FAC_2F".format(x) for x in "ABC"],
+        "AEJ_PBS:PGMFD": ["SW_OPER_AEJ{}PBS_2F:PGMFD".format(x) for x in "ABC"],
         }
 
     PRODUCT_VARIABLES = {
@@ -357,6 +358,7 @@ class SwarmRequest(ClientRequest):
             "Latitude_QD", "Longitude_QD", "MLT_QD",
             "Boundary_Flag", "Quality", "Pair_Indicator"
             ],
+        "AEJ_PBS:PGMFD": ["B_NEC"],
         }
 
     AUXILIARY_VARIABLES = [
