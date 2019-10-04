@@ -8,6 +8,7 @@ from ._wps.time_util import parse_datetime
 from ._client import WPSInputs, ClientRequest
 from ._data_handling import ReturnedDataFile
 
+
 TEMPLATE_FILES = {
     'sync': "vires_fetch_filtered_data.xml",
     'async': "vires_fetch_filtered_data_async.xml",
@@ -293,6 +294,73 @@ class SwarmRequest(ClientRequest):
         logging_level (str):
 
     """
+    COLLECTIONS = {
+        "MAG": ["SW_OPER_MAG{}_LR_1B".format(x) for x in "ABC"],
+        "EFI": ["SW_OPER_EFI{}_LP_1B".format(x) for x in "ABC"],
+        "IBI": ["SW_OPER_IBI{}TMS_2F".format(x) for x in "ABC"],
+        "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in "ABC"],
+        "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in "ABC_"],
+        "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in "AB"],
+        "IPD": ["SW_OPER_IPD{}IRR_2F".format(x) for x in "ABC"],
+        }
+
+    PRODUCT_VARIABLES = {
+        "MAG": [
+            "F", "dF_AOCS", "dF_other", "F_error", "B_VFM", "B_NEC", "dB_Sun",
+            "dB_AOCS", "dB_other", "B_error", "q_NEC_CRF", "Att_error",
+            "Flags_F", "Flags_B", "Flags_q", "Flags_Platform", "ASM_Freq_Dev",
+            ],
+        "EFI": [
+            "U_orbit", "Ne", "Ne_error", "Te", "Te_error", "Vs", "Vs_error",
+            "Flags_LP", "Flags_Ne", "Flags_Te", "Flags_Vs",
+            ],
+        "IBI": [
+            "Bubble_Index", "Bubble_Probability", "Flags_Bubble", "Flags_F",
+            "Flags_B", "Flags_q",
+            ],
+        "TEC": [
+            "GPS_Position", "LEO_Position", "PRN", "L1", "L2", "P1", "P2", "S1",
+            "S2", "Elevation_Angle", "Absolute_VTEC", "Absolute_STEC",
+            "Relative_STEC", "Relative_STEC_RMS", "DCB", "DCB_Error",
+            ],
+        "FAC": [
+            "IRC", "IRC_Error", "FAC", "FAC_Error", "Flags", "Flags_F",
+            "Flags_B", "Flags_q"],
+        "EEF": ["EEF", "RelErr", "flags"],
+        "IPD": [
+            "Ne", "Te", "Background_Ne", "Foreground_Ne", "PCP_flag",
+            "Grad_Ne_at_100km", "Grad_Ne_at_50km", "Grad_Ne_at_20km",
+            "Grad_Ne_at_PCP_edge", "ROD", "RODI10s", "RODI20s",
+            "delta_Ne10s", "delta_Ne20s", "delta_Ne40s",
+            "Num_GPS_satellites", "mVTEC", "mROT", "mROTI10s", "mROTI20s",
+            "IBI_flag", "Ionosphere_region_flag", "IPIR_index",
+            "Ne_quality_flag", "TEC_STD"
+            ],
+        }
+
+    AUXILIARY_VARIABLES = [
+        "Timestamp", "Latitude", "Longitude", "Radius", "Spacecraft",
+        "OrbitDirection", "QDOrbitDirection", "SyncStatus", "Kp10", "Kp", "Dst",
+        "F107", "IMF_BY_GSM", "IMF_BZ_GSM", "IMF_V", "F10_INDEX", "OrbitSource",
+        "OrbitNumber", "AscendingNodeTime", "AscendingNodeLongitude", "QDLat",
+        "QDLon", "QDBasis", "MLT", "SunDeclination", "SunHourAngle",
+        "SunRightAscension", "SunAzimuthAngle", "SunZenithAngle",
+        "SunLongitude", "SunVector", "DipoleAxisVector", "NGPLatitude",
+        "NGPLongitude", "DipoleTiltAngle", "UpwardCurrent", "TotalCurrent",
+        "DivergenceFreeCurrentFunction", "F_AMPS", "B_NEC_AMPS",
+        ]
+
+    MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
+
+    MAGENTIC_MODELS = [
+        "IGRF12", "LCS-1", "MF7", "CHAOS-6-Core", "CHAOS-6-Static",
+        "CHAOS-6-MMA-Primary", "CHAOS-6-MMA-Secondary",
+        "MCO_SHA_2C", "MCO_SHA_2D", "MLI_SHA_2C", "MLI_SHA_2D",
+        "MMA_SHA_2C-Primary", "MMA_SHA_2C-Secondary",
+        "MMA_SHA_2F-Primary", "MMA_SHA_2F-Secondary",
+        "MIO_SHA_2C-Primary", "MIO_SHA_2C-Secondary",
+        "MIO_SHA_2D-Primary", "MIO_SHA_2D-Secondary",
+        ]
 
     def __init__(self, url=None, username=None, password=None, token=None,
                  config=None, logging_level="NO_LOGGING"):
@@ -301,84 +369,28 @@ class SwarmRequest(ClientRequest):
             server_type="Swarm"
             )
 
-        self._available = self._set_available_data()
+        self._available = self._get_available_data()
         self._request_inputs = SwarmWPSInputs()
         self._templatefiles = TEMPLATE_FILES
         self._filterlist = []
         self._supported_filetypes = ("csv", "cdf")
 
-    @staticmethod
-    def _set_available_data():
-        collections_grouped = {
-            "MAG": ["SW_OPER_MAG{}_LR_1B".format(x) for x in ("ABC")],
-            "EFI": ["SW_OPER_EFI{}_LP_1B".format(x) for x in ("ABC")],
-            "IBI": ["SW_OPER_IBI{}TMS_2F".format(x) for x in ("ABC")],
-            "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in ("ABC")],
-            "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in ("ABC")] +
-                   ["SW_OPER_FAC_TMS_2F"],
-            "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in ("AB")],
-            "IPD": ["SW_OPER_IPD{}IRR_2F".format(x) for x in ("ABC")],
-            }
-        collections_flat = [
-            item for sublist in list(collections_grouped.values())
-            for item in sublist
-            ]
+    @classmethod
+    def _get_available_data(cls):
         # Build the reverse mapping: "SW_OPER_MAGA_LR_1B": "MAG" etc
-        collections_to_keys = dict.fromkeys(collections_flat)
-        for coll in collections_to_keys:
-            for key in list(collections_grouped.keys()):
-                if key in coll:
-                    collections_to_keys[coll] = key
-
-        measurements = {
-            "MAG": "F,dF_AOCS,dF_other,F_error,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_error,Flags_F,Flags_B,Flags_q,Flags_Platform,ASM_Freq_Dev".split(","),
-            "EFI": "U_orbit,Ne,Ne_error,Te,Te_error,Vs,Vs_error,Flags_LP,Flags_Ne,Flags_Te,Flags_Vs".split(","),
-            "IBI": "Bubble_Index,Bubble_Probability,Flags_Bubble,Flags_F,Flags_B,Flags_q".split(","),
-            "TEC": "GPS_Position,LEO_Position,PRN,L1,L2,P1,P2,S1,S2,Elevation_Angle,Absolute_VTEC,Absolute_STEC,Relative_STEC,Relative_STEC_RMS,DCB,DCB_Error".split(","),
-            "FAC": "IRC,IRC_Error,FAC,FAC_Error,Flags,Flags_F,Flags_B,Flags_q".split(","),
-            "EEF": "EEF,RelErr,flags".split(","),
-            "IPD": [
-                "Ne", "Te", "Background_Ne", "Foreground_Ne", "PCP_flag",
-                "Grad_Ne_at_100km", "Grad_Ne_at_50km", "Grad_Ne_at_20km",
-                "Grad_Ne_at_PCP_edge", "ROD", "RODI10s", "RODI20s",
-                "delta_Ne10s", "delta_Ne20s", "delta_Ne40s",
-                "Num_GPS_satellites", "mVTEC", "mROT", "mROTI10s", "mROTI20s",
-                "IBI_flag", "Ionosphere_region_flag", "IPIR_index",
-                "Ne_quality_flag", "TEC_STD"
-                ],
-            }
-
-        model_variables = ("F", "B_NEC")
-        models = """
-            IGRF12, LCS-1, MF7, CHAOS-6-Core, CHAOS-6-Static,
-            CHAOS-6-MMA-Primary, CHAOS-6-MMA-Secondary,
-            MCO_SHA_2C, MCO_SHA_2D, MLI_SHA_2C, MLI_SHA_2D,
-            MMA_SHA_2C-Primary, MMA_SHA_2C-Secondary,
-            MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,
-            MIO_SHA_2C-Primary, MIO_SHA_2C-Secondary,
-            MIO_SHA_2D-Primary, MIO_SHA_2D-Secondary
-            """.replace("\n", "").replace(" ", "").split(",")
-
-        auxiliaries = """
-            Timestamp, Latitude, Longitude, Radius, Spacecraft,
-            OrbitDirection, QDOrbitDirection,
-            SyncStatus, Kp10, Kp, Dst, F107, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F10_INDEX,
-            OrbitSource, OrbitNumber, AscendingNodeTime,
-            AscendingNodeLongitude, QDLat, QDLon, QDBasis, MLT, SunDeclination,
-            SunHourAngle, SunRightAscension, SunAzimuthAngle, SunZenithAngle,
-            SunLongitude, SunVector, DipoleAxisVector, NGPLatitude, NGPLongitude,
-            DipoleTiltAngle, UpwardCurrent, TotalCurrent,
-            DivergenceFreeCurrentFunction, F_AMPS, B_NEC_AMPS
-            """.replace("\n", "").replace(" ", "").split(",")
+        collections_to_keys = {}
+        for key, collections in cls.COLLECTIONS.items():
+            collections_to_keys.update({
+                collection: key for collection in collections
+            })
 
         return {
-            "collections_grouped": collections_grouped,
-            "collections": collections_flat,
+            "collections": cls.COLLECTIONS,
             "collections_to_keys": collections_to_keys,
-            "measurements": measurements,
-            "models": models,
-            "model_variables": model_variables,
-            "auxiliaries": auxiliaries
+            "measurements": cls.PRODUCT_VARIABLES,
+            "models": cls.MAGENTIC_MODELS,
+            "model_variables": cls.MAGNETIC_MODEL_VARIABLES,
+            "auxiliaries": cls.AUXILIARY_VARIABLES,
             }
 
     @staticmethod
@@ -442,15 +454,16 @@ class SwarmRequest(ClientRequest):
             for i in REFERENCES["General Swarm"]:
                 print(i)
             print()
-            for key, val in self._available["collections_grouped"].items():
+            for key, val in self._available["collections"].items():
                 print(key)
                 for i in val:
                     print('  ', i)
-                for ref in COLLECTION_REFERENCES[key]:
+                refs = COLLECTION_REFERENCES.get(key, ('No reference...',))
+                for ref in refs:
                     print(ref)
                 print()
         else:
-            return self._available["collections"]
+            return list(self._available["collections_to_keys"])
 
     def available_measurements(self, collection=None):
         """Returns a list of the available measurements for the chosen collection.
@@ -463,7 +476,7 @@ class SwarmRequest(ClientRequest):
         if collection in keys:
             collection_key = collection
             return self._available["measurements"][collection_key]
-        elif collection in self._available["collections"]:
+        elif collection in self._available["collections_to_keys"]:
             collection_key = self._available["collections_to_keys"][collection]
             return self._available["measurements"][collection_key]
         elif collection is None:
@@ -472,7 +485,7 @@ class SwarmRequest(ClientRequest):
             raise Exception(
                 "collection must be one of {}\nor\n{}".format(
                     ", ".join(keys),
-                    "\n".join(self._available["collections"])
+                    "\n".join(self._available["collections_to_keys"])
                     )
                 )
 
@@ -566,7 +579,7 @@ class SwarmRequest(ClientRequest):
                     .format(collection)
                     )
         for collection in collections:
-            if collection not in self._available["collections"]:
+            if collection not in self._available["collections_to_keys"]:
                 raise ValueError(
                     "Invalid collection: {}. "
                     "Check available with SwarmRequest().available_collections()"
