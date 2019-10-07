@@ -383,7 +383,7 @@ class SwarmRequest(ClientRequest):
 
     MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
 
-    MAGENTIC_MODELS = [
+    MAGNETIC_MODELS = [
         "IGRF12", "LCS-1", "MF7",
         "CHAOS-Core", "CHAOS-Static", "CHAOS-MMA-Primary", "CHAOS-MMA-Secondary",
         "CHAOS-6-Core", "CHAOS-6-Static", "CHAOS-6-MMA-Primary", "CHAOS-6-MMA-Secondary",
@@ -422,7 +422,7 @@ class SwarmRequest(ClientRequest):
             "collections_to_keys": collections_to_keys,
             "collection_sampling_steps": cls.COLLECTION_SAMPLING_STEPS,
             "measurements": cls.PRODUCT_VARIABLES,
-            "models": cls.MAGENTIC_MODELS,
+            "models": cls.MAGNETIC_MODELS,
             "model_variables": cls.MAGNETIC_MODEL_VARIABLES,
             "auxiliaries": cls.AUXILIARY_VARIABLES,
             }
