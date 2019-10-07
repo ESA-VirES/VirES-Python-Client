@@ -29,26 +29,28 @@ MODEL_REFERENCES = {
         (" International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
          " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
     'CHAOS-Core':
-        ("CHAOS Core field",
-         " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS geomagnetic field model",
-         " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
-    'CHAOS-Static': ("CHAOS crust field",
-         " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS geomagnetic field model",
-         " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
-    'CHAOS-MMA-Primary': ("CHAOS Primary (external) magnetospheric field",
-         " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS geomagnetic field model",
-         " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
-    'CHAOS-MMA-Secondary': ("CHAOS Secondary (internal) magnetospheric field",
-         " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS geomagnetic field model",
-         " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
+        ("CHAOS-7 Core field (SH degrees 1-20)",
+         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
+    'CHAOS-Static':
+        ("CHAOS-7 crust field (SH degrees 21-185)",
+         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
+    'CHAOS-MMA-Primary':
+        ("CHAOS-7 Primary (external) magnetospheric field",
+         " hhttp://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
+    'CHAOS-MMA-Secondary':
+        ("CHAOS-7 Secondary (internal) magnetospheric field",
+         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
     'CHAOS-6-Core':
         ("CHAOS Core field",
          " deprecated model identifier, use CHAOS-Core instead"),
-    'CHAOS-6-Static': ("CHAOS crust field",
+    'CHAOS-6-Static':
+        ("CHAOS crust field",
          " deprecated model identifier, use CHAOS-Static instead"),
-    'CHAOS-6-MMA-Primary': ("CHAOS Primary (external) magnetospheric field",
+    'CHAOS-6-MMA-Primary':
+        ("CHAOS Primary (external) magnetospheric field",
          " deprecated model identifier, use CHAOS-MMA-Primary instead"),
-    'CHAOS-6-MMA-Secondary': ("CHAOS-Secondary (internal) magnetospheric field",
+    'CHAOS-6-MMA-Secondary':
+        ("CHAOS-Secondary (internal) magnetospheric field",
          " deprecated model identifier, use CHAOS-MMA-Secondary instead"),
     'MF7':
         ("MF7 crustal field model, derived from CHAMP satellite observations",
@@ -530,11 +532,8 @@ class SwarmRequest(ClientRequest):
             nice_output (bool): If True, just print the dict nicely
 
         """
-        param_choices = "F C D MCO MLI MMA MIO".split(' ')
 
         def filter_by_param(d, param):
-            if param not in param_choices:
-                raise Exception("param must be one of {}".format(param_choices))
             if param in "F C D".split(' '):
                 param = '2' + param
             if isinstance(d, list):
