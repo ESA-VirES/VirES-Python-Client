@@ -2,6 +2,7 @@ import datetime
 import json
 from collections import OrderedDict
 import os
+import sys
 
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.time_util import parse_datetime
@@ -27,19 +28,30 @@ MODEL_REFERENCES = {
     'IGRF12':
         (" International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
          " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
+    'CHAOS-Core':
+        ("CHAOS-7 Core field (SH degrees 1-20)",
+         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
+    'CHAOS-Static':
+        ("CHAOS-7 crust field (SH degrees 21-185)",
+         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
+    'CHAOS-MMA-Primary':
+        ("CHAOS-7 Primary (external) magnetospheric field",
+         " hhttp://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
+    'CHAOS-MMA-Secondary':
+        ("CHAOS-7 Secondary (internal) magnetospheric field",
+         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
     'CHAOS-6-Core':
-        ("CHAOS-6 Core field",
-         " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS-6 geomagnetic field model, http://doi.org/10.1186/s40623-016-0486-1 ",
-         " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
-    'CHAOS-6-Static': ("CHAOS-6 crust field",
-         " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS-6 geomagnetic field model, http://doi.org/10.1186/s40623-016-0486-1 ",
-         " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
-    'CHAOS-6-MMA-Primary': ("CHAOS-6 Primary (external) magnetospheric field",
-         " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS-6 geomagnetic field model, http://doi.org/10.1186/s40623-016-0486-1 ",
-         " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
-    'CHAOS-6-MMA-Secondary': ("CHAOS-6 Secondary (internal) magnetospheric field",
-         " Recent geomagnetic secular variation from Swarm and ground observatories as estimated in the CHAOS-6 geomagnetic field model, http://doi.org/10.1186/s40623-016-0486-1 ",
-         " http://www.space.dtu.dk/english/Research/Scientific_data_and_models/Magnetic_Field_Models "),
+        ("CHAOS Core field",
+         " deprecated model identifier, use CHAOS-Core instead"),
+    'CHAOS-6-Static':
+        ("CHAOS crust field",
+         " deprecated model identifier, use CHAOS-Static instead"),
+    'CHAOS-6-MMA-Primary':
+        ("CHAOS Primary (external) magnetospheric field",
+         " deprecated model identifier, use CHAOS-MMA-Primary instead"),
+    'CHAOS-6-MMA-Secondary':
+        ("CHAOS-Secondary (internal) magnetospheric field",
+         " deprecated model identifier, use CHAOS-MMA-Secondary instead"),
     'MF7':
         ("MF7 crustal field model, derived from CHAMP satellite observations",
          " http://geomag.org/models/MF7.html"),
@@ -84,6 +96,13 @@ MODEL_REFERENCES = {
          "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MIO/SW_OPER_MIO_VAL_2D_20131201T000000_20171231T235959_0402.ZIP "),
     'MIO_SHA_2D-Secondary':
         ("[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",)
+}
+
+DEPRECATED_MODELS = {
+    'CHAOS-6-Core': "Use CHAOS-Core instead.",
+    'CHAOS-6-Static': "Use CHAOS-Static instead.",
+    'CHAOS-6-MMA-Primary': "Use CHAOS-MMA-Primary instead.",
+    'CHAOS-6-MMA-Secondary': "Use CHAOS-MMA-Secondary instead.",
 }
 
 COLLECTION_REFERENCES = {
@@ -310,6 +329,18 @@ class SwarmRequest(ClientRequest):
         "AEJ_PBS:PGMFD": ["SW_OPER_AEJ{}PBS_2F:PGMFD".format(x) for x in "ABC"],
         }
 
+    # These are not necessarily real sampling steps, but are good enough to use
+    # for splitting long requests into chunks
+    COLLECTION_SAMPLING_STEPS = {
+        "MAG": "PT1S",
+        "EFI": "PT0.5S",
+        "IBI": "PT1S",
+        "TEC": "PT1S",      # Actually more complicated
+        "FAC": "PT1S",
+        "EEF": "PT90M",
+        "IPD": "PT1S",
+    }
+
     PRODUCT_VARIABLES = {
         "MAG": [
             "F", "dF_AOCS", "dF_other", "F_error", "B_VFM", "B_NEC", "dB_Sun",
@@ -375,9 +406,10 @@ class SwarmRequest(ClientRequest):
 
     MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
 
-    MAGENTIC_MODELS = [
-        "IGRF12", "LCS-1", "MF7", "CHAOS-6-Core", "CHAOS-6-Static",
-        "CHAOS-6-MMA-Primary", "CHAOS-6-MMA-Secondary",
+    MAGNETIC_MODELS = [
+        "IGRF12", "LCS-1", "MF7",
+        "CHAOS-Core", "CHAOS-Static", "CHAOS-MMA-Primary", "CHAOS-MMA-Secondary",
+        "CHAOS-6-Core", "CHAOS-6-Static", "CHAOS-6-MMA-Primary", "CHAOS-6-MMA-Secondary",
         "MCO_SHA_2C", "MCO_SHA_2D", "MLI_SHA_2C", "MLI_SHA_2D",
         "MMA_SHA_2C-Primary", "MMA_SHA_2C-Secondary",
         "MMA_SHA_2F-Primary", "MMA_SHA_2F-Secondary",
@@ -397,6 +429,7 @@ class SwarmRequest(ClientRequest):
         self._templatefiles = TEMPLATE_FILES
         self._filterlist = []
         self._supported_filetypes = ("csv", "cdf")
+        self._collection_list = None
 
     @classmethod
     def _get_available_data(cls):
@@ -410,8 +443,9 @@ class SwarmRequest(ClientRequest):
         return {
             "collections": cls.COLLECTIONS,
             "collections_to_keys": collections_to_keys,
+            "collection_sampling_steps": cls.COLLECTION_SAMPLING_STEPS,
             "measurements": cls.PRODUCT_VARIABLES,
-            "models": cls.MAGENTIC_MODELS,
+            "models": cls.MAGNETIC_MODELS,
             "model_variables": cls.MAGNETIC_MODEL_VARIABLES,
             "auxiliaries": cls.AUXILIARY_VARIABLES,
             }
@@ -535,11 +569,8 @@ class SwarmRequest(ClientRequest):
             nice_output (bool): If True, just print the dict nicely
 
         """
-        param_choices = "F C D MCO MLI MMA MIO".split(' ')
 
         def filter_by_param(d, param):
-            if param not in param_choices:
-                raise Exception("param must be one of {}".format(param_choices))
             if param in "F C D".split(' '):
                 param = '2' + param
             if isinstance(d, list):
@@ -628,6 +659,8 @@ class SwarmRequest(ClientRequest):
             sampling_step (str): ISO_8601 duration, e.g. 10 seconds: PT10S, 1 minute: PT1M
 
         """
+        if self._collection_list is None:
+            raise Exception("Must run .set_collection() first.")
         measurements = [] if measurements is None else measurements
         models = [] if models is None else models
         model_variables = set(self._available["model_variables"])
@@ -640,6 +673,8 @@ class SwarmRequest(ClientRequest):
             models = [models]
         if isinstance(auxiliaries, str):
             auxiliaries = [auxiliaries]
+        # print warning for deprecated models
+        self._check_deprecated_models(models)
         # Check the chosen measurements are available for the set collections
         available_measurements = []
         for collection in self._collection_list:
@@ -857,3 +892,17 @@ class SwarmRequest(ClientRequest):
             for model_dict in response_list:
                 dict_out[model_dict.pop("name")] = model_dict
             return dict_out
+
+    @staticmethod
+    def _check_deprecated_models(models):
+        """ Print deprecation warning for deprecated models. """
+        deprecated_models = []
+        for deprecated_model in DEPRECATED_MODELS:
+            for model in models:
+                if deprecated_model in model:
+                    deprecated_models.append(deprecated_model)
+                    break
+        for deprecated_model in deprecated_models:
+            print("WARNING: Model {} is deprecated. {}".format(
+                deprecated_model, DEPRECATED_MODELS[deprecated_model]
+            ), file=sys.stdout)

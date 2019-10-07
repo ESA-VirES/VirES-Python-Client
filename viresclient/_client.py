@@ -419,8 +419,8 @@ class ClientRequest(object):
         """Make the server request and download the data.
 
         Args:
-            start_time (datetime)
-            end_time (datetime)
+            start_time (datetime / ISO_8601 string)
+            end_time (datetime / ISO_8601 string)
             filetype (str): one of ('csv', 'cdf')
             asynchronous (bool): True for asynchronous processing,
                 False for synchronous
@@ -478,24 +478,14 @@ class ClientRequest(object):
             sampling_step_estimate = "PT1S"
         # If no custom sampling step set:
         if sampling_step_estimate is None:
-            # Move this to _client_swarm at some point
-            # Identify choice of ("MAG", "EFI", "IBI", "TEC", "FAC", "EEF")
-            collection_key = self._available['collections_to_keys'][self._collection_list[0]]
-            # These are not necessarily real sampling steps,
-            # but are good enough to make the split correctly
-            default_sampling_steps = {"MAG": "PT1S",
-                                      "EFI": "PT0.5S",
-                                      "IBI": "PT1S",
-                                      "TEC": "PT1S",  # Actually more complicated
-                                      "FAC": "PT1S",
-                                      "EEF": "PT90M",
-                                      "IPD": "PT1S",
-                                      "AEJ_LPS": "PT1S",
-                                      "AEJ_LPL": "PT1S",
-                                      "AEJ_PBL": "PT1S",
-                                      "AOB_FAC": "PT1S"
-                                      }
-            sampling_step_estimate = default_sampling_steps[collection_key]
+            # Identify a default sampling step if possible
+            try:
+                collection_key = self._available[
+                    "collections_to_keys"][self._collection_list[0]]
+                sampling_step_estimate = self._available[
+                    "collection_sampling_steps"][collection_key]
+            except Exception:
+                sampling_step_estimate = "PT1S"
         nrecords_limit = NRECORDS_LIMIT if nrecords_limit is None else nrecords_limit
         # Split the request into several intervals
         intervals = self._chunkify_request(
