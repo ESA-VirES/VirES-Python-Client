@@ -323,6 +323,18 @@ class SwarmRequest(ClientRequest):
         "IPD": ["SW_OPER_IPD{}IRR_2F".format(x) for x in "ABC"],
         }
 
+    # These are not necessarily real sampling steps, but are good enough to use
+    # for splitting long requests into chunks
+    COLLECTION_SAMPLING_STEPS = {
+        "MAG": "PT1S",
+        "EFI": "PT0.5S",
+        "IBI": "PT1S",
+        "TEC": "PT1S",      # Actually more complicated
+        "FAC": "PT1S",
+        "EEF": "PT90M",
+        "IPD": "PT1S",
+    }
+
     PRODUCT_VARIABLES = {
         "MAG": [
             "F", "dF_AOCS", "dF_other", "F_error", "B_VFM", "B_NEC", "dB_Sun",
@@ -394,6 +406,7 @@ class SwarmRequest(ClientRequest):
         self._templatefiles = TEMPLATE_FILES
         self._filterlist = []
         self._supported_filetypes = ("csv", "cdf")
+        self._collection_list = None
 
     @classmethod
     def _get_available_data(cls):
@@ -407,6 +420,7 @@ class SwarmRequest(ClientRequest):
         return {
             "collections": cls.COLLECTIONS,
             "collections_to_keys": collections_to_keys,
+            "collection_sampling_steps": cls.COLLECTION_SAMPLING_STEPS,
             "measurements": cls.PRODUCT_VARIABLES,
             "models": cls.MAGENTIC_MODELS,
             "model_variables": cls.MAGNETIC_MODEL_VARIABLES,
@@ -622,6 +636,8 @@ class SwarmRequest(ClientRequest):
             sampling_step (str): ISO_8601 duration, e.g. 10 seconds: PT10S, 1 minute: PT1M
 
         """
+        if self._collection_list is None:
+            raise Exception("Must run .set_collection() first.")
         measurements = [] if measurements is None else measurements
         models = [] if models is None else models
         model_variables = set(self._available["model_variables"])
