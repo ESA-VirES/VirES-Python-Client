@@ -81,7 +81,7 @@ or the command line tool::
 
   $ viresclient set_default_server https://vires.services/ows
 
-See also: see :doc:`config_details`
+See also: see :doc:`config_details` and :doc:`access_token`
 
 3. Example use
 --------------
