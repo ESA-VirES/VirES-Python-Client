@@ -378,7 +378,7 @@ class SwarmRequest(ClientRequest):
         "SunRightAscension", "SunAzimuthAngle", "SunZenithAngle",
         "SunLongitude", "SunVector", "DipoleAxisVector", "NGPLatitude",
         "NGPLongitude", "DipoleTiltAngle", "UpwardCurrent", "TotalCurrent",
-        "DivergenceFreeCurrentFunction", "F_AMPS", "B_NEC_AMPS",
+        "DivergenceFreeCurrentFunction",
         ]
 
     MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
@@ -392,6 +392,7 @@ class SwarmRequest(ClientRequest):
         "MMA_SHA_2F-Primary", "MMA_SHA_2F-Secondary",
         "MIO_SHA_2C-Primary", "MIO_SHA_2C-Secondary",
         "MIO_SHA_2D-Primary", "MIO_SHA_2D-Secondary",
+        "AMPS",
         ]
 
     def __init__(self, url=None, username=None, password=None, token=None,
