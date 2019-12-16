@@ -226,8 +226,8 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
     # Initialise the Dataset with the Timestamp index
     ds = xarray.Dataset(coords={"Timestamp": time})
     # Loop through each variable available in the CDF and append them to the
-    #   Dataset, attaching the Timestamp index to each. In the 3-vector case,
-    #   e.g. B_NEC, also attach dimension "dim". Other cases not supported.
+    #   Dataset, attaching the Timestamp index to each. Attach dimension names
+    #   based on the name of the variable. B_NEC variables get the NEC dim name
     keys = [k for k in cdf.cdf_info()["zVariables"] if k != "Timestamp"]
     for k in keys:
         if cdf.varinq(k)["Num_Dims"] == 0:
@@ -235,7 +235,11 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
             ds[k] = (("Timestamp",), cdf.varget(k))
         # 2D (vector series) case
         elif cdf.varinq(k)["Num_Dims"] == 1:
-            ds[k] = (("Timestamp", "%s_dim1" % k ), cdf.varget(k))
+            if "B_NEC" in k:
+                dimname = "NEC"
+            else:
+                dimname = "%s_dim1" % k
+            ds[k] = (("Timestamp", dimname), cdf.varget(k))
         # 3D case (matrix series), e.g. QDBasis
         elif cdf.varinq(k)["Num_Dims"] == 2:
             ds[k] = (("Timestamp", "%s_dim1" % k, "%s_dim2" % k), cdf.varget(k))

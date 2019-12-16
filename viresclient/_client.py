@@ -30,7 +30,14 @@
 import os
 from datetime import timedelta
 from logging import getLogger, DEBUG, INFO, WARNING, ERROR, CRITICAL
+# Identify whether code is running in Jupyter notebook or not
+try:
+    from IPython import get_ipython
+    IN_JUPYTER = 'zmqshell' in str(type(get_ipython()))
+except ImportError:
+    IN_JUPYTER = False
 from tqdm import tqdm
+
 
 from ._wps.wps_vires import ViresWPS10Service
 from ._wps.time_util import parse_duration, parse_datetime
@@ -40,10 +47,10 @@ from ._wps.http_util import (
 from ._wps.log_util import set_stream_handler
 # from jinja2 import Environment, FileSystemLoader
 from ._wps.environment import JINJA2_ENVIRONMENT
-from ._wps.wps import WPSError
+from ._wps.wps import WPSError, AuthenticationError
 
 from ._data_handling import ReturnedData
-from ._config import ClientConfig
+from ._config import ClientConfig, set_token
 
 # Logging levels
 LEVELS = {
@@ -210,6 +217,17 @@ class ClientRequest(object):
     def __init__(self, url=None, username=None, password=None, token=None,
                  config=None, logging_level="NO_LOGGING", server_type=None):
 
+        # Check and prompt for token if not already set, then store in config
+        # Try to only do this if running in a notebook
+        if IN_JUPYTER:
+            if not ((username and password) or token or config):
+                cc = ClientConfig()
+                # Use production url if none chosen
+                url = url or cc.default_url or "https://vires.services/ows"
+                if not cc.get_site_config(url):
+                    print("Access token not found.")
+                    set_token(url)
+
         self._server_type = server_type
         self._available = {}
         self._collection = None
@@ -246,8 +264,7 @@ class ClientRequest(object):
 
         if not url:
             raise ValueError(
-                "The URL must be provided when no default URL is "
-                "configured."
+                "The URL must be provided when no default URL is configured."
             )
 
         if token:
@@ -277,8 +294,6 @@ class ClientRequest(object):
         if not isinstance(value, str):
             raise TypeError("%s must be strings" % label)
         return value
-
-
 
     def __str__(self):
         if self._request_inputs is None:
@@ -390,18 +405,18 @@ class ClientRequest(object):
                 if show_progress:
                     with ProgressBarProcessing(message) as progressbar:
                         # progressbar.write(message)
-                        self._wps_service.retrieve_async(
+                        return self._wps_service.retrieve_async(
                             request,
                             handler=response_handler,
                             status_handler=progressbar.update
                         )
                 else:
-                    self._wps_service.retrieve_async(
+                    return self._wps_service.retrieve_async(
                         request,
                         handler=response_handler
                     )
             else:
-                self._wps_service.retrieve(
+                return self._wps_service.retrieve(
                     request,
                     handler=response_handler
                 )
@@ -412,6 +427,12 @@ class ClientRequest(object):
                 "Check the output of: print(request) and "
                 "print(request._request.decode())"
                 )
+        except AuthenticationError:
+            raise AuthenticationError(
+                "Invalid token? Set with viresclient.set_token(). "
+                "For more details, see: "
+                "https://viresclient.readthedocs.io/en/latest/config_details.html"
+            )
 
     def get_between(self, start_time=None, end_time=None,
                     filetype="cdf", asynchronous=True, show_progress=True,
