@@ -30,7 +30,14 @@
 import os
 from datetime import timedelta
 from logging import getLogger, DEBUG, INFO, WARNING, ERROR, CRITICAL
+# Identify whether code is running in Jupyter notebook or not
+try:
+    from IPython import get_ipython
+    IN_JUPYTER = 'zmqshell' in str(type(get_ipython()))
+except ImportError:
+    IN_JUPYTER = False
 from tqdm import tqdm
+
 
 from ._wps.wps_vires import ViresWPS10Service
 from ._wps.time_util import parse_duration, parse_datetime
@@ -209,6 +216,17 @@ class ClientRequest(object):
 
     def __init__(self, url=None, username=None, password=None, token=None,
                  config=None, logging_level="NO_LOGGING", server_type=None):
+
+        # Check and prompt for token if not already set, then store in config
+        # Try to only do this if running in a notebook
+        if IN_JUPYTER:
+            if not ((username and password) or token or config):
+                cc = ClientConfig()
+                # Use production url if none chosen
+                url = url or cc.default_url or "https://vires.services/ows"
+                if not cc.get_site_config(url):
+                    print("Access token not found.")
+                    set_token(url)
 
         self._server_type = server_type
         self._available = {}
