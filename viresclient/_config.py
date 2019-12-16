@@ -35,12 +35,22 @@ from configparser import ConfigParser
 
 DEFAULT_CONFIG_PATH = join(expanduser("~"), ".viresclient.ini")
 
+SERVER_TOKEN_URLS = {
+    "https://vires.services/ows":
+        "https://vires.services/accounts/tokens/",
+    "https://staging.vires.services/ows":
+        "https://staging.vires.services/accounts/tokens/",
+    "https://staging.viresdisc.vires.services/ows":
+        "https://staging.viresdisc.vires.services/accounts/tokens/"
+}
 
-def set_token(url="https://vires.services/ows", token=None):
+
+def set_token(url="https://vires.services/ows", token=None, set_default=False):
     """ Set the access token for a given URL, using user input.
 
-    Login to https://vires.services/ and use the settings panel
-    "Manage access tokens" to generate a token and use this function to set it.
+    Get an access token at https://vires.services/accounts/tokens/
+
+    See https://viresclient.readthedocs.io/en/latest/config_details.html
 
     This will create a configuration file if not already present, and input a
     token configuration for a given URL, replacing the current token. It sets
@@ -60,13 +70,16 @@ def set_token(url="https://vires.services/ows", token=None):
 
     """
     if not token:
-        token = getpass("Enter access token:")
+        print("Setting access token for", url, "...")
+        print("Generate a token at", SERVER_TOKEN_URLS.get(url, "<not found>"))
+        token = getpass("Enter token:")
     config = ClientConfig()
     config.set_site_config(url, token=token)
     # Use the current URL as default if none has been set before
-    if not config.default_url:
+    if (not config.default_url) or set_default:
         config.default_url = url
     config.save()
+    print("Token saved for", url)
 
 
 class ClientConfig():

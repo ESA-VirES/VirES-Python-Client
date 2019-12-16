@@ -40,10 +40,10 @@ from ._wps.http_util import (
 from ._wps.log_util import set_stream_handler
 # from jinja2 import Environment, FileSystemLoader
 from ._wps.environment import JINJA2_ENVIRONMENT
-from ._wps.wps import WPSError
+from ._wps.wps import WPSError, AuthenticationError
 
 from ._data_handling import ReturnedData
-from ._config import ClientConfig
+from ._config import ClientConfig, set_token
 
 # Logging levels
 LEVELS = {
@@ -246,8 +246,7 @@ class ClientRequest(object):
 
         if not url:
             raise ValueError(
-                "The URL must be provided when no default URL is "
-                "configured."
+                "The URL must be provided when no default URL is configured."
             )
 
         if token:
@@ -277,8 +276,6 @@ class ClientRequest(object):
         if not isinstance(value, str):
             raise TypeError("%s must be strings" % label)
         return value
-
-
 
     def __str__(self):
         if self._request_inputs is None:
@@ -390,18 +387,18 @@ class ClientRequest(object):
                 if show_progress:
                     with ProgressBarProcessing(message) as progressbar:
                         # progressbar.write(message)
-                        self._wps_service.retrieve_async(
+                        return self._wps_service.retrieve_async(
                             request,
                             handler=response_handler,
                             status_handler=progressbar.update
                         )
                 else:
-                    self._wps_service.retrieve_async(
+                    return self._wps_service.retrieve_async(
                         request,
                         handler=response_handler
                     )
             else:
-                self._wps_service.retrieve(
+                return self._wps_service.retrieve(
                     request,
                     handler=response_handler
                 )
@@ -412,6 +409,12 @@ class ClientRequest(object):
                 "Check the output of: print(request) and "
                 "print(request._request.decode())"
                 )
+        except AuthenticationError:
+            raise AuthenticationError(
+                "Invalid token? Set with viresclient.set_token(). "
+                "For more details, see: "
+                "https://viresclient.readthedocs.io/en/latest/config_details.html"
+            )
 
     def get_between(self, start_time=None, end_time=None,
                     filetype="cdf", asynchronous=True, show_progress=True,

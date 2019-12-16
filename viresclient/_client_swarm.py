@@ -13,7 +13,8 @@ from ._data_handling import ReturnedDataFile
 TEMPLATE_FILES = {
     'sync': "vires_fetch_filtered_data.xml",
     'async': "vires_fetch_filtered_data_async.xml",
-    'model_info': "vires_get_model_info.xml"
+    'model_info': "vires_get_model_info.xml",
+    'times_from_orbits': "vires_times_from_orbits.xml"
 }
 
 REFERENCES = {
@@ -765,14 +766,15 @@ class SwarmRequest(ClientRequest):
         # Change to spacecraft = "A" etc. for this request
         if spacecraft in ("Alpha", "Bravo", "Charlie"):
             spacecraft = spacecraft[0]
-        templatefile = "vires_times_from_orbits.xml"
+        templatefile = TEMPLATE_FILES["times_from_orbits"]
         template = JINJA2_ENVIRONMENT.get_template(templatefile)
         request = template.render(
             spacecraft=spacecraft,
             start_orbit=start_orbit,
             end_orbit=end_orbit
         ).encode('UTF-8')
-        response = self._wps_service.retrieve(request)
+        response = self._get(
+            request, asynchronous=False, show_progress=False)
         responsedict = json.loads(response.decode('UTF-8'))
         start_time = parse_datetime(responsedict['start_time'])
         end_time = parse_datetime(responsedict['end_time'])
@@ -813,7 +815,10 @@ class SwarmRequest(ClientRequest):
         response_handler = self._response_handler(
             retdata, show_progress=False
         )
-        self._wps_service.retrieve(request, handler=response_handler)
+        self._get(
+            request, asynchronous=False, response_handler=response_handler,
+            show_progress=False)
+        # self._wps_service.retrieve(request, handler=response_handler)
         return retdata.as_dataframe()["OrbitNumber"][0]
 
     def get_model_info(self, models=None, custom_model=None,
@@ -847,14 +852,15 @@ class SwarmRequest(ClientRequest):
 
         def _request_get_model_info(model_expression=None, custom_shc=None):
             """ Make the get_model_info request. """
-            templatefile = "vires_get_model_info.xml"
+            templatefile = TEMPLATE_FILES["model_info"]
             template = JINJA2_ENVIRONMENT.get_template(templatefile)
             request = template.render(
                 model_expression=model_expression,
                 custom_shc=custom_shc,
                 response_type="application/json"
             ).encode('UTF-8')
-            response = self._wps_service.retrieve(request)
+            response = self._get(
+                request, asynchronous=False, show_progress=False)
             response_list = json.loads(response.decode('UTF-8'))
             return response_list
 
