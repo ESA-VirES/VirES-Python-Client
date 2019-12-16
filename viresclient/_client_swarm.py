@@ -95,7 +95,9 @@ MODEL_REFERENCES = {
          " http://geomag.colorado.edu/difi-3 ",
          "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MIO/SW_OPER_MIO_VAL_2D_20131201T000000_20171231T235959_0402.ZIP "),
     'MIO_SHA_2D-Secondary':
-        ("[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",)
+        ("[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",),
+    'AMPS':
+        ("AMPS - associated magnetic field, https://github.com/klaundal/pyAMPS",),
 }
 
 DEPRECATED_MODELS = {
@@ -401,7 +403,7 @@ class SwarmRequest(ClientRequest):
         "SunRightAscension", "SunAzimuthAngle", "SunZenithAngle",
         "SunLongitude", "SunVector", "DipoleAxisVector", "NGPLatitude",
         "NGPLongitude", "DipoleTiltAngle", "UpwardCurrent", "TotalCurrent",
-        "DivergenceFreeCurrentFunction", "F_AMPS", "B_NEC_AMPS",
+        "DivergenceFreeCurrentFunction",
         ]
 
     MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
@@ -415,6 +417,7 @@ class SwarmRequest(ClientRequest):
         "MMA_SHA_2F-Primary", "MMA_SHA_2F-Secondary",
         "MIO_SHA_2C-Primary", "MIO_SHA_2C-Secondary",
         "MIO_SHA_2D-Primary", "MIO_SHA_2D-Secondary",
+        "AMPS",
         ]
 
     def __init__(self, url=None, username=None, password=None, token=None,
@@ -571,31 +574,31 @@ class SwarmRequest(ClientRequest):
         """
 
         def filter_by_param(d, param):
-            if param in "F C D".split(' '):
+            if param in ("F", "C", "D"):
                 param = '2' + param
-            if isinstance(d, list):
-                d = [i for i in d if param in i]
-            elif isinstance(d, dict):
-                d = {k: d[k] for k in d.keys() if param in k}
-            else:
-                raise TypeError("d should be a dict or a list")
-            return d
+            return [i for i in d if param in i]
 
-        if details:
-            mod_refs = MODEL_REFERENCES
-            # Extend the dictionary to include information from get_model_info
-            models_info = self.get_model_info(self._available["models"])
-            d = {}
-            for model_name in self._available["models"]:
-                d[model_name] = {
-                    "description": mod_refs[model_name],
-                    "details": models_info[model_name]
-                }
-        else:
-            d = self._available["models"]
+        # get all models provided by the server
+        models_info = self.get_model_info()
+
+        # keep only models really provided by the server
+        d = [
+            model_name for model_name in self._available["models"]
+            if model_name in models_info
+        ]
+
         # Filter the dict/list to only include those that contain param
         if param is not None:
             d = filter_by_param(d, param)
+
+        if details:
+            d = {
+                model_name: {
+                    "description": MODEL_REFERENCES[model_name],
+                    "details": models_info[model_name]
+                }
+                for model_name in d
+            }
 
         if nice_output and details:
             d = OrderedDict(sorted(d.items()))
@@ -864,34 +867,46 @@ class SwarmRequest(ClientRequest):
             dict or list
 
         """
-        # Check models format, extract model_ids and string to pass to server
-        model_ids, model_expression_string = self._parse_models_input(models)
+
+        def _request_get_model_info(model_expression=None, custom_shc=None):
+            """ Make the get_model_info request. """
+            templatefile = "vires_get_model_info.xml"
+            template = JINJA2_ENVIRONMENT.get_template(templatefile)
+            request = template.render(
+                model_expression=model_expression,
+                custom_shc=custom_shc,
+                response_type="application/json"
+            ).encode('UTF-8')
+            response = self._wps_service.retrieve(request)
+            response_list = json.loads(response.decode('UTF-8'))
+            return response_list
+
+        def _build_dict(response_list):
+            """ Build dictionary output organised by model name. """
+            return {
+                model_dict.pop("name"): model_dict
+                for model_dict in response_list
+            }
+
         if custom_model:
             with open(custom_model) as custom_shc_file:
                 custom_shc = custom_shc_file.read()
-            model_ids.append("Custom_Model")
-            model_expression_string = ",".join(
-                [model_expression_string, "Custom_Model"]
-            )
+            models = models or []
+            models.append("Custom_Model")
         else:
             custom_shc = None
-        templatefile = "vires_get_model_info.xml"
-        template = JINJA2_ENVIRONMENT.get_template(templatefile)
-        request = template.render(
-            model_expression=model_expression_string,
-            custom_shc=custom_shc,
-            response_type="application/json"
-        ).encode('UTF-8')
-        response = self._wps_service.retrieve(request)
-        response_list = json.loads(response.decode('UTF-8'))
-        if original_response:
-            return response_list
+
+        if models is not None:
+            _, model_expression = self._parse_models_input(models)
         else:
-            # Build dictionary output organised by model name
-            dict_out = {}
-            for model_dict in response_list:
-                dict_out[model_dict.pop("name")] = model_dict
-            return dict_out
+            model_expression = None
+
+        response = _request_get_model_info(model_expression, custom_shc)
+
+        if not original_response:
+            response = _build_dict(response)
+
+        return response
 
     @staticmethod
     def _check_deprecated_models(models):

@@ -8,6 +8,7 @@ Welcome to VirES-Python-Client's documentation!
   readme
   installation
   config_details
+  access_token
   available_parameters
   release_notes
 
