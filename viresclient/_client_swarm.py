@@ -97,7 +97,7 @@ MODEL_REFERENCES = {
     'MIO_SHA_2D-Secondary':
         ("[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",),
     'AMPS':
-        ("APMS - associated magnetic field, https://github.com/klaundal/pyAMPS",),
+        ("AMPS - associated magnetic field, https://github.com/klaundal/pyAMPS",),
 }
 
 DEPRECATED_MODELS = {
@@ -869,7 +869,7 @@ class SwarmRequest(ClientRequest):
             with open(custom_model) as custom_shc_file:
                 custom_shc = custom_shc_file.read()
             models = models or []
-            model.append("Custom_Model")
+            models.append("Custom_Model")
         else:
             custom_shc = None
 
