@@ -257,12 +257,16 @@ class ClientRequest(object):
         # Test if the token is working; re-enter if not
         if IN_JUPYTER:
             invalid_token = True
+            attempts = 0
             while invalid_token:
                 try:
                     self.list_jobs()
                     invalid_token = False
                 except AuthenticationError:
                     print("Token invalid.")
+                    attempts += 1
+                    if attempts > 3:
+                        raise AuthenticationError(AUTH_ERROR_TEXT)
                     set_token(url)
                     self._wps_service = self._create_service_proxy_(
                         config, url, username, password, token
