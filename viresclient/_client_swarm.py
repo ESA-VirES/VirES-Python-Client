@@ -6,11 +6,12 @@ import sys
 
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.time_util import parse_datetime
-from ._client import WPSInputs, ClientRequest
+from ._client import WPSInputs, ClientRequest, TEMPLATE_FILES
 from ._data_handling import ReturnedDataFile
 
 
 TEMPLATE_FILES = {
+    **TEMPLATE_FILES,
     'sync': "vires_fetch_filtered_data.xml",
     'async': "vires_fetch_filtered_data_async.xml",
     'model_info': "vires_get_model_info.xml",
