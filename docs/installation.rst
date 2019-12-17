@@ -8,7 +8,7 @@ Installation and first usage
 
   viresclient is already installed so skip this step. Log in at https://vre.vires.services/ and refer to documentation at https://swarm-vre.readthedocs.io/
 
-  You will still need to configure viresclient (see step 2)
+  You may still need to configure viresclient (see step 2)
 
 Python ≥ 3.5 is required. Tested primarily on Linux, but macOS and Windows should also work (on v0.4+).
 
@@ -53,6 +53,15 @@ Recommended setup if starting without Python already
 ------------------------------
 
 .. note:: For Jupyter notebook users:
+
+  On creation of a SwarmRequest object, you will automatically be prompted to set a token. Just try::
+
+    from viresclient import SwarmRequest
+    request = SwarmRequest()
+
+  and follow the instructions.
+
+  [ Below instructions to be updated with new notebook. ]
 
   The guide for first time usage are also provided as a Jupyter notebook. Download the notebook to your environment and follow the instructions.
 

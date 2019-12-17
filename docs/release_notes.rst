@@ -1,6 +1,20 @@
 Release notes
 =============
 
+Changes from 0.4.2 to 0.4.3
+---------------------------
+
+- AMPS is now accessible as a regular model on the DISC server, see::
+
+    request = SwarmRequest("https://staging.viresdisc.vires.services/ows")
+    request.get_model_info(["AMPS"])
+
+- xarray.Dataset objects now contain dimension names for all variables. Variables containing "B_NEC" get the "NEC" dimension name.
+- CHAOS model series have changed name: "CHAOS-6-Core" etc. is dropped for "CHAOS-Core" etc. which provides the latest version of the CHAOS models (currently CHAOS-7)
+- Better error message when authentication with server fails.
+- When in notebooks: Detect empty or invalid credentials (e.g. on first usage), direct user to the token generation page, and prompt for token input.
+- Added ``request.list_jobs()`` to give info on previous two jobs on the server (failed/running/succeeded).
+
 Changes from 0.4.1 to 0.4.2
 ---------------------------
 

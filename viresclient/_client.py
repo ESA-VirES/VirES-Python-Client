@@ -560,7 +560,11 @@ class ClientRequest(object):
         return retdatagroup
 
     def list_jobs(self):
-        """ Return job information from the server """
+        """ Return job information from the server.
+
+        Returns:
+            dict
+        """
         templatefile = TEMPLATE_FILES['list_jobs']
         template = JINJA2_ENVIRONMENT.get_template(templatefile)
         request = template.render().encode('UTF-8')

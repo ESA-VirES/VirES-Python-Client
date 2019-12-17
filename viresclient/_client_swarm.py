@@ -296,17 +296,37 @@ class SwarmWPSInputs(WPSInputs):
 class SwarmRequest(ClientRequest):
     """Handles the requests to and downloads from the server.
 
-    Steps to download data:
+    Example usage::
 
-    1. Set up a connection to the server with: request = SwarmRequest()
+        from viresclient import SwarmRequest
+        # Set up connection with server
+        request = SwarmRequest()
+        # Set collection to use
+        request.set_collection("SW_OPER_MAGA_LR_1B")
+        # Set mix of products to fetch:
+        #  measurements (variables from the given collection)
+        #  models (magnetic model predictions at spacecraft sampling points)
+        #  auxiliaries (variables available with any collection)
+        request.set_products(
+            measurements=["F", "B_NEC"],
+            models=["CHAOS-Core"],
+            auxiliaries=["QDLat", "QDLon"],
+            sampling_step="PT10S"
+        )
+        # Fetch data from a given time interval
+        data = request.get_between(
+            start_time="2014-01-01T00:00",
+            end_time="2014-01-01T01:00"
+        )
+        # Load the data as an xarray.Dataset
+        ds = data.as_xarray()
 
-    2. Set collections to use with: request.set_collections()
+    Check what data are available with::
 
-    3. Set parameters to get with: request.set_products()
-
-    4. Set filters to apply with: request.set_range_filter()
-
-    5. Get the data in a chosen time window: request.get_between()
+        request.available_collections(details=False)
+        request.available_measurements("MAG")
+        request.available_auxiliaries()
+        request.available_models(details=False)
 
     Args:
         url (str):
@@ -623,6 +643,7 @@ class SwarmRequest(ClientRequest):
                     )
         self._collection_list = collections
         self._request_inputs.set_collections(collections)
+        return self
 
     def set_products(self, measurements=None, models=None, custom_model=None,
                      auxiliaries=None, residuals=False, sampling_step=None
@@ -717,6 +738,7 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.variables = variables
         self._request_inputs.sampling_step = sampling_step
         self._request_inputs.custom_shc = custom_shc
+        return self
 
     def set_range_filter(self, parameter=None, minimum=None, maximum=None):
         """Set a filter to apply.
@@ -743,11 +765,13 @@ class SwarmRequest(ClientRequest):
             filters = ';'.join(self._filterlist)
         # Update the SwarmWPSInputs object
         self._request_inputs.filters = filters
+        return self
 
     def clear_range_filter(self):
         """Remove all applied filters."""
         self._filterlist = []
         self._request_inputs.filters = None
+        return self
 
     def get_times_for_orbits(self, spacecraft, start_orbit, end_orbit):
         """Translate a pair of orbit numbers to a time interval.

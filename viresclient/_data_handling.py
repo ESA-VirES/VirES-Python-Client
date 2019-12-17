@@ -398,6 +398,14 @@ class ReturnedData(object):
     The number of them, N, is set upon initialisation.
     Access the ReturnedDataFile objects directly via the list in ReturnedData.contents.
 
+    Example usage::
+
+        ...
+        data = request.get_between(..., ...)
+        data.as_xarray()
+        data.as_dataframe(expand=True)
+        data.to_file()
+
     """
 
     def __init__(self, filetype=None, N=1, tmpdir=None):
