@@ -112,6 +112,8 @@ DEPRECATED_MODELS = {
 COLLECTION_REFERENCES = {
     "MAG": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#MAGX_LR_1B_Product ",
             ),
+    "MAG_HR": ("https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#MAGX_HR_1B_Product ",
+            ),
     "EFI": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#EFIX_LP_1B_Product ",
             ),
     "IBI": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#IBIxTMS_2F ",
@@ -319,6 +321,7 @@ class SwarmRequest(ClientRequest):
     """
     COLLECTIONS = {
         "MAG": ["SW_OPER_MAG{}_LR_1B".format(x) for x in "ABC"],
+        "MAG_HR": ["SW_OPER_MAG{}_HR_1B".format(x) for x in "ABC"],
         "EFI": ["SW_OPER_EFI{}_LP_1B".format(x) for x in "ABC"],
         "IBI": ["SW_OPER_IBI{}TMS_2F".format(x) for x in "ABC"],
         "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in "ABC"],
@@ -344,6 +347,11 @@ class SwarmRequest(ClientRequest):
             "F", "dF_AOCS", "dF_other", "F_error", "B_VFM", "B_NEC", "dB_Sun",
             "dB_AOCS", "dB_other", "B_error", "q_NEC_CRF", "Att_error",
             "Flags_F", "Flags_B", "Flags_q", "Flags_Platform", "ASM_Freq_Dev",
+            ],
+        "MAG_HR": [ #NOTE: F is calculated on the fly from B_NEC (F = |B_NEC|)
+            "F", "B_VFM", "B_NEC", "dB_Sun", "dB_AOCS", "dB_other", "B_error",
+            "q_NEC_CRF", "Att_error", "Flags_B", "Flags_q", "Flags_Platform",
+            "ASM_Freq_Dev",
             ],
         "EFI": [
             "U_orbit", "Ne", "Ne_error", "Te", "Te_error", "Vs", "Vs_error",
