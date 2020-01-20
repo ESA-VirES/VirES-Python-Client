@@ -1,6 +1,11 @@
 Release notes
 =============
 
+Changes from 0.4.3 to 0.5.0
+---------------------------
+
+- IGRF model series have changed name: "IGRF-12" is dropped in favour of "IGRF" which now provides the latest IGRF (currently IGRF-13)
+
 Changes from 0.4.2 to 0.4.3
 ---------------------------
 

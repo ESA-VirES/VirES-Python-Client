@@ -81,7 +81,7 @@ Models are evaluated along the satellite track at the positions of the time seri
 
 ::
 
-  IGRF12,
+  IGRF,
 
   # Comprehensive inversion (CI) models:
   MCO_SHA_2C,                                # Core
