@@ -219,7 +219,12 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
     # Loop through each variable available in the CDF and append them to the
     #   Dataset, attaching the Timestamp index to each. Attach dimension names
     #   based on the name of the variable. B_NEC variables get the NEC dim name
-    keys = [k for k in cdf.cdf_info()["zVariables"] if k != "Timestamp"]
+    keys = [k for k in cdf.cdf_info()["zVariables"]]
+    keys.remove("Timestamp")
+    keys.remove("Spacecraft")
+    # Add Spacecraft variable as Categorical to save memory
+    ds["Spacecraft"] = (("Timestamp",), pandas.Categorical(
+        cdf.varget("Spacecraft"), categories=["A", "B", "C", "-"]))
     for k in keys:
         if cdf.varinq(k)["Num_Dims"] == 0:
             # 1D (scalar series) data
@@ -236,6 +241,15 @@ def make_xarray_Dataset_from_cdf(cdf_filename):
             ds[k] = (("Timestamp", "%s_dim1" % k, "%s_dim2" % k), cdf.varget(k))
         else:
             raise NotImplementedError("{}: array too complicated".format(k))
+    # Add NEC as named coordinate (improves auto-labelling in plots)
+    ds["NEC"] = numpy.array(["N", "E", "C"])
+    ds = ds.set_coords("NEC")
+    # Add metadata of each variable
+    for datavar in ds:
+        atts = cdf.varattsget(datavar)
+        ds[datavar].attrs["units"] = atts.get("UNITS", None)
+        ds[datavar].attrs["description"] = atts.get("DESCRIPTION", None)
+    ds["NEC"].attrs["description"] = "NEC frame - North, East, Centre (down)"
     cdf.close()
     return ds
 
@@ -547,9 +561,10 @@ class ReturnedData(object):
         # concat is slow. Maybe try extracting numpy arrays and rebuilding ds
 
         # Set the original data sources and models used as metadata
-        ds.attrs["Sources"] = self.sources
-        ds.attrs["MagneticModels"] = self.magnetic_models
-        ds.attrs["RangeFilters"] = self.range_filters
+        # Set them as strings (https://github.com/pydata/xarray/issues/3647)
+        ds.attrs["Sources"] = "; ".join(self.sources)
+        ds.attrs["MagneticModels"] = "; ".join(self.magnetic_models)
+        ds.attrs["RangeFilters"] = "; ".join(self.range_filters)
         return ds
 
     def to_files(self, paths, overwrite=False):
