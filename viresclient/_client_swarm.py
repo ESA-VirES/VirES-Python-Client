@@ -27,9 +27,13 @@ REFERENCES = {
     }
 
 MODEL_REFERENCES = {
+    'IGRF':
+        (" International Geomagnetic Reference Field: the 13th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
+         " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
     'IGRF12':
         (" International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
-         " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
+         " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "
+         " deprecated model identifier, use IGRF instead"),
     'CHAOS-Core':
         ("CHAOS-7 Core field (SH degrees 1-20)",
          " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
@@ -103,6 +107,7 @@ MODEL_REFERENCES = {
 }
 
 DEPRECATED_MODELS = {
+    'IGRF12': "Use IGRF instead.",
     'CHAOS-6-Core': "Use CHAOS-Core instead.",
     'CHAOS-6-Static': "Use CHAOS-Static instead.",
     'CHAOS-6-MMA-Primary': "Use CHAOS-MMA-Primary instead.",
