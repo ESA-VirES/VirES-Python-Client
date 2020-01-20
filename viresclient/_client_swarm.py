@@ -28,7 +28,7 @@ REFERENCES = {
 
 MODEL_REFERENCES = {
     'IGRF':
-        (" International Geomagnetic Reference Field: the 13th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
+        (" International Geomagnetic Reference Field: the 13th generation, (waiting for publication) ",
          " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
     'IGRF12':
         (" International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
@@ -413,7 +413,7 @@ class SwarmRequest(ClientRequest):
     MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
 
     MAGNETIC_MODELS = [
-        "IGRF12", "LCS-1", "MF7",
+        "IGRF", "IGRF12", "LCS-1", "MF7",
         "CHAOS-Core", "CHAOS-Static", "CHAOS-MMA-Primary", "CHAOS-MMA-Secondary",
         "CHAOS-6-Core", "CHAOS-6-Static", "CHAOS-6-MMA-Primary", "CHAOS-6-MMA-Secondary",
         "MCO_SHA_2C", "MCO_SHA_2D", "MLI_SHA_2C", "MLI_SHA_2D",
