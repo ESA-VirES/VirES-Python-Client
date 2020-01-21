@@ -1,10 +1,17 @@
 Release notes
 =============
 
-Changes from 0.4.3 to 0.5.0
----------------------------
+Changes from 0.4.3 to 0.5.0 (alpha)
+-----------------------------------
 
-- IGRF model series have changed name: "IGRF-12" is dropped in favour of "IGRF" which now provides the latest IGRF (currently IGRF-13)
+- IGRF model series have changed name: ``IGRF-12`` is dropped in favour of ``IGRF`` which now provides the latest IGRF (currently IGRF-13)
+- ``request.available_collections("MAG")`` can now be called to filter by collection groups, and now returns a dict instead of a list
+- Improvements for ``xarray.Dataset`` support:
+
+  - NEC now provided as named coordinates for ``B_NEC``-type variables
+  - Metadata (units and description) are now set for each variable
+  - (With xarray 0.14+, try ``xarray.set_options(display_style="html")`` for nicer output)
+  - Changed global attributes setting to set as "; "-separated strings instead of lists, to solve https://github.com/pydata/xarray/issues/3647
 
 Changes from 0.4.2 to 0.4.3
 ---------------------------
@@ -14,8 +21,8 @@ Changes from 0.4.2 to 0.4.3
     request = SwarmRequest("https://staging.viresdisc.vires.services/ows")
     request.get_model_info(["AMPS"])
 
-- xarray.Dataset objects now contain dimension names for all variables. Variables containing "B_NEC" get the "NEC" dimension name.
-- CHAOS model series have changed name: "CHAOS-6-Core" etc. is dropped for "CHAOS-Core" etc. which provides the latest version of the CHAOS models (currently CHAOS-7)
+- xarray.Dataset objects now contain dimension names for all variables. Variables containing ``B_NEC`` get the ``NEC`` dimension name.
+- CHAOS model series have changed name: ``CHAOS-6-Core`` etc. is dropped for ``CHAOS-Core`` etc. which provides the latest version of the CHAOS models (currently CHAOS-7)
 - Better error message when authentication with server fails.
 - When in notebooks: Detect empty or invalid credentials (e.g. on first usage), direct user to the token generation page, and prompt for token input.
 - Added ``request.list_jobs()`` to give info on previous two jobs on the server (failed/running/succeeded).
