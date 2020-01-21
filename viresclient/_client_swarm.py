@@ -904,8 +904,8 @@ class SwarmRequest(ClientRequest):
         if custom_model:
             with open(custom_model) as custom_shc_file:
                 custom_shc = custom_shc_file.read()
-            models = models or []
-            models.append("Custom_Model")
+            if not models:
+                models = ["Custom_Model"]
         else:
             custom_shc = None
 
