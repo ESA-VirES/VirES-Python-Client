@@ -505,20 +505,32 @@ class SwarmRequest(ClientRequest):
         model_ids = list(s.strip("\'\"") for s in model_expressions.keys())
         return model_ids, model_expression_string[1:]
 
-    def available_collections(self, details=True):
+    def available_collections(self, groupname=None, details=True):
         """Show details of available collections.
 
         Args:
+            collection_group (str): one of: ("MAG", "EFI", etc.)
             details (bool): If True then print a nice output.
-                If False then return a list of available collections.
+                If False then return a dict of available collections.
 
         """
+        def _filter_collections(groupname):
+            groups = list(self._available["collections"].keys())
+            if groupname in groups:
+                return {groupname:
+                        self._available["collections"][groupname]}
+            else:
+                raise ValueError("Invalid collection group name")
+        if groupname:
+            collections_filtered = _filter_collections(groupname)
+        else:
+            collections_filtered = self._available["collections"]
         if details:
             print("General References:")
             for i in REFERENCES["General Swarm"]:
                 print(i)
             print()
-            for key, val in self._available["collections"].items():
+            for key, val in collections_filtered.items():
                 print(key)
                 for i in val:
                     print('  ', i)
@@ -527,7 +539,7 @@ class SwarmRequest(ClientRequest):
                     print(ref)
                 print()
         else:
-            return list(self._available["collections_to_keys"])
+            return collections_filtered
 
     def available_measurements(self, collection=None):
         """Returns a list of the available measurements for the chosen collection.
