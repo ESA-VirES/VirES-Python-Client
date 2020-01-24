@@ -27,53 +27,215 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
-
 import os
-try:
-    from io import BytesIO
-except ImportError:
-    # Python 2 backward compatibility
-    import StringIO as BytesIO
 import tempfile
 import shutil
-if os.name == "nt":
-    import atexit
-
 import numpy
 import pandas
 import xarray
 import cdflib
-
 from ._wps import time_util
+if os.name == "nt":
+    import atexit
 
 CDF_EPOCH_1970 = 62167219200000.0
 
-# Dimension names for data columns with extra dimensions
-#  and suffixes to use in expanded dataframes
-COLUMN_INFO = {
-    # MAG datasets
-    # NEC mapping to also apply to any column name containing "B_NEC"
-    "B_NEC":      ("NEC", ["_N", "_E", "_C"]),
-    # VFM frame
-    "B_VFM":      ("VFM", ["_i", "_j", "_k"]),
-    "dB_Sun":     ("VFM", ["_i", "_j", "_k"]),
-    "dB_AOCS":    ("VFM", ["_i", "_j", "_k"]),
-    "dB_other":   ("VFM", ["_i", "_j", "_k"]),
-    "B_error":    ("VFM", ["_i", "_j", "_k"]),
-    # quartenions
-    "q_NEC_CRF":  ("", ["_1", "_i", "_j", "_k"]),
-
-    # TEC datasets
-    # WGS84 frame
-    "GPS_Position": ["_X", "_Y", "_Z"],
-    "LEO_Position": ["_X", "_Y", "_Z"],
-
-    # auxiliaries
-#     "SunVector":
-#     "DipoleAxisVector":
-    # Cases with more than 1 dim not supported
-#     "QDBasis":
+# Frame names to use as xarray dimension names
+FRAME_NAMES = {"NEC": ["B_NEC"],
+               "VFM": ["B_VFM", "dB_Sun", "dB_AOCS", "dB_other", "B_error"],
+               "quaternion": ["q_NEC_CRF"],
+               "WGS84": ["GPS_Position", "LEO_Position"]}
+# Reverse mapping of the above
+DATANAMES_TO_FRAME_NAMES = {}
+for framename, datanameset in FRAME_NAMES.items():
+    for dataname in datanameset:
+        DATANAMES_TO_FRAME_NAMES[dataname] = framename
+# Labels to use for suffixes on expanded columns in pandas dataframe
+#   and on dimension coordinates in xarray
+FRAME_LABELS = {"NEC": ["N", "E", "C"],
+                "VFM": ["i", "j", "k"],
+                "quaternion": ["1", "i", "j", "k"],
+                "WGS84": ["X", "Y", "Z"]}
+FRAME_DESCRIPTIONS = {
+    "NEC": "NEC frame - North, East, Centre (down)"
 }
+
+
+class FileReader(object):
+    """Provides access to file contents (wrapper around cdflib)
+    """
+
+    def __init__(self, file, filetype="cdf"):
+        """
+
+        Args:
+            file (file-like or str)
+        """
+        if filetype.lower() == "cdf":
+            self._cdf = self._open_cdf(file)
+            globalatts = self._cdf.globalattsget()
+            self.sources = self._ensure_list(
+                globalatts.get('ORIGINAL_PRODUCT_NAMES', []))
+            self.magnetic_models = self._ensure_list(
+                globalatts.get('MAGNETIC_MODELS', []))
+            self.range_filters = self._ensure_list(
+                globalatts.get('DATA_FILTERS', []))
+            self.variables = self._cdf.cdf_info()['zVariables']
+            self._varatts = {var: self._cdf.varattsget(var)
+                             for var in self.variables}
+            self._varinfo = {var: self._cdf.varinq(var)
+                             for var in self.variables}
+        else:
+            raise NotImplementedError("{} not supported".format(filetype))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self._cdf.close()
+
+    @staticmethod
+    def _open_cdf(file):
+        try:
+            return cdflib.CDF(file.name)
+        except AttributeError:
+            return cdflib.CDF(file)
+
+    @staticmethod
+    def _ensure_list(attribute):
+        if isinstance(attribute, str):
+            return [attribute]
+        else:
+            return attribute
+
+    def get_variable(self, var):
+        try:
+            data = self._cdf.varget(var)
+        except ValueError:
+            data = None
+        if data is None:
+            shape = [0, *self.get_variable_dimsizes(var)]
+            data = numpy.empty(shape)
+        return data
+
+    def get_variable_units(self, var):
+        return self._varatts[var].get("UNITS", None)
+
+    def get_variable_description(self, var):
+        return self._varatts[var].get("DESCRIPTION", None)
+
+    def get_variable_numdims(self, var):
+        return self._varinfo[var].get("Num_Dims")
+
+    def get_variable_dimsizes(self, var):
+        return self._varinfo[var].get("Dim_Sizes")
+
+    @staticmethod
+    def _cdftime_to_datetime(t):
+        try:
+            return pandas.to_datetime(
+                (t - CDF_EPOCH_1970)/1e3,
+                unit='s'
+            )
+        except TypeError:
+            return []
+
+    def as_pandas_dataframe(self, expand=False):
+        # Use the variables in the file as columns to create in the dataframe.
+        # Skip Timestamp as it will be used as the index.
+        columns = set(self.variables)
+        columns.remove("Timestamp")
+        # Split columns according to those to be expanded into multiple columns
+        columns_to_expand = set(c for c in columns
+                                if c in DATANAMES_TO_FRAME_NAMES.keys()
+                                or "B_NEC" in c) if expand else set()
+        columns_standard = columns.difference(columns_to_expand)
+        # Initialise dataframe with Timestamp as index
+        df = pandas.DataFrame(index=self.get_variable("Timestamp"))
+        # Return empty dataframe, including column names
+        #  when retrieval from server is empty
+        if len(df.index) == 0:
+            for column in columns_standard:
+                df[column] = None
+            for column in columns_to_expand:
+                framename = DATANAMES_TO_FRAME_NAMES.get(column, "NEC")
+                suffixes = FRAME_LABELS[framename]
+                for suffix in suffixes:
+                    df[column + "_" + suffix] = None
+            return df
+        # Convert timestamps to datetime objects
+        df.index = self._cdftime_to_datetime(df.index)
+        # Separately add non-expanded and expanded columns
+        for column in columns_standard:
+            df[column] = list(self.get_variable(column))
+        for column in columns_to_expand:
+            vector_data = self.get_variable(column)
+            framename = DATANAMES_TO_FRAME_NAMES.get(column, "NEC")
+            suffixes = FRAME_LABELS[framename]
+            if len(vector_data.shape) > 2:
+                raise NotImplementedError("{}".format(column))
+            if vector_data.shape[1] != len(suffixes):
+                raise NotImplementedError("{}".format(column))
+            for i, suffix in enumerate(suffixes):
+                df[column + "_" + suffix] = vector_data[:, i]
+        return df
+
+    def as_xarray_dataset(self):
+        # Initialise dataset with time coordinate
+        ds = xarray.Dataset(
+            coords={"Timestamp":
+                    self._cdftime_to_datetime(self.get_variable("Timestamp"))})
+        # Add Spacecraft variable as Categorical to save memory
+        ds["Spacecraft"] = (("Timestamp",), pandas.Categorical(
+            self.get_variable("Spacecraft"), categories=["A", "B", "C", "-"]))
+        datanames = set(self.variables)
+        datanames.remove("Timestamp")
+        datanames.remove("Spacecraft")
+        # Loop through each variable available and append them to the Dataset,
+        #  attaching the Timestamp coordinate to each.
+        # Attach dimension names based on the name of the variable,
+        #  with coordinate labels if available.
+        dims_used = set()
+        for dataname in datanames:
+            data = self.get_variable(dataname)
+            numdims = self.get_variable_numdims(dataname)
+            # 1D case (scalar series)
+            if numdims == 0:
+                ds[dataname] = (("Timestamp",), data)
+            # 2D case (vector series)
+            elif numdims == 1:
+                if "B_NEC" in dataname:
+                    dimname = "NEC"
+                    dims_used.add(dimname)
+                elif dataname in DATANAMES_TO_FRAME_NAMES.keys():
+                    dimname = DATANAMES_TO_FRAME_NAMES[dataname]
+                    dims_used.add(dimname)
+                else:
+                    dimname = "%s_dim1" % dataname
+                ds[dataname] = (("Timestamp", dimname),
+                                self.get_variable(dataname))
+            # 3D case (matrix series), e.g. QDBasis
+            elif numdims == 2:
+                dimname1 = "%s_dim1" % dataname
+                dimname2 = "%s_dim2" % dataname
+                ds[dataname] = (("Timestamp", dimname1, dimname2),
+                                self.get_variable(dataname))
+            else:
+                raise NotImplementedError("%s: array too complicated" %
+                                          dataname)
+        # Add named coordinates
+        for dimname, dimlabels in FRAME_LABELS.items():
+            if dimname in dims_used:
+                ds[dimname] = numpy.array(dimlabels)
+                ds[dimname].attrs["description"] = FRAME_DESCRIPTIONS.get(
+                    dimname, None)
+                ds = ds.set_coords(dimname)
+        # Add metadata of each variable
+        for dataname in ds:
+            ds[dataname].attrs["units"] = self.get_variable_units(dataname)
+            ds[dataname].attrs["description"] = self.get_variable_description(
+                dataname)
+        return ds
 
 
 def make_pandas_DataFrame_from_csv(csv_filename):
@@ -89,14 +251,12 @@ def make_pandas_DataFrame_from_csv(csv_filename):
 
     """
     try:
-        # df = pandas.read_csv(BytesIO(self._data))
         df = pandas.read_csv(csv_filename)
     except Exception:
         raise Exception("Bad or empty csv.")
     # Convert to datetime objects
     df['Timestamp'] = df['Timestamp'].apply(
-        time_util.parse_datetime
-        )
+        time_util.parse_datetime)
     # Convert the columns of vectors from strings to lists
     # Returns empty dataframe when retrieval from server is empty
     if len(df) != 0:
@@ -110,148 +270,6 @@ def make_pandas_DataFrame_from_csv(csv_filename):
                         ])
     df.set_index('Timestamp', inplace=True)
     return df
-
-
-def make_pandas_DataFrame_from_cdf(cdf_filename, expand=False):
-    """Load a csv file into a pandas.DataFrame
-
-    Args:
-        cdf_filename (str)
-        expand (bool)
-
-    Returns:
-        pandas.DataFrame
-
-    """
-
-    # Open the cdf and identify column names
-    try:
-        cdf = cdflib.CDF(cdf_filename)
-        # Get column names except for Timestamp
-        cols = cdf.cdf_info()['zVariables']
-        cols = [c for c in cols if c!="Timestamp"]
-    except Exception:
-        cdf.close()
-        raise Exception("Error reading CDF")
-
-    # Identify columns which will be expanded into multiple columns
-    if expand:
-        cols_to_expand = [c for c in cols
-                            if c in COLUMN_INFO.keys()
-                            or "B_NEC" in c]
-    else:
-        cols_to_expand = []
-
-    try:
-        # Initialise dataframe with Timestamp as index
-        df = pandas.DataFrame(index=cdf.varget("Timestamp"))
-    except ValueError:
-        # Handle case where retrieval from server is empty
-        #  Returns empty dataframe with correct column names
-        #  so merging df's will work okay
-        df = pandas.DataFrame(columns=["Timestamp"])
-        for col in cols:
-            if col in cols_to_expand:
-                if "B_NEC" in col:
-                    col_base_name = "B_NEC"
-                else:
-                    col_base_name = col
-                for component, suffix in enumerate(
-                        COLUMN_INFO[col_base_name][1]):
-                    df[col + suffix] = None
-            else:
-                df[col] = None
-        df = df.set_index("Timestamp")
-    else:
-        # Handle the usual case where there is data present
-        # Add the other (non-Timestamp) columns to the dataframe
-        for col in cols:
-            if col in cols_to_expand:
-                if "B_NEC" in col:
-                    col_base_name = "B_NEC"
-                else:
-                    col_base_name = col
-                for component, suffix in enumerate(
-                        COLUMN_INFO[col_base_name][1]):
-                    df[col + suffix] = cdf.varget(col)[:, component]
-            else:
-                df[col] = list(cdf.varget(col))
-        # Convert timestamps to datetime objects
-        df.index = pandas.to_datetime(
-            (df.index - CDF_EPOCH_1970)/1e3,
-            unit='s'
-        )
-    finally:
-        cdf.close()
-
-    return df
-
-
-def make_xarray_Dataset_from_cdf(cdf_filename):
-    """Load a cdf file as an xarray Dataset
-
-    Use cdflib to read the cdf file. Create an xarray.Dataset with the
-    Timestamp as the coords (as datetime.datetime).
-    3-D vectors have dimension label 'dim'. Other cases not yet handled.
-
-    Args:
-        cdf_filename (str)
-
-    Returns:
-        xarray.Dataset
-
-    """
-    cdf = cdflib.CDF(cdf_filename)
-    # Load time and convert to Unix time
-    try:
-        time = cdf.varget("Timestamp")
-    except ValueError:
-        cdf.close()
-        return None
-    # Return None when the CDF is empty
-    if time is None:
-        return None
-    time = (time-CDF_EPOCH_1970)/1e3
-    # Now convert to a DatetimeIndex
-    time = pandas.to_datetime(time, unit='s')
-    # Initialise the Dataset with the Timestamp index
-    ds = xarray.Dataset(coords={"Timestamp": time})
-    # Loop through each variable available in the CDF and append them to the
-    #   Dataset, attaching the Timestamp index to each. Attach dimension names
-    #   based on the name of the variable. B_NEC variables get the NEC dim name
-    keys = [k for k in cdf.cdf_info()["zVariables"]]
-    keys.remove("Timestamp")
-    keys.remove("Spacecraft")
-    # Add Spacecraft variable as Categorical to save memory
-    ds["Spacecraft"] = (("Timestamp",), pandas.Categorical(
-        cdf.varget("Spacecraft"), categories=["A", "B", "C", "-"]))
-    for k in keys:
-        if cdf.varinq(k)["Num_Dims"] == 0:
-            # 1D (scalar series) data
-            ds[k] = (("Timestamp",), cdf.varget(k))
-        # 2D (vector series) case
-        elif cdf.varinq(k)["Num_Dims"] == 1:
-            if "B_NEC" in k:
-                dimname = "NEC"
-            else:
-                dimname = "%s_dim1" % k
-            ds[k] = (("Timestamp", dimname), cdf.varget(k))
-        # 3D case (matrix series), e.g. QDBasis
-        elif cdf.varinq(k)["Num_Dims"] == 2:
-            ds[k] = (("Timestamp", "%s_dim1" % k, "%s_dim2" % k), cdf.varget(k))
-        else:
-            raise NotImplementedError("{}: array too complicated".format(k))
-    # Add NEC as named coordinate (improves auto-labelling in plots)
-    ds["NEC"] = numpy.array(["N", "E", "C"])
-    ds = ds.set_coords("NEC")
-    # Add metadata of each variable
-    for datavar in ds:
-        atts = cdf.varattsget(datavar)
-        ds[datavar].attrs["units"] = atts.get("UNITS", None)
-        ds[datavar].attrs["description"] = atts.get("DESCRIPTION", None)
-    ds["NEC"].attrs["description"] = "NEC frame - North, East, Centre (down)"
-    cdf.close()
-    return ds
 
 
 class ReturnedDataFile(object):
@@ -279,12 +297,12 @@ class ReturnedDataFile(object):
             self._file = tempfile.NamedTemporaryFile(
                 prefix="vires_", dir=tmpdir)
 
-
     def __str__(self):
-        return "viresclient ReturnedDataFile object of type " + self.filetype + \
-            "\nSave it to a file with .to_file('filename')" + \
-            "\nLoad it as a pandas dataframe with .as_dataframe()" + \
-            "\nLoad it as an xarray dataset with .as_xarray()"
+        return "viresclient ReturnedDataFile object of type " + \
+               self.filetype + \
+               "\nSave it to a file with .to_file('filename')" + \
+               "\nLoad it as a pandas dataframe with .as_dataframe()" + \
+               "\nLoad it as an xarray dataset with .as_xarray()"
 
     def open_cdf(self):
         """Returns the opened file as cdflib.CDF
@@ -381,7 +399,8 @@ class ReturnedDataFile(object):
                 raise NotImplementedError
             df = make_pandas_DataFrame_from_csv(self._file.name)
         elif self.filetype == 'cdf':
-            df = make_pandas_DataFrame_from_cdf(self._file.name, expand=expand)
+            with FileReader(self._file) as f:
+                df = f.as_pandas_dataframe(expand=expand)
         return df
 
     def as_xarray(self, group=None):
@@ -399,23 +418,43 @@ class ReturnedDataFile(object):
         if self.filetype == 'csv':
             raise NotImplementedError("csv to xarray is not supported")
         elif self.filetype == 'cdf':
-            ds = make_xarray_Dataset_from_cdf(self._file.name)
+            with FileReader(self._file) as f:
+                ds = f.as_xarray_dataset()
         elif self.filetype == 'nc':
             ds = xarray.open_dataset(self._file.name, group=group)
         return ds
+
+    @property
+    def sources(self):
+        with FileReader(self._file) as f:
+            sources = f.sources
+        return sources
+
+    @property
+    def magnetic_models(self):
+        with FileReader(self._file) as f:
+            magnetic_models = f.magnetic_models
+        return magnetic_models
+
+    @property
+    def range_filters(self):
+        with FileReader(self._file) as f:
+            range_filters = f.range_filters
+        return range_filters
 
 
 class ReturnedData(object):
     """Flexible object for working with data returned from the server
 
-    Holds a list of ReturnedDataFile objects.
-    The number of them, N, is set upon initialisation.
-    Access the ReturnedDataFile objects directly via the list in ReturnedData.contents.
+    Holds a list of ReturnedDataFile objects under self.contents
 
     Example usage::
 
         ...
         data = request.get_between(..., ...)
+        data.sources
+        data.range_filters
+        data.magnetic_models
         data.as_xarray()
         data.as_dataframe(expand=True)
         data.to_file()
@@ -423,9 +462,8 @@ class ReturnedData(object):
     """
 
     def __init__(self, filetype=None, N=1, tmpdir=None):
-        self.contents = [
-            ReturnedDataFile(filetype=filetype, tmpdir=tmpdir) for i in range(N)
-            ]
+        self.contents = [ReturnedDataFile(filetype=filetype, tmpdir=tmpdir)
+                         for i in range(N)]
         # filetype checking / conversion has been done in ReturnedDataFile
         self.filetype = self.contents[0].filetype
 
@@ -451,15 +489,9 @@ class ReturnedData(object):
     def sources(self):
         """ Get list of source product identifiers.
         """
-        # .globalattsget().get(...) returns either a string of one variable
-        #  or a list of strings. The lambda function converts these to a list.
-        # Unique values from each file are collected within a set.
         sources = set()
         for item in self._contents:
-            sources.update(
-                (lambda x: [x] if type(x) is str else x)
-                (item.open_cdf().globalattsget().get('ORIGINAL_PRODUCT_NAMES', [])),
-            )
+            sources.update(item.sources)
         return sorted(sources)
 
     @property
@@ -468,10 +500,7 @@ class ReturnedData(object):
         """
         models = set()
         for item in self._contents:
-            models.update(
-                (lambda x: [x] if type(x) is str else x)
-                (item.open_cdf().globalattsget().get('MAGNETIC_MODELS', [])),
-            )
+            models.update(item.magnetic_models)
         return sorted(models)
 
     @property
@@ -480,10 +509,7 @@ class ReturnedData(object):
         """
         filters = set()
         for item in self._contents:
-            filters.update(
-                (lambda x: [x] if type(x) is str else x)
-                (item.open_cdf().globalattsget().get('DATA_FILTERS', [])),
-            )
+            filters.update(item.range_filters)
         return sorted(filters)
 
     @property
@@ -561,10 +587,9 @@ class ReturnedData(object):
         # concat is slow. Maybe try extracting numpy arrays and rebuilding ds
 
         # Set the original data sources and models used as metadata
-        # Set them as strings (https://github.com/pydata/xarray/issues/3647)
-        ds.attrs["Sources"] = "; ".join(self.sources)
-        ds.attrs["MagneticModels"] = "; ".join(self.magnetic_models)
-        ds.attrs["RangeFilters"] = "; ".join(self.range_filters)
+        ds.attrs["Sources"] = self.sources
+        ds.attrs["MagneticModels"] = self.magnetic_models
+        ds.attrs["RangeFilters"] = self.range_filters
         return ds
 
     def to_files(self, paths, overwrite=False):
