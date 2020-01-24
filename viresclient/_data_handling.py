@@ -587,10 +587,9 @@ class ReturnedData(object):
         # concat is slow. Maybe try extracting numpy arrays and rebuilding ds
 
         # Set the original data sources and models used as metadata
-        # Set them as strings (https://github.com/pydata/xarray/issues/3647)
-        ds.attrs["Sources"] = "; ".join(self.sources)
-        ds.attrs["MagneticModels"] = "; ".join(self.magnetic_models)
-        ds.attrs["RangeFilters"] = "; ".join(self.range_filters)
+        ds.attrs["Sources"] = self.sources
+        ds.attrs["MagneticModels"] = self.magnetic_models
+        ds.attrs["RangeFilters"] = self.range_filters
         return ds
 
     def to_files(self, paths, overwrite=False):
