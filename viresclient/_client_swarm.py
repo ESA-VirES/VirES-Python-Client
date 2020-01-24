@@ -406,8 +406,7 @@ class SwarmRequest(ClientRequest):
         "QDLon", "QDBasis", "MLT", "SunDeclination", "SunHourAngle",
         "SunRightAscension", "SunAzimuthAngle", "SunZenithAngle",
         "SunLongitude", "SunVector", "DipoleAxisVector", "NGPLatitude",
-        "NGPLongitude", "DipoleTiltAngle", "UpwardCurrent", "TotalCurrent",
-        "DivergenceFreeCurrentFunction",
+        "NGPLongitude", "DipoleTiltAngle",
         ]
 
     MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
