@@ -93,6 +93,7 @@ Models are evaluated along the satellite track at the positions of the time seri
   MCO_SHA_2D,
   MLI_SHA_2D,
   MIO_SHA_2D-Primary, MIO_SHA_2D-Secondary
+  AMPS
 
   # Fast-track models:
   MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,
@@ -134,10 +135,7 @@ NB: When using model names containing a hyphen (``-``) then extra single (``'``)
   AscendingNodeLongitude, QDLat, QDLon, QDBasis, MLT, SunDeclination,
   SunHourAngle, SunRightAscension, SunAzimuthAngle, SunZenithAngle,
   SunLongitude, SunVector, DipoleAxisVector, NGPLatitude, NGPLongitude,
-  DipoleTiltAngle,
-
-  UpwardCurrent, TotalCurrent,                        # AMPS
-  DivergenceFreeCurrentFunction, F_AMPS, B_NEC_AMPS   # AMPS
+  DipoleTiltAngle
 
 
 .. note::

@@ -1,17 +1,17 @@
 Release notes
 =============
 
-Changes from 0.4.3 to 0.5.0 (alpha)
------------------------------------
+Changes from 0.4.3 to 0.5.0
+---------------------------
 
 - IGRF model series have changed name: ``IGRF-12`` is dropped in favour of ``IGRF`` which now provides the latest IGRF (currently IGRF-13)
-- ``request.available_collections("MAG")`` can now be called to filter by collection groups, and now returns a dict instead of a list
+- ``request.available_collections("MAG")`` can now be called to filter by collection groups, *and now returns a dict instead of a list*
 - Improvements for ``xarray.Dataset`` support:
 
   - NEC now provided as named coordinates for ``B_NEC``-type variables
+  - Similarly (VFM, quaternion, WGS84) coordinates also provided for the variables ["B_VFM", "dB_Sun", "dB_AOCS", "dB_other", "B_error"], ["q_NEC_CRF"], ["GPS_Position", "LEO_Position"] respectively
   - Metadata (units and description) are now set for each variable
   - (With xarray 0.14+, try ``xarray.set_options(display_style="html")`` for nicer output)
-  - Changed global attributes setting to set as "; "-separated strings instead of lists, to solve https://github.com/pydata/xarray/issues/3647
 
 Changes from 0.4.2 to 0.4.3
 ---------------------------

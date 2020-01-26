@@ -2,22 +2,22 @@ Welcome to VirES-Python-Client's documentation!
 ===============================================
 
 .. toctree::
+  :caption: Virtual Research Environment
+
+  --> [Launch VRE] <https://vre.vires.services/>
+  --> [VRE docs] <https://swarm-vre.readthedocs.io/en/latest/intro.html>
+
+.. toctree::
   :maxdepth: 2
-  :caption: Overview
+  :caption: Information on viresclient
 
   readme
   installation
   config_details
   access_token
   available_parameters
-  release_notes
-
-.. toctree::
-  :maxdepth: 2
-  :caption: Example notebooks
-
   notebook_intro
-  notebooks/simple_example
+  release_notes
 
 .. toctree::
   :maxdepth: 2
@@ -35,8 +35,5 @@ Welcome to VirES-Python-Client's documentation!
   :maxdepth: 2
   :caption: External Links
 
-  Notebook repository <https://nbviewer.jupyter.org/github/smithara/viresclient_examples/>
-  VirES web interface <https://vires.services/>
-  VirES-VRE <https://vre.vires.services/>
-  viresclient GitHub <https://github.com/ESA-VirES/VirES-Python-Client/>
-  Swarm-DISC GitHub <https://github.com/Swarm-DISC/>
+  GitHub: viresclient <https://github.com/ESA-VirES/VirES-Python-Client/>
+  GitHub: Swarm-DISC <https://github.com/Swarm-DISC/>

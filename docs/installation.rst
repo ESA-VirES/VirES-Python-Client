@@ -61,19 +61,11 @@ Recommended setup if starting without Python already
 
   and follow the instructions.
 
-  [ Below instructions to be updated with new notebook. ]
+  A first usage guide is provided as a Jupyter notebook (`view <https://nbviewer.jupyter.org/github/Swarm-DISC/Swarm_notebooks/blob/master/02a__Intro-Swarm-viresclient.ipynb>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/Swarm-DISC/Swarm_notebooks/master/02a__Intro-Swarm-viresclient.ipynb>`_, or use git to get the whole example repository::
 
-  The guide for first time usage are also provided as a Jupyter notebook. Download the notebook to your environment and follow the instructions.
+    git clone https://github.com/Swarm-DISC/Swarm_notebooks.git
 
-  https://github.com/smithara/viresclient_examples/blob/master/0_first_usage.ipynb
-
-  To download the whole example repository, open a terminal and do::
-
-    git clone https://github.com/smithara/viresclient_examples.git
-
-  then launch the notebook, ``viresclient_examples/0_first_usage.ipynb``
-
-Access to the service is through the same user account as on the web interface (https://vires.services/) and is enabled through an access token (essentially a password). To get a token, log in to the website and click on your name on the top right to access the settings. From here, click on "Manage access tokens" and follow the instructions to create a new token.
+Access to the service is through the same user account as on the web interface (https://vires.services/) and is enabled through an access token (essentially a password). To get a token, log in to the website and click on your name on the top right to access the settings (`or follow this link <https://vires.services/accounts/tokens/>`_). From here, click on "Manage access tokens" and follow the instructions to create a new token.
 
 To set your token in the client, use either the Python interface:
 

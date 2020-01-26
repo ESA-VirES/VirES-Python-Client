@@ -181,6 +181,9 @@ class FileReader(object):
         return df
 
     def as_xarray_dataset(self):
+        # NB currrently does not set the global metadata (attrs)
+        #  (avoids issues with concatenating them)
+        #  (this is done in ReturnedData)
         # Initialise dataset with time coordinate
         ds = xarray.Dataset(
             coords={"Timestamp":
@@ -620,13 +623,22 @@ class ReturnedData(object):
         Only write to file if it does not yet exist, or if overwrite=True.
         Currently handles CSV and CDF formats.
 
+        .. note::
+
+            This is currently only implemented for smaller data when the
+            request has not been split into multiple requests - the limit is
+            the equivalent of 50 days of 1Hz measurements. In these situations,
+            you can still load the data as pandas/xarray objects (the contents
+            of each file is automatically concatenated) and save them as a
+            different file type. Or use ``.to_files()`` to save the split data
+            directly.
+
         Args:
             path (str): path to the file to save as
             overwrite (bool): Will overwrite existing file if True
 
         """
         if len(self.contents) != 1:
-            raise Exception("Data is split into multiple files. "
-                            "Use .to_files instead"
-                            )
+            raise NotImplementedError(
+                "Data is split into multiple files. Use .to_files instead")
         self.contents[0].to_file(path, overwrite)

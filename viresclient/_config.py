@@ -82,15 +82,15 @@ def set_token(url="https://vires.services/ows", token=None, set_default=False):
         if IN_JUPYTER:
             def _linkify(_url):
                 if _url:
-                    return f'<a href="{_url}">{_url}</a>'
+                    return '<a href="{}">{}</a>'.format(_url, _url)
                 else:
                     return '(link not found)'
             display_html(
-                f'Setting access token for {url}...<br>'
-                f'Generate a token at {_linkify(url4token)}',
+                'Setting access token for {}...<br>'.format(url)
+                + 'Generate a token at {}'.format(_linkify(url4token)),
                 raw=True)
         else:
-            print('Setting access token for', url, '...')
+            print('Setting access token for', url, ' ...')
             url4token = url4token if url4token else '(link not found)'
             print('Generate a token at', url4token)
         token = getpass("Enter token:")

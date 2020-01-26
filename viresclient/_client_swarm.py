@@ -508,7 +508,7 @@ class SwarmRequest(ClientRequest):
         """Show details of available collections.
 
         Args:
-            collection_group (str): one of: ("MAG", "EFI", etc.)
+            groupname (str): one of: ("MAG", "EFI", etc.)
             details (bool): If True then print a nice output.
                 If False then return a dict of available collections.
 
