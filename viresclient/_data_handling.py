@@ -152,6 +152,7 @@ class FileReader(object):
         columns_standard = columns.difference(columns_to_expand)
         # Initialise dataframe with Timestamp as index
         df = pandas.DataFrame(index=self.get_variable("Timestamp"))
+        df.index.name = "Timestamp"
         # Return empty dataframe, including column names
         #  when retrieval from server is empty
         if len(df.index) == 0:
