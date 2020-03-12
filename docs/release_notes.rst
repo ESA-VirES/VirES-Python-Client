@@ -1,6 +1,13 @@
 Release notes
 =============
 
+Changes from 0.5.0 to 0.6.0
+---------------------------
+
+- Provides access to ``MAGx_HR`` collections (50Hz magnetic measurements)
+- Allows pandas v1.0+
+- Dataframe index name is now set to "Timestamp" (fixes regression in a previous version)
+
 Changes from 0.4.3 to 0.5.0
 ---------------------------
 

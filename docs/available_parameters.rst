@@ -1,6 +1,8 @@
 Available parameters for Swarm data
 ===================================
 
+| `See also: Jupyter notebook about data and model availability <https://swarm-vre.readthedocs.io/en/latest/Swarm_notebooks/02b__viresclient-Available-Data.html>`_
+
 You can check which parameters are available with:
 
 .. code-block:: python
@@ -26,6 +28,7 @@ See the `Swarm Data Handbook`_ for details about the products.
 (replace x with A, B, or C for Alpha, Bravo, or Charlie)::
 
   SW_OPER_MAGx_LR_1B
+  SW_OPER_MAGx_HR_1B
   SW_OPER_EFIx_LP_1B
   SW_OPER_IBIxTMS_2F
   SW_OPER_TECxTMS_2F
@@ -44,7 +47,7 @@ The ``measurements``, ``models``, and ``auxiliaries`` chosen will match the cade
 
 Choose combinations of measurements from one of the following sets, corresponding to the collection chosen above.
 
-For MAG::
+For MAG and ``MAG_HR``::
 
   F,dF_AOCS,dF_other,F_error,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_error,Flags_F,Flags_B,Flags_q,Flags_Platform,ASM_Freq_Dev
 
@@ -77,7 +80,13 @@ For IPD::
 ``models``
 ----------
 
-Models are evaluated along the satellite track at the positions of the time series that has been requested. These must be used together with one of the MAG collections, and one or both of the "F" and "B_NEC" measurements. This can yield either the model values together with the measurements, or the data-model residuals.
+Models are evaluated along the satellite track at the positions of the time series that has been requested. These must be used together with one of the MAG collections, and one or both of the "F" and "B_NEC" measurements. This can yield either the model values together with the measurements, or the data-model residuals. `(More info about models) <https://magneticearth.org/pages/models.html>`_
+
+.. note::
+
+  For a good estimate of the ionospheric field measured by a Swarm satellite (with the core, crust and magnetosphere effects removed) use a composed model defined as:  
+  ``models=['CHAOS-full' = 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'"]``
+  `(click for more info) <https://github.com/klaundal/notebooks/blob/master/get_external_field.ipynb>`_
 
 ::
 
