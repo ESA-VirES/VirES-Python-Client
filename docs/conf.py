@@ -111,10 +111,10 @@ html_theme_path = ["_themes", ]
 # html_sidebars = {}
 
 # Fetch and use external logo
-logo_filename = 'vre_logo.svg'
+logo_filename = 'vre_logo_light.svg'
 if not os.path.exists(logo_filename):
     urllib.request.urlretrieve(
-        'https://raw.githubusercontent.com/ESA-VirES/Swarm-VRE/staging/docs/_static/vre_logo.svg',
+        'https://raw.githubusercontent.com/ESA-VirES/Swarm-VRE/staging/docs/_static/vre_logo_light.svg',
         logo_filename)
 html_logo = logo_filename
 
