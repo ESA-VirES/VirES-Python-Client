@@ -37,6 +37,7 @@ try:
     from IPython import get_ipython
     from IPython.display import display_html
     IN_JUPYTER = 'zmqshell' in str(type(get_ipython()))
+    from IPython.core.error import StdinNotImplementedError
 except ImportError:
     IN_JUPYTER = False
 
@@ -78,6 +79,7 @@ def set_token(url="https://vires.services/ows", token=None, set_default=False):
     """
     if not token:
         url4token = SERVER_TOKEN_URLS.get(url, None)
+        # Provide user with information on token setting URL
         # Nicer output in IPython, with a clickable link
         if IN_JUPYTER:
             def _linkify(_url):
@@ -93,7 +95,17 @@ def set_token(url="https://vires.services/ows", token=None, set_default=False):
             print('Setting access token for', url, ' ...')
             url4token = url4token if url4token else '(link not found)'
             print('Generate a token at', url4token)
-        token = getpass("Enter token:")
+        # Prompt user to supply token, if input is allowed
+        try:
+            token = getpass('Enter token:')
+        except EOFError:
+            # getpass is meant to do something like this as a fallback
+            # but it fails with EOFError in Jupyter (rare glitch)
+            # https://github.com/ESA-VirES/VirES-Python-Client/issues/46
+            token = input('Enter token:')
+        except StdinNotImplementedError:
+            print('No input method available. Unable to set token.')
+            return
     config = ClientConfig()
     config.set_site_config(url, token=token)
     # Use the current URL as default if none has been set before
