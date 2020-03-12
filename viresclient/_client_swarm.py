@@ -359,6 +359,7 @@ class SwarmRequest(ClientRequest):
     # for splitting long requests into chunks
     COLLECTION_SAMPLING_STEPS = {
         "MAG": "PT1S",
+        "MAG_HR": "PT0.019S",  # approx 50Hz (the sampling is not exactly 50Hz)
         "EFI": "PT0.5S",
         "IBI": "PT1S",
         "TEC": "PT1S",      # Actually more complicated
