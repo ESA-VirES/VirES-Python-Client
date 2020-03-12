@@ -27,9 +27,13 @@ REFERENCES = {
     }
 
 MODEL_REFERENCES = {
+    'IGRF':
+        (" International Geomagnetic Reference Field: the 13th generation, (waiting for publication) ",
+         " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
     'IGRF12':
         (" International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
-         " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
+         " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "
+         " deprecated model identifier, use IGRF instead"),
     'CHAOS-Core':
         ("CHAOS-7 Core field (SH degrees 1-20)",
          " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
@@ -103,6 +107,7 @@ MODEL_REFERENCES = {
 }
 
 DEPRECATED_MODELS = {
+    'IGRF12': "Use IGRF instead.",
     'CHAOS-6-Core': "Use CHAOS-Core instead.",
     'CHAOS-6-Static': "Use CHAOS-Static instead.",
     'CHAOS-6-MMA-Primary': "Use CHAOS-MMA-Primary instead.",
@@ -298,17 +303,37 @@ class SwarmWPSInputs(WPSInputs):
 class SwarmRequest(ClientRequest):
     """Handles the requests to and downloads from the server.
 
-    Steps to download data:
+    Example usage::
 
-    1. Set up a connection to the server with: request = SwarmRequest()
+        from viresclient import SwarmRequest
+        # Set up connection with server
+        request = SwarmRequest()
+        # Set collection to use
+        request.set_collection("SW_OPER_MAGA_LR_1B")
+        # Set mix of products to fetch:
+        #  measurements (variables from the given collection)
+        #  models (magnetic model predictions at spacecraft sampling points)
+        #  auxiliaries (variables available with any collection)
+        request.set_products(
+            measurements=["F", "B_NEC"],
+            models=["CHAOS-Core"],
+            auxiliaries=["QDLat", "QDLon"],
+            sampling_step="PT10S"
+        )
+        # Fetch data from a given time interval
+        data = request.get_between(
+            start_time="2014-01-01T00:00",
+            end_time="2014-01-01T01:00"
+        )
+        # Load the data as an xarray.Dataset
+        ds = data.as_xarray()
 
-    2. Set collections to use with: request.set_collections()
+    Check what data are available with::
 
-    3. Set parameters to get with: request.set_products()
-
-    4. Set filters to apply with: request.set_range_filter()
-
-    5. Get the data in a chosen time window: request.get_between()
+        request.available_collections(details=False)
+        request.available_measurements("MAG")
+        request.available_auxiliaries()
+        request.available_models(details=False)
 
     Args:
         url (str):
@@ -389,14 +414,13 @@ class SwarmRequest(ClientRequest):
         "QDLon", "QDBasis", "MLT", "SunDeclination", "SunHourAngle",
         "SunRightAscension", "SunAzimuthAngle", "SunZenithAngle",
         "SunLongitude", "SunVector", "DipoleAxisVector", "NGPLatitude",
-        "NGPLongitude", "DipoleTiltAngle", "UpwardCurrent", "TotalCurrent",
-        "DivergenceFreeCurrentFunction",
+        "NGPLongitude", "DipoleTiltAngle",
         ]
 
     MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
 
     MAGNETIC_MODELS = [
-        "IGRF12", "LCS-1", "MF7",
+        "IGRF", "IGRF12", "LCS-1", "MF7",
         "CHAOS-Core", "CHAOS-Static", "CHAOS-MMA-Primary", "CHAOS-MMA-Secondary",
         "CHAOS-6-Core", "CHAOS-6-Static", "CHAOS-6-MMA-Primary", "CHAOS-6-MMA-Secondary",
         "MCO_SHA_2C", "MCO_SHA_2D", "MLI_SHA_2C", "MLI_SHA_2D",
@@ -488,20 +512,32 @@ class SwarmRequest(ClientRequest):
         model_ids = list(s.strip("\'\"") for s in model_expressions.keys())
         return model_ids, model_expression_string[1:]
 
-    def available_collections(self, details=True):
+    def available_collections(self, groupname=None, details=True):
         """Show details of available collections.
 
         Args:
+            groupname (str): one of: ("MAG", "EFI", etc.)
             details (bool): If True then print a nice output.
-                If False then return a list of available collections.
+                If False then return a dict of available collections.
 
         """
+        def _filter_collections(groupname):
+            groups = list(self._available["collections"].keys())
+            if groupname in groups:
+                return {groupname:
+                        self._available["collections"][groupname]}
+            else:
+                raise ValueError("Invalid collection group name")
+        if groupname:
+            collections_filtered = _filter_collections(groupname)
+        else:
+            collections_filtered = self._available["collections"]
         if details:
             print("General References:")
             for i in REFERENCES["General Swarm"]:
                 print(i)
             print()
-            for key, val in self._available["collections"].items():
+            for key, val in collections_filtered.items():
                 print(key)
                 for i in val:
                     print('  ', i)
@@ -510,7 +546,7 @@ class SwarmRequest(ClientRequest):
                     print(ref)
                 print()
         else:
-            return list(self._available["collections_to_keys"])
+            return collections_filtered
 
     def available_measurements(self, collection=None):
         """Returns a list of the available measurements for the chosen collection.
@@ -631,6 +667,7 @@ class SwarmRequest(ClientRequest):
                     )
         self._collection_list = collections
         self._request_inputs.set_collections(collections)
+        return self
 
     def set_products(self, measurements=None, models=None, custom_model=None,
                      auxiliaries=None, residuals=False, sampling_step=None
@@ -725,6 +762,7 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.variables = variables
         self._request_inputs.sampling_step = sampling_step
         self._request_inputs.custom_shc = custom_shc
+        return self
 
     def set_range_filter(self, parameter=None, minimum=None, maximum=None):
         """Set a filter to apply.
@@ -751,11 +789,13 @@ class SwarmRequest(ClientRequest):
             filters = ';'.join(self._filterlist)
         # Update the SwarmWPSInputs object
         self._request_inputs.filters = filters
+        return self
 
     def clear_range_filter(self):
         """Remove all applied filters."""
         self._filterlist = []
         self._request_inputs.filters = None
+        return self
 
     def get_times_for_orbits(self, spacecraft, start_orbit, end_orbit):
         """Translate a pair of orbit numbers to a time interval.
@@ -883,8 +923,8 @@ class SwarmRequest(ClientRequest):
         if custom_model:
             with open(custom_model) as custom_shc_file:
                 custom_shc = custom_shc_file.read()
-            models = models or []
-            models.append("Custom_Model")
+            if not models:
+                models = ["Custom_Model"]
         else:
             custom_shc = None
 

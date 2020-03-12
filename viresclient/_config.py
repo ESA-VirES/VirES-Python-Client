@@ -32,6 +32,13 @@ from os import name as os_name, chmod
 from os.path import expanduser, join
 from getpass import getpass
 from configparser import ConfigParser
+# Identify whether code is running in Jupyter notebook or not
+try:
+    from IPython import get_ipython
+    from IPython.display import display_html
+    IN_JUPYTER = 'zmqshell' in str(type(get_ipython()))
+except ImportError:
+    IN_JUPYTER = False
 
 DEFAULT_CONFIG_PATH = join(expanduser("~"), ".viresclient.ini")
 
@@ -70,8 +77,22 @@ def set_token(url="https://vires.services/ows", token=None, set_default=False):
 
     """
     if not token:
-        print("Setting access token for", url, "...")
-        print("Generate a token at", SERVER_TOKEN_URLS.get(url, "<not found>"))
+        url4token = SERVER_TOKEN_URLS.get(url, None)
+        # Nicer output in IPython, with a clickable link
+        if IN_JUPYTER:
+            def _linkify(_url):
+                if _url:
+                    return '<a href="{}">{}</a>'.format(_url, _url)
+                else:
+                    return '(link not found)'
+            display_html(
+                'Setting access token for {}...<br>'.format(url)
+                + 'Generate a token at {}'.format(_linkify(url4token)),
+                raw=True)
+        else:
+            print('Setting access token for', url, ' ...')
+            url4token = url4token if url4token else '(link not found)'
+            print('Generate a token at', url4token)
         token = getpass("Enter token:")
     config = ClientConfig()
     config.set_site_config(url, token=token)

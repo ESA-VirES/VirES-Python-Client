@@ -81,7 +81,7 @@ Models are evaluated along the satellite track at the positions of the time seri
 
 ::
 
-  IGRF12,
+  IGRF,
 
   # Comprehensive inversion (CI) models:
   MCO_SHA_2C,                                # Core
@@ -93,14 +93,15 @@ Models are evaluated along the satellite track at the positions of the time seri
   MCO_SHA_2D,
   MLI_SHA_2D,
   MIO_SHA_2D-Primary, MIO_SHA_2D-Secondary
+  AMPS
 
   # Fast-track models:
   MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,
 
   # CHAOS models:
-  CHAOS-6-Core,
-  CHAOS-6-Static,
-  CHAOS-6-MMA-Primary, CHAOS-6-MMA-Secondary
+  CHAOS-Core,
+  CHAOS-Static,
+  CHAOS-MMA-Primary, CHAOS-MMA-Secondary
 
   # Other lithospheric models:
   MF7, LCS-1
@@ -111,7 +112,15 @@ Flexible evaluation of models and defining new derived models is possible with t
 
 .. code-block:: python
 
-  "Combined_model = 'MMA_SHA_2F-Primary'(min_degree=1,max_degree=1) + 'MMA_SHA_2F-Secondary'(min_degree=1,max_degree=1)"
+  request.set_products(
+    ...
+    models=["Combined_model = 'MMA_SHA_2F-Primary'(min_degree=1,max_degree=1) + 'MMA_SHA_2F-Secondary'(min_degree=1,max_degree=1)"],
+    ...
+  )
+
+In this case, model evaluations will then be available in the returned data under the name "Combined_model", but you can name it however you like.
+
+NB: When using model names containing a hyphen (``-``) then extra single (``'``) or double (``"``) quotes must be used around the model name. This is to distinguish from arithmetic minus (``-``).
 
 ----
 
@@ -126,15 +135,12 @@ Flexible evaluation of models and defining new derived models is possible with t
   AscendingNodeLongitude, QDLat, QDLon, QDBasis, MLT, SunDeclination,
   SunHourAngle, SunRightAscension, SunAzimuthAngle, SunZenithAngle,
   SunLongitude, SunVector, DipoleAxisVector, NGPLatitude, NGPLongitude,
-  DipoleTiltAngle,
-
-  UpwardCurrent, TotalCurrent,                        # AMPS
-  DivergenceFreeCurrentFunction, F_AMPS, B_NEC_AMPS   # AMPS
+  DipoleTiltAngle
 
 
 .. note::
 
-  - The AMPS model is currently accessible as "auxiliaries" instead of a "model"
+  - The AMPS model is currently accessible as "auxiliaries" instead of a "model" (On the DISC server it is now accessible as a regular model)
   - ``Kp`` provides the Kp values in fractional form (e.g 2.2), and ``Kp10`` is multiplied by 10 (as integers)
   - ``F107`` is the hourly 10.7 cm solar radio flux value, and ``F10_INDEX`` is the daily average
   - ``QDLat`` and ``QDLon`` are quasi-dipole coordinates
