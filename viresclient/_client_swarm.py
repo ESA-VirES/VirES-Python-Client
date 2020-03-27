@@ -351,7 +351,7 @@ class SwarmRequest(ClientRequest):
         "IBI": ["SW_OPER_IBI{}TMS_2F".format(x) for x in "ABC"],
         "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in "ABC"],
         "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in "ABC_"],
-        "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in "AB"],
+        "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in "ABC"],
         "IPD": ["SW_OPER_IPD{}IRR_2F".format(x) for x in "ABC"],
         }
 
@@ -395,7 +395,7 @@ class SwarmRequest(ClientRequest):
         "FAC": [
             "IRC", "IRC_Error", "FAC", "FAC_Error", "Flags", "Flags_F",
             "Flags_B", "Flags_q"],
-        "EEF": ["EEF", "RelErr", "flags"],
+        "EEF": ["EEF", "EEJ", "RelErr", "Flags"],
         "IPD": [
             "Ne", "Te", "Background_Ne", "Foreground_Ne", "PCP_flag",
             "Grad_Ne_at_100km", "Grad_Ne_at_50km", "Grad_Ne_at_20km",
