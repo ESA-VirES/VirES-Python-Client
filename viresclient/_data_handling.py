@@ -44,7 +44,8 @@ CDF_EPOCH_1970 = 62167219200000.0
 FRAME_NAMES = {"NEC": ["B_NEC"],
                "VFM": ["B_VFM", "dB_Sun", "dB_AOCS", "dB_other", "B_error"],
                "quaternion": ["q_NEC_CRF"],
-               "WGS84": ["GPS_Position", "LEO_Position"]}
+               "WGS84": ["GPS_Position", "LEO_Position"],
+               "EEJ_QDLat": ["EEJ"]}
 # Reverse mapping of the above
 DATANAMES_TO_FRAME_NAMES = {}
 for framename, datanameset in FRAME_NAMES.items():
@@ -55,9 +56,12 @@ for framename, datanameset in FRAME_NAMES.items():
 FRAME_LABELS = {"NEC": ["N", "E", "C"],
                 "VFM": ["i", "j", "k"],
                 "quaternion": ["1", "i", "j", "k"],
-                "WGS84": ["X", "Y", "Z"]}
+                "WGS84": ["X", "Y", "Z"],
+                "EEJ_QDLat": numpy.linspace(-20, 20, 81)}
 FRAME_DESCRIPTIONS = {
-    "NEC": "NEC frame - North, East, Centre (down)"
+    "NEC": "NEC frame - North, East, Centre (down)",
+    "VFM": "Vector Field Magnetometer instrument frame",
+    "EEJ_QDLat": "Quasi-dipole latitude profile between -20 and 20 degrees from the EEF product"
 }
 
 
@@ -162,7 +166,7 @@ class FileReader(object):
                 framename = DATANAMES_TO_FRAME_NAMES.get(column, "NEC")
                 suffixes = FRAME_LABELS[framename]
                 for suffix in suffixes:
-                    df[column + "_" + suffix] = None
+                    df[column + "_" + str(suffix)] = None
             return df
         # Convert timestamps to datetime objects
         df.index = self._cdftime_to_datetime(df.index)
@@ -178,7 +182,7 @@ class FileReader(object):
             if vector_data.shape[1] != len(suffixes):
                 raise NotImplementedError("{}".format(column))
             for i, suffix in enumerate(suffixes):
-                df[column + "_" + suffix] = vector_data[:, i]
+                df[column + "_" + str(suffix)] = vector_data[:, i]
         return df
 
     def as_xarray_dataset(self):
