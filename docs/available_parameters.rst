@@ -69,7 +69,7 @@ For FAC::
 
 For EEF::
 
-  EEF,RelErr,flags
+  EEF,EEJ,RelErr,Flags
 
 For IPD::
 
@@ -84,7 +84,7 @@ Models are evaluated along the satellite track at the positions of the time seri
 
 .. note::
 
-  For a good estimate of the ionospheric field measured by a Swarm satellite (with the core, crust and magnetosphere effects removed) use a composed model defined as:  
+  For a good estimate of the ionospheric field measured by a Swarm satellite (with the core, crust and magnetosphere effects removed) use a composed model defined as:
   ``models=['CHAOS-full' = 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'"]``
   `(click for more info) <https://github.com/klaundal/notebooks/blob/master/get_external_field.ipynb>`_
 

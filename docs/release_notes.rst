@@ -1,6 +1,16 @@
 Release notes
 =============
 
+Changes from 0.6.0 to 0.6.1
+---------------------------
+
+- Fix to support the new EEFxTMS_2F baseline 02:
+
+  - Product now available for Swarm Charlie (``C``)
+  - ``EEF`` unit changed from ``V/m`` to ``mV/m``
+  - New measurement, ``EEJ``
+  - Variable renamed: ``flag`` to ``Flag``
+
 Changes from 0.5.0 to 0.6.0
 ---------------------------
 

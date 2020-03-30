@@ -4,7 +4,7 @@ Installation and first usage
 1. Installation
 ---------------
 
-.. note:: For VRE (Virtual Research Environment) users:
+.. note:: For VRE (Virtual Research Environment) users (it's free!):
 
   viresclient is already installed so skip this step. Log in at https://vre.vires.services/ and refer to documentation at https://swarm-vre.readthedocs.io/
 
@@ -18,13 +18,13 @@ It can currently be installed with::
 
 Dependencies::
 
-  requests ≥ 2.0.0
-  Jinja2   ≥ 2.10.0
-  tables   ≥ 3.4.4
-  tqdm     ≥ 4.23.0
-  cdflib   ≥ 0.3.9
-  pandas   ≥ 0.18.0
-  xarray   ≥ 0.11.0
+  requests
+  Jinja2
+  tables
+  tqdm
+  cdflib
+  pandas
+  xarray
 
 pip will fetch these automatically - if you are using conda, it may be better to install these first using conda instead::
 
@@ -34,7 +34,7 @@ pip will fetch these automatically - if you are using conda, it may be better to
 Recommended setup if starting without Python already
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. Install Miniconda for Python 3.7: https://docs.conda.io/en/latest/miniconda.html
+1. Install Miniconda: https://docs.conda.io/en/latest/miniconda.html
 2. Create a new conda environment with some recommended packages::
 
     conda create --name py37 scipy matplotlib pandas xarray cartopy jupyter jupyterlab flake8 dask h5py netCDF4 jinja2 pytables tqdm
@@ -95,6 +95,7 @@ Choose which collection to access (see :doc:`available_parameters` for more opti
 
 .. code-block:: python
 
+  import datetime as dt
   from viresclient import SwarmRequest
 
   request = SwarmRequest()

@@ -442,8 +442,7 @@ class ClientRequest(object):
                 )
         except WPSError:
             raise RuntimeError(
-                "Server error. Perhaps you are requesting a period outside of "
-                "product availability? or the request is otherwise invalid. "
+                "Server error. Or perhaps the request is invalid? "
                 "Check the output of: print(request) and "
                 "print(request._request.decode())"
                 )
