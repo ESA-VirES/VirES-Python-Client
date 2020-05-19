@@ -27,11 +27,14 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import os
+import json
 from io import StringIO
-from os import name as os_name, chmod
 from os.path import expanduser, join
 from getpass import getpass
 from configparser import ConfigParser
+from ._api.token import TokenManager
+
 # Identify whether code is running in Jupyter notebook or not
 try:
     from IPython import get_ipython
@@ -41,16 +44,22 @@ try:
 except ImportError:
     IN_JUPYTER = False
 
-DEFAULT_CONFIG_PATH = join(expanduser("~"), ".viresclient.ini")
 
-SERVER_TOKEN_URLS = {
-    "https://vires.services/ows":
-        "https://vires.services/accounts/tokens/",
-    "https://staging.vires.services/ows":
-        "https://staging.vires.services/accounts/tokens/",
-    "https://staging.viresdisc.vires.services/ows":
-        "https://staging.viresdisc.vires.services/accounts/tokens/"
-}
+DEFAULT_CONFIG_PATH = join(expanduser("~"), ".viresclient.ini")
+DEFAULT_INSTANCE_NAME = "VirES Python Client"
+DEFAULT_SERVER = "https://vires.services"
+DATA_API_PATH = "/ows"
+TOKEN_GUI_PATH = "/accounts/tokens/"
+
+
+def _get_ows_url(url):
+    """ https//foo.bar(/ows)? -> https//foo.bar/ows """
+    return TokenManager.RE_URL_BASE.sub(DATA_API_PATH, url)
+
+
+def _get_token_gui_url(url):
+    """ https//foo.bar(/ows)? -> https//foo.bar/accounts/tokens/ """
+    return TokenManager.RE_URL_BASE.sub(TOKEN_GUI_PATH, url)
 
 
 def set_token(url="https://vires.services/ows", token=None, set_default=False):
@@ -78,15 +87,14 @@ def set_token(url="https://vires.services/ows", token=None, set_default=False):
 
     """
     if not token:
-        url4token = SERVER_TOKEN_URLS.get(url, None)
+        url4token = _get_token_gui_url(url)
         # Provide user with information on token setting URL
         # Nicer output in IPython, with a clickable link
         if IN_JUPYTER:
             def _linkify(_url):
                 if _url:
-                    return '<a href="{}">{}</a>'.format(_url, _url)
-                else:
-                    return '(link not found)'
+                    return '<a href="{url}">{url}</a>'.format(url=_url)
+                return '(link not found)'
             display_html(
                 'Setting access token for {}...<br>'.format(url)
                 + 'Generate a token at {}'.format(_linkify(url4token)),
@@ -204,11 +212,52 @@ class ClientConfig():
         with open(self._path, 'w') as file_:
             self._config.write(file_)
             # make the saved file private
-            if os_name == 'posix':
-                chmod(file_.fileno(), 0o0600)
+            if os.name == 'posix':
+                os.chmod(file_.fileno(), 0o0600)
 
     def __str__(self):
         """ Dump configuration to a string. """
         fobj = StringIO()
         self._config.write(fobj)
         return fobj.getvalue()
+
+
+    def init(self, env_var_name="VIRES_ACCESS_CONFIG"):
+        """ Initialize client configuration. """
+        env_config = _parse_env_config(_get_env_config(env_var_name))
+
+        if not self.default_url:
+            url = _get_ows_url(env_config['default_server'])
+            print("Setting default URL to %s ..." % url)
+            self.default_url = url
+
+        # retrieve and server tokens
+        for server_url, token_dict in env_config['servers'].items():
+            url = _get_ows_url(server_url)
+            if self.get_site_config(url):
+                continue
+            print("Creating new access token for %s ..." % url)
+            try:
+                token = _retrieve_access_token(
+                    server_url, token_dict['token'], env_config["instance_name"]
+                )
+            except TokenManager.Error as error:
+                print("ERROR: Failed to create a new access token! Reason: %s" % error)
+                continue
+            self.set_site_config(url, token=token)
+
+
+def _retrieve_access_token(url, token, purpose):
+    return TokenManager(url, token).post(purpose=purpose)['token']
+
+
+def _get_env_config(env_var_name):
+    return json.loads(os.environ[env_var_name])
+
+
+def _parse_env_config(env_config):
+    return {
+        "instance_name": env_config.get("instance_name") or DEFAULT_SERVER,
+        "default_server": env_config.get("default_server") or DEFAULT_SERVER,
+        "servers": env_config.get("servers") or {},
+    }

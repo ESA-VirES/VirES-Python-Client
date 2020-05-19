@@ -29,12 +29,13 @@
 # pylint: disable=missing-docstring,arguments-differ
 
 import sys
+import logging
 from argparse import ArgumentParser
 from .common import Command
 from .configuration import (
     SetTokenCommand, SetPasswordCommand, RemoveServerCommand,
     SetDefaultServerCommand, RemoveDefaultServerCommand,
-    ShowConfigurationCommand,
+    ShowConfigurationCommand, InitializeConfigurationCommand,
 )
 from .upload import (
     UploadDataFileCommand, ShowUploadsCommand, RemoveUploadsCommand,
@@ -56,6 +57,8 @@ COMMANDS = {
     "clear_uploads": RemoveUploadsCommand(),
     "clear_upload_parameters": RemoveConstantParameters(),
     "set_upload_parameters": SetConstantParameters(),
+    # automatic configuration initialization
+    "init_configuration": InitializeConfigurationCommand(),
 }
 
 
