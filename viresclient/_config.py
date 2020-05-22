@@ -54,12 +54,12 @@ TOKEN_GUI_PATH = "/accounts/tokens/"
 
 def _get_ows_url(url):
     """ https//foo.bar(/ows)? -> https//foo.bar/ows """
-    return TokenManager.RE_URL_BASE.sub(DATA_API_PATH, url)
+    return TokenManager.RE_URL_BASE.sub(DATA_API_PATH, url, count=1)
 
 
 def _get_token_gui_url(url):
     """ https//foo.bar(/ows)? -> https//foo.bar/accounts/tokens/ """
-    return TokenManager.RE_URL_BASE.sub(TOKEN_GUI_PATH, url)
+    return TokenManager.RE_URL_BASE.sub(TOKEN_GUI_PATH, url, count=1)
 
 
 def set_token(url="https://vires.services/ows", token=None, set_default=False):

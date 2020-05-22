@@ -87,4 +87,4 @@ class TokenManager():
     @classmethod
     def get_api_url(cls, url):
         """ Translate WPS URL path to the upload REST/API URL path. """
-        return cls.RE_URL_BASE.sub(cls.PATH_TOKEN_API, url)
+        return cls.RE_URL_BASE.sub(cls.PATH_TOKEN_API, url, count=1)
