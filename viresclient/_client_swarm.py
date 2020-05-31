@@ -104,6 +104,22 @@ MODEL_REFERENCES = {
         ("[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",),
     'AMPS':
         ("AMPS - associated magnetic field, https://github.com/klaundal/pyAMPS",),
+    'MCO_SHA_2X':
+        ("Alias for 'CHAOS-Core'",),
+    'CHAOS':
+        ("Alias for 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'",),
+    'CHAOS-MMA':
+        ("Alias for 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'",),
+    'MMA_SHA_2C':
+        ("Alias for 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'",),
+    'MMA_SHA_2F':
+        ("Alias for 'MMA_SHA_2F-Primary' + 'MMA_SHA_2F-Secondary'",),
+    'MIO_SHA_2C':
+        ("Alias for 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary'",),
+    'MIO_SHA_2D':
+        ("Alias for 'MIO_SHA_2D-Primary' + 'MIO_SHA_2D-Secondary'",),
+    'SwarmCI':
+        ("Alias for 'MCO_SHA_2C' + 'MLI_SHA_2C' + 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary' + 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'",),
 }
 
 DEPRECATED_MODELS = {
@@ -377,7 +393,6 @@ class SwarmRequest(ClientRequest):
         "MAG_HR": [ #NOTE: F is calculated on the fly from B_NEC (F = |B_NEC|)
             "F", "B_VFM", "B_NEC", "dB_Sun", "dB_AOCS", "dB_other", "B_error",
             "q_NEC_CRF", "Att_error", "Flags_B", "Flags_q", "Flags_Platform",
-            "ASM_Freq_Dev",
             ],
         "EFI": [
             "U_orbit", "Ne", "Ne_error", "Te", "Te_error", "Vs", "Vs_error",
@@ -430,6 +445,7 @@ class SwarmRequest(ClientRequest):
         "MIO_SHA_2C-Primary", "MIO_SHA_2C-Secondary",
         "MIO_SHA_2D-Primary", "MIO_SHA_2D-Secondary",
         "AMPS",
+        "MCO_SHA_2X", "CHAOS", "CHAOS-MMA", "MMA_SHA_2C", "MMA_SHA_2F", "MIO_SHA_2C", "MIO_SHA_2D", "SwarmCI",
         ]
 
     def __init__(self, url=None, username=None, password=None, token=None,
