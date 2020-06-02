@@ -1,6 +1,12 @@
 Release notes
 =============
 
+Changes from 0.6.1 to 0.6.2
+---------------------------
+
+- Added automatic initialisation of access token when running on VRE
+- Added new composed model aliases (shortcuts)
+
 Changes from 0.6.0 to 0.6.1
 ---------------------------
 

@@ -80,13 +80,17 @@ For IPD::
 ``models``
 ----------
 
-Models are evaluated along the satellite track at the positions of the time series that has been requested. These must be used together with one of the MAG collections, and one or both of the "F" and "B_NEC" measurements. This can yield either the model values together with the measurements, or the data-model residuals. `(More info about models) <https://magneticearth.org/pages/models.html>`_
+Models are evaluated along the satellite track at the positions of the time series that has been requested. These must be used together with one of the MAG collections, and one or both of the "F" and "B_NEC" measurements. This can yield either the model values together with the measurements, or the data-model residuals.
 
 .. note::
 
   For a good estimate of the ionospheric field measured by a Swarm satellite (with the core, crust and magnetosphere effects removed) use a composed model defined as:
-  ``models=['CHAOS-full' = 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'"]``
+  ``models=["'CHAOS-full' = 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'"]``
   `(click for more info) <https://github.com/klaundal/notebooks/blob/master/get_external_field.ipynb>`_
+  
+  This composed model can also be accessed by an alias: ``models=["CHAOS"]`` which represents the full CHAOS model
+
+  See https://magneticearth.org for an overview introduction to geomagnetic models.
 
 ::
 
@@ -114,6 +118,16 @@ Models are evaluated along the satellite track at the positions of the time seri
 
   # Other lithospheric models:
   MF7, LCS-1
+
+  # Aliases for compositions of the above models (shortcuts)
+  MCO_SHA_2X    # 'CHAOS-Core'
+  CHAOS-MMA     # 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'
+  CHAOS         # 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'
+  MMA_SHA_2F    # 'MMA_SHA_2F-Primary' + 'MMA_SHA_2F-Secondary'
+  MMA_SHA_2C    # 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'
+  MIO_SHA_2C    # 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary'
+  MIO_SHA_2D    # 'MIO_SHA_2D-Primary' + 'MIO_SHA_2D-Secondary'
+  SwarmCI       # 'MCO_SHA_2C' + 'MLI_SHA_2C' + 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary' + 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'
 
 Custom (user uploaded) models can be provided as a .shc file and become accessible in the same way as pre-defined models, under the name ``"Custom_Model"``.
 

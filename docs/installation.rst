@@ -4,11 +4,9 @@ Installation and first usage
 1. Installation
 ---------------
 
-.. note:: For VRE (Virtual Research Environment) users (it's free!):
+.. note:: For VRE (Virtual Research Environment) users (it's free! - `read more <https://swarm-vre.readthedocs.io/>`_):
 
-  viresclient is already installed so skip this step. Log in at https://vre.vires.services/ and refer to documentation at https://swarm-vre.readthedocs.io/
-
-  You may still need to configure viresclient (see step 2)
+  viresclient is already installed so skip this step. Log in at https://vre.vires.services/ and refer to documentation at https://swarm-vre.readthedocs.io/. The access token should be automatically configured so you can jump in with the notebook demos.
 
 Python ≥ 3.5 is required. Tested primarily on Linux, but macOS and Windows should also work (on v0.4+).
 
