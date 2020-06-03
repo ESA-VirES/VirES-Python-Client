@@ -79,6 +79,10 @@ MODEL_REFERENCES = {
         ("[Dedicated Chain]: Lithospheric field",
          " Swarm SCARF Dedicated Lithospheric Field Inversion chain, https://doi.org/10.5047/eps.2013.07.008 ",
          " Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2D_00000000T000000_99999999T999999_0401.ZIP "),
+    'MLI_SHA_2E':
+        ("[Extended dedicated chain]: Lithospheric field",
+         " Joint inversion of Swarm, CHAMP, and WDMAM data ",
+         " https://swarm-diss.eo.esa.int/?do=download&file=swarm%2FLevel2longterm%2FMLI%2FSW_OPER_MLI_VAL_2E_00000000T000000_99999999T999999_0502.ZIP "),
     'MMA_SHA_2C-Primary':
         ("[Comprehensive Inversion]: Primary (external) magnetospheric field of CIY4",
          "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MMA/SW_OPER_MMA_VAL_2C_20131201T000000_20180101T000000_0401.ZIP"),
@@ -439,7 +443,7 @@ class SwarmRequest(ClientRequest):
         "IGRF", "IGRF12", "LCS-1", "MF7",
         "CHAOS-Core", "CHAOS-Static", "CHAOS-MMA-Primary", "CHAOS-MMA-Secondary",
         "CHAOS-6-Core", "CHAOS-6-Static", "CHAOS-6-MMA-Primary", "CHAOS-6-MMA-Secondary",
-        "MCO_SHA_2C", "MCO_SHA_2D", "MLI_SHA_2C", "MLI_SHA_2D",
+        "MCO_SHA_2C", "MCO_SHA_2D", "MLI_SHA_2C", "MLI_SHA_2D", "MLI_SHA_2E",
         "MMA_SHA_2C-Primary", "MMA_SHA_2C-Secondary",
         "MMA_SHA_2F-Primary", "MMA_SHA_2F-Secondary",
         "MIO_SHA_2C-Primary", "MIO_SHA_2C-Secondary",
