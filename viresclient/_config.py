@@ -252,7 +252,17 @@ def _retrieve_access_token(url, token, purpose):
 
 
 def _get_env_config(env_var_name):
-    return json.loads(os.environ[env_var_name])
+    try:
+        return json.loads(os.environ[env_var_name])
+    except KeyError:
+        print("WARNING: Environment variable %s is not defined!" % env_var_name)
+    except json.decoder.JSONDecodeError:
+        print(
+            "WARNING: Failed to parse the content of the %s "
+            "environment variable!" % env_var_name
+        )
+    return {}
+
 
 
 def _parse_env_config(env_config):
