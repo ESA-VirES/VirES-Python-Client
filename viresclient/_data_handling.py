@@ -47,8 +47,8 @@ FRAME_NAMES = {
     "quaternion": ["q_NEC_CRF"],
     "WGS84": ["GPS_Position", "LEO_Position"],
     "EEJ_QDLat": ["EEJ"],
-    "NE": ["J"],
-    "AEJ_Quality": ["Quality"],
+    "NE": ["J_NE", "J_CF_NE", "J_DF_NE", "B_NE"],
+    "AOB_Quality": ["Quality"],
 }
 # Reverse mapping of the above
 DATANAMES_TO_FRAME_NAMES = {}
@@ -64,7 +64,7 @@ FRAME_LABELS = {
     "WGS84": ["X", "Y", "Z"],
     "EEJ_QDLat": numpy.linspace(-20, 20, 81),
     "NE": ["N", "E"],
-    "AEJ_Quality": ["Pa", "Sigma"],
+    "AOB_Quality": ["Pa", "Sigma"],
 }
 FRAME_DESCRIPTIONS = {
     "NEC": "NEC frame - North, East, Centre (down)",

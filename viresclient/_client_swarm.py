@@ -373,12 +373,21 @@ class SwarmRequest(ClientRequest):
         "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in "ABC_"],
         "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in "ABC"],
         "IPD": ["SW_OPER_IPD{}IRR_2F".format(x) for x in "ABC"],
+
         "AEJ_LPL": ["SW_OPER_AEJ{}LPL_2F".format(x) for x in "ABC"],
+        "AEJ_LPL:Quality": [
+            "SW_OPER_AEJ{}LPL_2F:Quality".format(x) for x in "ABC"
+        ],
         "AEJ_LPS": ["SW_OPER_AEJ{}LPS_2F".format(x) for x in "ABC"],
+        "AEJ_LPS:Quality": [
+            "SW_OPER_AEJ{}LPS_2F:Quality".format(x) for x in "ABC"
+        ],
         "AEJ_PBL": ["SW_OPER_AEJ{}PBL_2F".format(x) for x in "ABC"],
         "AEJ_PBS": ["SW_OPER_AEJ{}PBS_2F".format(x) for x in "ABC"],
+        "AEJ_PBS:GroundMagneticDisturbance": [
+            "SW_OPER_AEJ{}PBS_2F:GroundMagneticDisturbance".format(x) for x in "ABC"
+        ],
         "AOB_FAC": ["SW_OPER_AOB{}FAC_2F".format(x) for x in "ABC"],
-        "AEJ_PBS:PGMFD": ["SW_OPER_AEJ{}PBS_2F:PGMFD".format(x) for x in "ABC"],
         }
 
     # These are not necessarily real sampling steps, but are good enough to use
@@ -392,6 +401,8 @@ class SwarmRequest(ClientRequest):
         "FAC": "PT1S",
         "EEF": "PT90M",
         "IPD": "PT1S",
+        "AEJ_LPL": "PT15.6S",
+        "AEJ_LPS": "PT1S",
     }
 
     PRODUCT_VARIABLES = {
@@ -430,23 +441,29 @@ class SwarmRequest(ClientRequest):
             "IBI_flag", "Ionosphere_region_flag", "IPIR_index",
             "Ne_quality_flag", "TEC_STD"
             ],
-        "AEJ_LPL": ["Latitude_QD", "Longitude_QD", "MLT_QD", "J", "J_QD"],
+        "AEJ_LPL": [
+            "Latitude_QD", "Longitude_QD", "MLT_QD",
+            "J_NE", "J_QD"
+        ],
+        "AEJ_LPL:Quality": ["RMS_misfit", "Confidence"],
         "AEJ_LPS": [
             "Latitude_QD", "Longitude_QD", "MLT_QD",
-            "J_CF", "J_DF", "J_CF_SemiQD", "J_DF_SemiQD", "J_C"
+            "J_CF_NE", "J_DF_NE", "J_CF_SemiQD", "J_DF_SemiQD", "J_R"
             ],
+        "AEJ_LPS:Quality": ["RMS_misfit", "Confidence"],
         "AEJ_PBL": [
             "Latitude_QD", "Longitude_QD", "MLT_QD",
             "J_QD",  "Flags", "PointType"
             ],
         "AEJ_PBS": [
-            "Latitude_QD", "Longitude_QD", "MLT_QD", "Flags", "PointType"
+            "Latitude_QD", "Longitude_QD", "MLT_QD",
+            "J_DF_SemiQD", "Flags", "PointType"
             ],
+        "AEJ_PBS:GroundMagneticDisturbance": ["B_NE"],
         "AOB_FAC": [
             "Latitude_QD", "Longitude_QD", "MLT_QD",
             "Boundary_Flag", "Quality", "Pair_Indicator"
             ],
-        "AEJ_PBS:PGMFD": ["B_NEC"],
         }
 
     AUXILIARY_VARIABLES = [
