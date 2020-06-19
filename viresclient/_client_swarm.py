@@ -6,14 +6,16 @@ import sys
 
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.time_util import parse_datetime
-from ._client import WPSInputs, ClientRequest
+from ._client import WPSInputs, ClientRequest, TEMPLATE_FILES
 from ._data_handling import ReturnedDataFile
 
 
 TEMPLATE_FILES = {
+    **TEMPLATE_FILES,
     'sync': "vires_fetch_filtered_data.xml",
     'async': "vires_fetch_filtered_data_async.xml",
-    'model_info': "vires_get_model_info.xml"
+    'model_info': "vires_get_model_info.xml",
+    'times_from_orbits': "vires_times_from_orbits.xml"
 }
 
 REFERENCES = {
@@ -25,9 +27,13 @@ REFERENCES = {
     }
 
 MODEL_REFERENCES = {
+    'IGRF':
+        (" International Geomagnetic Reference Field: the 13th generation, (waiting for publication) ",
+         " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
     'IGRF12':
         (" International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
-         " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
+         " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "
+         " deprecated model identifier, use IGRF instead"),
     'CHAOS-Core':
         ("CHAOS-7 Core field (SH degrees 1-20)",
          " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
@@ -73,6 +79,10 @@ MODEL_REFERENCES = {
         ("[Dedicated Chain]: Lithospheric field",
          " Swarm SCARF Dedicated Lithospheric Field Inversion chain, https://doi.org/10.5047/eps.2013.07.008 ",
          " Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2D_00000000T000000_99999999T999999_0401.ZIP "),
+    'MLI_SHA_2E':
+        ("[Extended dedicated chain]: Lithospheric field",
+         " Joint inversion of Swarm, CHAMP, and WDMAM data ",
+         " https://swarm-diss.eo.esa.int/?do=download&file=swarm%2FLevel2longterm%2FMLI%2FSW_OPER_MLI_VAL_2E_00000000T000000_99999999T999999_0502.ZIP "),
     'MMA_SHA_2C-Primary':
         ("[Comprehensive Inversion]: Primary (external) magnetospheric field of CIY4",
          "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MMA/SW_OPER_MMA_VAL_2C_20131201T000000_20180101T000000_0401.ZIP"),
@@ -95,10 +105,29 @@ MODEL_REFERENCES = {
          " http://geomag.colorado.edu/difi-3 ",
          "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MIO/SW_OPER_MIO_VAL_2D_20131201T000000_20171231T235959_0402.ZIP "),
     'MIO_SHA_2D-Secondary':
-        ("[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",)
+        ("[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",),
+    'AMPS':
+        ("AMPS - associated magnetic field, https://github.com/klaundal/pyAMPS",),
+    'MCO_SHA_2X':
+        ("Alias for 'CHAOS-Core'",),
+    'CHAOS':
+        ("Alias for 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'",),
+    'CHAOS-MMA':
+        ("Alias for 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'",),
+    'MMA_SHA_2C':
+        ("Alias for 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'",),
+    'MMA_SHA_2F':
+        ("Alias for 'MMA_SHA_2F-Primary' + 'MMA_SHA_2F-Secondary'",),
+    'MIO_SHA_2C':
+        ("Alias for 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary'",),
+    'MIO_SHA_2D':
+        ("Alias for 'MIO_SHA_2D-Primary' + 'MIO_SHA_2D-Secondary'",),
+    'SwarmCI':
+        ("Alias for 'MCO_SHA_2C' + 'MLI_SHA_2C' + 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary' + 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'",),
 }
 
 DEPRECATED_MODELS = {
+    'IGRF12': "Use IGRF instead.",
     'CHAOS-6-Core': "Use CHAOS-Core instead.",
     'CHAOS-6-Static': "Use CHAOS-Static instead.",
     'CHAOS-6-MMA-Primary': "Use CHAOS-MMA-Primary instead.",
@@ -107,6 +136,8 @@ DEPRECATED_MODELS = {
 
 COLLECTION_REFERENCES = {
     "MAG": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#MAGX_LR_1B_Product ",
+            ),
+    "MAG_HR": ("https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#MAGX_HR_1B_Product ",
             ),
     "EFI": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#EFIX_LP_1B_Product ",
             ),
@@ -292,17 +323,37 @@ class SwarmWPSInputs(WPSInputs):
 class SwarmRequest(ClientRequest):
     """Handles the requests to and downloads from the server.
 
-    Steps to download data:
+    Example usage::
 
-    1. Set up a connection to the server with: request = SwarmRequest()
+        from viresclient import SwarmRequest
+        # Set up connection with server
+        request = SwarmRequest()
+        # Set collection to use
+        request.set_collection("SW_OPER_MAGA_LR_1B")
+        # Set mix of products to fetch:
+        #  measurements (variables from the given collection)
+        #  models (magnetic model predictions at spacecraft sampling points)
+        #  auxiliaries (variables available with any collection)
+        request.set_products(
+            measurements=["F", "B_NEC"],
+            models=["CHAOS-Core"],
+            auxiliaries=["QDLat", "QDLon"],
+            sampling_step="PT10S"
+        )
+        # Fetch data from a given time interval
+        data = request.get_between(
+            start_time="2014-01-01T00:00",
+            end_time="2014-01-01T01:00"
+        )
+        # Load the data as an xarray.Dataset
+        ds = data.as_xarray()
 
-    2. Set collections to use with: request.set_collections()
+    Check what data are available with::
 
-    3. Set parameters to get with: request.set_products()
-
-    4. Set filters to apply with: request.set_range_filter()
-
-    5. Get the data in a chosen time window: request.get_between()
+        request.available_collections(details=False)
+        request.available_measurements("MAG")
+        request.available_auxiliaries()
+        request.available_models(details=False)
 
     Args:
         url (str):
@@ -315,11 +366,12 @@ class SwarmRequest(ClientRequest):
     """
     COLLECTIONS = {
         "MAG": ["SW_OPER_MAG{}_LR_1B".format(x) for x in "ABC"],
+        "MAG_HR": ["SW_OPER_MAG{}_HR_1B".format(x) for x in "ABC"],
         "EFI": ["SW_OPER_EFI{}_LP_1B".format(x) for x in "ABC"],
         "IBI": ["SW_OPER_IBI{}TMS_2F".format(x) for x in "ABC"],
         "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in "ABC"],
         "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in "ABC_"],
-        "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in "AB"],
+        "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in "ABC"],
         "IPD": ["SW_OPER_IPD{}IRR_2F".format(x) for x in "ABC"],
         "AEJ_LPL": ["SW_OPER_AEJ{}LPL_2F".format(x) for x in "ABC"],
         "AEJ_LPS": ["SW_OPER_AEJ{}LPS_2F".format(x) for x in "ABC"],
@@ -333,6 +385,7 @@ class SwarmRequest(ClientRequest):
     # for splitting long requests into chunks
     COLLECTION_SAMPLING_STEPS = {
         "MAG": "PT1S",
+        "MAG_HR": "PT0.019S",  # approx 50Hz (the sampling is not exactly 50Hz)
         "EFI": "PT0.5S",
         "IBI": "PT1S",
         "TEC": "PT1S",      # Actually more complicated
@@ -346,6 +399,10 @@ class SwarmRequest(ClientRequest):
             "F", "dF_AOCS", "dF_other", "F_error", "B_VFM", "B_NEC", "dB_Sun",
             "dB_AOCS", "dB_other", "B_error", "q_NEC_CRF", "Att_error",
             "Flags_F", "Flags_B", "Flags_q", "Flags_Platform", "ASM_Freq_Dev",
+            ],
+        "MAG_HR": [ #NOTE: F is calculated on the fly from B_NEC (F = |B_NEC|)
+            "F", "B_VFM", "B_NEC", "dB_Sun", "dB_AOCS", "dB_other", "B_error",
+            "q_NEC_CRF", "Att_error", "Flags_B", "Flags_q", "Flags_Platform",
             ],
         "EFI": [
             "U_orbit", "Ne", "Ne_error", "Te", "Te_error", "Vs", "Vs_error",
@@ -363,7 +420,7 @@ class SwarmRequest(ClientRequest):
         "FAC": [
             "IRC", "IRC_Error", "FAC", "FAC_Error", "Flags", "Flags_F",
             "Flags_B", "Flags_q"],
-        "EEF": ["EEF", "RelErr", "flags"],
+        "EEF": ["EEF", "EEJ", "RelErr", "Flags"],
         "IPD": [
             "Ne", "Te", "Background_Ne", "Foreground_Ne", "PCP_flag",
             "Grad_Ne_at_100km", "Grad_Ne_at_50km", "Grad_Ne_at_20km",
@@ -400,21 +457,22 @@ class SwarmRequest(ClientRequest):
         "QDLon", "QDBasis", "MLT", "SunDeclination", "SunHourAngle",
         "SunRightAscension", "SunAzimuthAngle", "SunZenithAngle",
         "SunLongitude", "SunVector", "DipoleAxisVector", "NGPLatitude",
-        "NGPLongitude", "DipoleTiltAngle", "UpwardCurrent", "TotalCurrent",
-        "DivergenceFreeCurrentFunction", "F_AMPS", "B_NEC_AMPS",
+        "NGPLongitude", "DipoleTiltAngle",
         ]
 
     MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
 
     MAGNETIC_MODELS = [
-        "IGRF12", "LCS-1", "MF7",
+        "IGRF", "IGRF12", "LCS-1", "MF7",
         "CHAOS-Core", "CHAOS-Static", "CHAOS-MMA-Primary", "CHAOS-MMA-Secondary",
         "CHAOS-6-Core", "CHAOS-6-Static", "CHAOS-6-MMA-Primary", "CHAOS-6-MMA-Secondary",
-        "MCO_SHA_2C", "MCO_SHA_2D", "MLI_SHA_2C", "MLI_SHA_2D",
+        "MCO_SHA_2C", "MCO_SHA_2D", "MLI_SHA_2C", "MLI_SHA_2D", "MLI_SHA_2E",
         "MMA_SHA_2C-Primary", "MMA_SHA_2C-Secondary",
         "MMA_SHA_2F-Primary", "MMA_SHA_2F-Secondary",
         "MIO_SHA_2C-Primary", "MIO_SHA_2C-Secondary",
         "MIO_SHA_2D-Primary", "MIO_SHA_2D-Secondary",
+        "AMPS",
+        "MCO_SHA_2X", "CHAOS", "CHAOS-MMA", "MMA_SHA_2C", "MMA_SHA_2F", "MIO_SHA_2C", "MIO_SHA_2D", "SwarmCI",
         ]
 
     def __init__(self, url=None, username=None, password=None, token=None,
@@ -498,20 +556,32 @@ class SwarmRequest(ClientRequest):
         model_ids = list(s.strip("\'\"") for s in model_expressions.keys())
         return model_ids, model_expression_string[1:]
 
-    def available_collections(self, details=True):
+    def available_collections(self, groupname=None, details=True):
         """Show details of available collections.
 
         Args:
+            groupname (str): one of: ("MAG", "EFI", etc.)
             details (bool): If True then print a nice output.
-                If False then return a list of available collections.
+                If False then return a dict of available collections.
 
         """
+        def _filter_collections(groupname):
+            groups = list(self._available["collections"].keys())
+            if groupname in groups:
+                return {groupname:
+                        self._available["collections"][groupname]}
+            else:
+                raise ValueError("Invalid collection group name")
+        if groupname:
+            collections_filtered = _filter_collections(groupname)
+        else:
+            collections_filtered = self._available["collections"]
         if details:
             print("General References:")
             for i in REFERENCES["General Swarm"]:
                 print(i)
             print()
-            for key, val in self._available["collections"].items():
+            for key, val in collections_filtered.items():
                 print(key)
                 for i in val:
                     print('  ', i)
@@ -520,7 +590,7 @@ class SwarmRequest(ClientRequest):
                     print(ref)
                 print()
         else:
-            return list(self._available["collections_to_keys"])
+            return collections_filtered
 
     def available_measurements(self, collection=None):
         """Returns a list of the available measurements for the chosen collection.
@@ -571,31 +641,31 @@ class SwarmRequest(ClientRequest):
         """
 
         def filter_by_param(d, param):
-            if param in "F C D".split(' '):
+            if param in ("F", "C", "D"):
                 param = '2' + param
-            if isinstance(d, list):
-                d = [i for i in d if param in i]
-            elif isinstance(d, dict):
-                d = {k: d[k] for k in d.keys() if param in k}
-            else:
-                raise TypeError("d should be a dict or a list")
-            return d
+            return [i for i in d if param in i]
 
-        if details:
-            mod_refs = MODEL_REFERENCES
-            # Extend the dictionary to include information from get_model_info
-            models_info = self.get_model_info(self._available["models"])
-            d = {}
-            for model_name in self._available["models"]:
-                d[model_name] = {
-                    "description": mod_refs[model_name],
-                    "details": models_info[model_name]
-                }
-        else:
-            d = self._available["models"]
+        # get all models provided by the server
+        models_info = self.get_model_info()
+
+        # keep only models really provided by the server
+        d = [
+            model_name for model_name in self._available["models"]
+            if model_name in models_info
+        ]
+
         # Filter the dict/list to only include those that contain param
         if param is not None:
             d = filter_by_param(d, param)
+
+        if details:
+            d = {
+                model_name: {
+                    "description": MODEL_REFERENCES[model_name],
+                    "details": models_info[model_name]
+                }
+                for model_name in d
+            }
 
         if nice_output and details:
             d = OrderedDict(sorted(d.items()))
@@ -641,6 +711,7 @@ class SwarmRequest(ClientRequest):
                     )
         self._collection_list = collections
         self._request_inputs.set_collections(collections)
+        return self
 
     def set_products(self, measurements=None, models=None, custom_model=None,
                      auxiliaries=None, residuals=False, sampling_step=None
@@ -735,6 +806,7 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.variables = variables
         self._request_inputs.sampling_step = sampling_step
         self._request_inputs.custom_shc = custom_shc
+        return self
 
     def set_range_filter(self, parameter=None, minimum=None, maximum=None):
         """Set a filter to apply.
@@ -761,11 +833,13 @@ class SwarmRequest(ClientRequest):
             filters = ';'.join(self._filterlist)
         # Update the SwarmWPSInputs object
         self._request_inputs.filters = filters
+        return self
 
     def clear_range_filter(self):
         """Remove all applied filters."""
         self._filterlist = []
         self._request_inputs.filters = None
+        return self
 
     def get_times_for_orbits(self, spacecraft, start_orbit, end_orbit):
         """Translate a pair of orbit numbers to a time interval.
@@ -785,14 +859,15 @@ class SwarmRequest(ClientRequest):
         # Change to spacecraft = "A" etc. for this request
         if spacecraft in ("Alpha", "Bravo", "Charlie"):
             spacecraft = spacecraft[0]
-        templatefile = "vires_times_from_orbits.xml"
+        templatefile = TEMPLATE_FILES["times_from_orbits"]
         template = JINJA2_ENVIRONMENT.get_template(templatefile)
         request = template.render(
             spacecraft=spacecraft,
             start_orbit=start_orbit,
             end_orbit=end_orbit
         ).encode('UTF-8')
-        response = self._wps_service.retrieve(request)
+        response = self._get(
+            request, asynchronous=False, show_progress=False)
         responsedict = json.loads(response.decode('UTF-8'))
         start_time = parse_datetime(responsedict['start_time'])
         end_time = parse_datetime(responsedict['end_time'])
@@ -833,7 +908,10 @@ class SwarmRequest(ClientRequest):
         response_handler = self._response_handler(
             retdata, show_progress=False
         )
-        self._wps_service.retrieve(request, handler=response_handler)
+        self._get(
+            request, asynchronous=False, response_handler=response_handler,
+            show_progress=False)
+        # self._wps_service.retrieve(request, handler=response_handler)
         return retdata.as_dataframe()["OrbitNumber"][0]
 
     def get_model_info(self, models=None, custom_model=None,
@@ -864,34 +942,47 @@ class SwarmRequest(ClientRequest):
             dict or list
 
         """
-        # Check models format, extract model_ids and string to pass to server
-        model_ids, model_expression_string = self._parse_models_input(models)
+
+        def _request_get_model_info(model_expression=None, custom_shc=None):
+            """ Make the get_model_info request. """
+            templatefile = TEMPLATE_FILES["model_info"]
+            template = JINJA2_ENVIRONMENT.get_template(templatefile)
+            request = template.render(
+                model_expression=model_expression,
+                custom_shc=custom_shc,
+                response_type="application/json"
+            ).encode('UTF-8')
+            response = self._get(
+                request, asynchronous=False, show_progress=False)
+            response_list = json.loads(response.decode('UTF-8'))
+            return response_list
+
+        def _build_dict(response_list):
+            """ Build dictionary output organised by model name. """
+            return {
+                model_dict.pop("name"): model_dict
+                for model_dict in response_list
+            }
+
         if custom_model:
             with open(custom_model) as custom_shc_file:
                 custom_shc = custom_shc_file.read()
-            model_ids.append("Custom_Model")
-            model_expression_string = ",".join(
-                [model_expression_string, "Custom_Model"]
-            )
+            if not models:
+                models = ["Custom_Model"]
         else:
             custom_shc = None
-        templatefile = "vires_get_model_info.xml"
-        template = JINJA2_ENVIRONMENT.get_template(templatefile)
-        request = template.render(
-            model_expression=model_expression_string,
-            custom_shc=custom_shc,
-            response_type="application/json"
-        ).encode('UTF-8')
-        response = self._wps_service.retrieve(request)
-        response_list = json.loads(response.decode('UTF-8'))
-        if original_response:
-            return response_list
+
+        if models is not None:
+            _, model_expression = self._parse_models_input(models)
         else:
-            # Build dictionary output organised by model name
-            dict_out = {}
-            for model_dict in response_list:
-                dict_out[model_dict.pop("name")] = model_dict
-            return dict_out
+            model_expression = None
+
+        response = _request_get_model_info(model_expression, custom_shc)
+
+        if not original_response:
+            response = _build_dict(response)
+
+        return response
 
     @staticmethod
     def _check_deprecated_models(models):

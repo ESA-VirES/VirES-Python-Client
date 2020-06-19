@@ -1,7 +1,7 @@
 Configuration Details
 =====================
 
-While it is possible to enter the server URL and access credentials each time a new request object is created,
+While it is possible to enter the server URL and access credentials (see :doc:`access_token`) each time a new request object is created,
 
 .. code-block:: python
 
@@ -82,13 +82,11 @@ For developers & DISC users
 
 The accounts for the staging server (``staging.vires.services``), and DISC server (``staging.viresdisc.vires.services``) are separate. Tokens can be similarly generated on these and stored in the same configuration file alongside the others::
 
-  $ viresclient set_token https://vires.services/ows
+  $ viresclient set_token https://staging.vires.services/ows
   Enter access token: r-8-mlkP_RBx4mDv0di5Bzt3UZ52NGg-
 
   $ viresclient set_token https://staging.viresdisc.vires.services/ows
   Enter access token: VymMHhWjZ-9nSVs-FuPC27ca8C6cOyij
-
-  $ viresclient set_default_server https://vires.services/ows
 
 Using ``SwarmRequest()`` without the ``url`` parameter will use the default URL set above. To access a non-default server the URL parameter must be used:
 
@@ -102,4 +100,10 @@ Using ``SwarmRequest()`` without the ``url`` parameter will use the default URL 
   # request to an alternative, non-default server
   request = SwarmRequest(url="https://staging.viresdisc.vires.services/ows")
 
-The older HTTP basic access authentication (i.e. username + password) is still available on the staging servers and these credentials can also be configured using :meth:ClientConfig. However, this is not available on the production server and may be removed in the future, so should not be used.
+The older HTTP basic access authentication (i.e. username + password) is still available on the DICS staging server and these credentials can also be configured::
+
+  $ viresclient set_password https://staging.viresdisc.vires.services/openows
+  Enter username [jovyan]: <username>
+  Enter password: ***********
+
+However, this interface is deprecated and it will be removed in future and it is recommended to switch to the token-based authentication.

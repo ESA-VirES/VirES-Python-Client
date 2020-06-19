@@ -1,26 +1,44 @@
 Introduction to notebooks
 =========================
 
-Jupyter notebooks are a convenient tool for interactive data exploration and are used here to demonstrate usage of ``viresclient``. We encourage users to try out Jupyter for themselves and to consider sharing notebooks with others. If you have a comment about one of the notebooks, or would like a particular demonstration, you can `open a GitHub Issue <https://github.com/smithara/viresclient_examples/issues/new>`_ or get in touch otherwise.
+Jupyter notebooks are a convenient tool for interactive data exploration, rapid prototyping, and producing reports. The Virtual Research Environment provides free JupyterLab instances with persistent storage where you can run notebooks working with Swarm data. For more information, see the `Swarm-VRE docs <https://swarm-vre.readthedocs.io/>`_.
 
-Click `here <https://nbviewer.jupyter.org/github/smithara/viresclient_examples/>`_ (nbviewer) to view viresclient_examples non-interactively. Sometimes notebooks won't render directly on the GitHub website - try `nbviewer <https://nbviewer.jupyter.org/>`_ instead.
 
-Here is a list of related notebook repositories where you are welcome to submit changes or additions. Please get in touch if you would like your own repository to be listed here.
 
- - https://github.com/smithara/viresclient_examples
- - https://github.com/pacesm/jupyter_notebooks
+.. list-table:: Notebook repositories
+   :header-rows: 1
+   :widths: 7 5 5
 
-Other repositories with wider scope:
+   *  -  Name (GitHub Link)
+      -  View (nbviewer)
+      -  Launch/interact (VRE)
+   *  -  `Swarm-DISC/Swarm_notebooks <https://github.com/Swarm-DISC/Swarm_notebooks>`_
+      -  .. image:: https://img.shields.io/badge/render-nbviewer-orange.svg
+            :target: https://nbviewer.jupyter.org/github/Swarm-DISC/Swarm_notebooks
+      -  (to do)
+   *  -  `smithara/viresclient_examples <https://github.com/smithara/viresclient_examples>`_
+      -  .. image:: https://img.shields.io/badge/render-nbviewer-orange.svg
+            :target: https://nbviewer.jupyter.org/github/smithara/viresclient_examples
+      -  (to do)
+   *  -  `pacesm/jupyter_notebooks <https://github.com/pacesm/jupyter_notebooks>`_
+      -  .. image:: https://img.shields.io/badge/render-nbviewer-orange.svg
+            :target: https://nbviewer.jupyter.org/github/pacesm/jupyter_notebooks
+      -  (to do)
 
- - https://github.com/smithara/IAGA_SummerSchool2019
+
+.. note::
+
+  Sometimes notebooks won't render directly on the GitHub website (or are slow). Try `nbviewer <https://nbviewer.jupyter.org/>`_ instead (see the "Render" links above).
+
+Notebooks can be uploaded to JupyterLab using the "Upload" button (which means you must first download the notebooks to your computer from GitHub). To easily access a full repository, open a command line console and use git:
 
 To clone a repository to your working space::
 
-    cd ~
-    git clone https://github.com/smithara/viresclient_examples.git
+    git clone https://github.com/Swarm-DISC/Swarm_notebooks.git
 
-To clear any changes you made and fetch the latest version::
+(this will clone it into ``Swarm_notebooks`` within your current directory)
 
-    cd ~/viresclient_examples/
+To clear any changes you made and fetch the latest version, from within ``Swarm_notebooks`` run::
+
     git fetch
     git reset --hard origin/master

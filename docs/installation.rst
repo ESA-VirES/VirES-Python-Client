@@ -4,11 +4,9 @@ Installation and first usage
 1. Installation
 ---------------
 
-.. note:: For VRE (Virtual Research Environment) users:
+.. note:: For VRE (Virtual Research Environment) users (it's free! - `read more <https://swarm-vre.readthedocs.io/>`_):
 
-  viresclient is already installed so skip this step. Log in at https://vre.vires.services/ and refer to documentation at https://swarm-vre.readthedocs.io/
-
-  You will still need to configure viresclient (see step 2)
+  viresclient is already installed so skip this step. Log in at https://vre.vires.services/ and refer to documentation at https://swarm-vre.readthedocs.io/. The access token should be automatically configured so you can jump in with the notebook demos.
 
 Python ≥ 3.5 is required. Tested primarily on Linux, but macOS and Windows should also work (on v0.4+).
 
@@ -18,13 +16,13 @@ It can currently be installed with::
 
 Dependencies::
 
-  requests ≥ 2.0.0
-  Jinja2   ≥ 2.10.0
-  tables   ≥ 3.4.4
-  tqdm     ≥ 4.23.0
-  cdflib   ≥ 0.3.9
-  pandas   ≥ 0.18.0
-  xarray   ≥ 0.11.0
+  requests
+  Jinja2
+  tables
+  tqdm
+  cdflib
+  pandas
+  xarray
 
 pip will fetch these automatically - if you are using conda, it may be better to install these first using conda instead::
 
@@ -34,7 +32,7 @@ pip will fetch these automatically - if you are using conda, it may be better to
 Recommended setup if starting without Python already
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. Install Miniconda for Python 3.7: https://docs.conda.io/en/latest/miniconda.html
+1. Install Miniconda: https://docs.conda.io/en/latest/miniconda.html
 2. Create a new conda environment with some recommended packages::
 
     conda create --name py37 scipy matplotlib pandas xarray cartopy jupyter jupyterlab flake8 dask h5py netCDF4 jinja2 pytables tqdm
@@ -54,17 +52,18 @@ Recommended setup if starting without Python already
 
 .. note:: For Jupyter notebook users:
 
-  The guide for first time usage are also provided as a Jupyter notebook. Download the notebook to your environment and follow the instructions.
+  On creation of a SwarmRequest object, you will automatically be prompted to set a token. Just try::
 
-  https://github.com/smithara/viresclient_examples/blob/master/0_first_usage.ipynb
+    from viresclient import SwarmRequest
+    request = SwarmRequest()
 
-  To download the whole example repository, open a terminal and do::
+  and follow the instructions.
 
-    git clone https://github.com/smithara/viresclient_examples.git
+  A first usage guide is provided as a Jupyter notebook (`view <https://nbviewer.jupyter.org/github/Swarm-DISC/Swarm_notebooks/blob/master/02a__Intro-Swarm-viresclient.ipynb>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/Swarm-DISC/Swarm_notebooks/master/02a__Intro-Swarm-viresclient.ipynb>`_, or use git to get the whole example repository::
 
-  then launch the notebook, ``viresclient_examples/0_first_usage.ipynb``
+    git clone https://github.com/Swarm-DISC/Swarm_notebooks.git
 
-Access to the service is through the same user account as on the web interface (https://vires.services/) and is enabled through an access token (essentially a password). To get a token, log in to the website and click on your name on the top right to access the settings. From here, click on "Manage access tokens" and follow the instructions to create a new token.
+Access to the service is through the same user account as on the web interface (https://vires.services/) and is enabled through an access token (essentially a password). To get a token, log in to the website and click on your name on the top right to access the settings (`or follow this link <https://vires.services/accounts/tokens/>`_). From here, click on "Manage access tokens" and follow the instructions to create a new token.
 
 To set your token in the client, use either the Python interface:
 
@@ -81,7 +80,7 @@ or the command line tool::
 
   $ viresclient set_default_server https://vires.services/ows
 
-See also: see :doc:`config_details`
+See also: see :doc:`config_details` and :doc:`access_token`
 
 3. Example use
 --------------
@@ -94,6 +93,7 @@ Choose which collection to access (see :doc:`available_parameters` for more opti
 
 .. code-block:: python
 
+  import datetime as dt
   from viresclient import SwarmRequest
 
   request = SwarmRequest()

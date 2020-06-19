@@ -27,20 +27,47 @@
 # THE SOFTWARE.
 #-------------------------------------------------------------------------------
 
+import os
+import json
 from io import StringIO
-from os import name as os_name, chmod
 from os.path import expanduser, join
 from getpass import getpass
 from configparser import ConfigParser
+from ._api.token import TokenManager
+
+# Identify whether code is running in Jupyter notebook or not
+try:
+    from IPython import get_ipython
+    from IPython.display import display_html
+    IN_JUPYTER = 'zmqshell' in str(type(get_ipython()))
+    from IPython.core.error import StdinNotImplementedError
+except ImportError:
+    IN_JUPYTER = False
+
 
 DEFAULT_CONFIG_PATH = join(expanduser("~"), ".viresclient.ini")
+DEFAULT_INSTANCE_NAME = "VirES Python Client"
+DEFAULT_SERVER = "https://vires.services"
+DATA_API_PATH = "/ows"
+TOKEN_GUI_PATH = "/accounts/tokens/"
 
 
-def set_token(url="https://vires.services/ows", token=None):
+def _get_ows_url(url):
+    """ https//foo.bar(/ows)? -> https//foo.bar/ows """
+    return TokenManager.RE_URL_BASE.sub(DATA_API_PATH, url, count=1)
+
+
+def _get_token_gui_url(url):
+    """ https//foo.bar(/ows)? -> https//foo.bar/accounts/tokens/ """
+    return TokenManager.RE_URL_BASE.sub(TOKEN_GUI_PATH, url, count=1)
+
+
+def set_token(url="https://vires.services/ows", token=None, set_default=False):
     """ Set the access token for a given URL, using user input.
 
-    Login to https://vires.services/ and use the settings panel
-    "Manage access tokens" to generate a token and use this function to set it.
+    Get an access token at https://vires.services/accounts/tokens/
+
+    See https://viresclient.readthedocs.io/en/latest/config_details.html
 
     This will create a configuration file if not already present, and input a
     token configuration for a given URL, replacing the current token. It sets
@@ -60,13 +87,40 @@ def set_token(url="https://vires.services/ows", token=None):
 
     """
     if not token:
-        token = getpass("Enter access token:")
+        url4token = _get_token_gui_url(url)
+        # Provide user with information on token setting URL
+        # Nicer output in IPython, with a clickable link
+        if IN_JUPYTER:
+            def _linkify(_url):
+                if _url:
+                    return '<a href="{url}">{url}</a>'.format(url=_url)
+                return '(link not found)'
+            display_html(
+                'Setting access token for {}...<br>'.format(url)
+                + 'Generate a token at {}'.format(_linkify(url4token)),
+                raw=True)
+        else:
+            print('Setting access token for', url, ' ...')
+            url4token = url4token if url4token else '(link not found)'
+            print('Generate a token at', url4token)
+        # Prompt user to supply token, if input is allowed
+        try:
+            token = getpass('Enter token:')
+        except EOFError:
+            # getpass is meant to do something like this as a fallback
+            # but it fails with EOFError in Jupyter (rare glitch)
+            # https://github.com/ESA-VirES/VirES-Python-Client/issues/46
+            token = input('Enter token:')
+        except StdinNotImplementedError:
+            print('No input method available. Unable to set token.')
+            return
     config = ClientConfig()
     config.set_site_config(url, token=token)
     # Use the current URL as default if none has been set before
-    if not config.default_url:
+    if (not config.default_url) or set_default:
         config.default_url = url
     config.save()
+    print("Token saved for", url)
 
 
 class ClientConfig():
@@ -158,11 +212,62 @@ class ClientConfig():
         with open(self._path, 'w') as file_:
             self._config.write(file_)
             # make the saved file private
-            if os_name == 'posix':
-                chmod(file_.fileno(), 0o0600)
+            if os.name == 'posix':
+                os.chmod(file_.fileno(), 0o0600)
 
     def __str__(self):
         """ Dump configuration to a string. """
         fobj = StringIO()
         self._config.write(fobj)
         return fobj.getvalue()
+
+
+    def init(self, env_var_name="VIRES_ACCESS_CONFIG"):
+        """ Initialize client configuration. """
+        env_config = _parse_env_config(_get_env_config(env_var_name))
+
+        if not self.default_url:
+            url = _get_ows_url(env_config['default_server'])
+            print("Setting default URL to %s ..." % url)
+            self.default_url = url
+
+        # retrieve and server tokens
+        for server_url, token_dict in env_config['servers'].items():
+            url = _get_ows_url(server_url)
+            if self.get_site_config(url):
+                continue
+            print("Creating new access token for %s ..." % url)
+            try:
+                token = _retrieve_access_token(
+                    server_url, token_dict['token'], env_config["instance_name"]
+                )
+            except TokenManager.Error as error:
+                print("ERROR: Failed to create a new access token! Reason: %s" % error)
+                continue
+            self.set_site_config(url, token=token)
+
+
+def _retrieve_access_token(url, token, purpose):
+    return TokenManager(url, token).post(purpose=purpose)['token']
+
+
+def _get_env_config(env_var_name):
+    try:
+        return json.loads(os.environ[env_var_name])
+    except KeyError:
+        print("WARNING: Environment variable %s is not defined!" % env_var_name)
+    except json.decoder.JSONDecodeError:
+        print(
+            "WARNING: Failed to parse the content of the %s "
+            "environment variable!" % env_var_name
+        )
+    return {}
+
+
+
+def _parse_env_config(env_config):
+    return {
+        "instance_name": env_config.get("instance_name") or DEFAULT_SERVER,
+        "default_server": env_config.get("default_server") or DEFAULT_SERVER,
+        "servers": env_config.get("servers") or {},
+    }

@@ -14,6 +14,7 @@
 #
 import os
 import sys
+import urllib.request
 sys.path.insert(0, os.path.abspath('..'))
 
 
@@ -44,10 +45,11 @@ release = version
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.napoleon',
-              'nbsphinx',
-              'sphinx.ext.imgmath'
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
+    'nbsphinx',
+    'sphinx.ext.imgmath',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -107,6 +109,14 @@ html_theme_path = ["_themes", ]
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+
+# Fetch and use external logo
+logo_filename = 'vre_logo_light.svg'
+if not os.path.exists(logo_filename):
+    urllib.request.urlretrieve(
+        'https://raw.githubusercontent.com/ESA-VirES/Swarm-VRE/staging/docs/_static/vre_logo_light.svg',
+        logo_filename)
+html_logo = logo_filename
 
 
 # -- Options for HTMLHelp output ---------------------------------------------

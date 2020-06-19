@@ -1,6 +1,8 @@
 Available parameters for Swarm data
 ===================================
 
+| `See also: Jupyter notebook about data and model availability <https://swarm-vre.readthedocs.io/en/latest/Swarm_notebooks/02b__viresclient-Available-Data.html>`_
+
 You can check which parameters are available with:
 
 .. code-block:: python
@@ -26,6 +28,7 @@ See the `Swarm Data Handbook`_ for details about the products.
 (replace x with A, B, or C for Alpha, Bravo, or Charlie)::
 
   SW_OPER_MAGx_LR_1B
+  SW_OPER_MAGx_HR_1B
   SW_OPER_EFIx_LP_1B
   SW_OPER_IBIxTMS_2F
   SW_OPER_TECxTMS_2F
@@ -44,7 +47,7 @@ The ``measurements``, ``models``, and ``auxiliaries`` chosen will match the cade
 
 Choose combinations of measurements from one of the following sets, corresponding to the collection chosen above.
 
-For MAG::
+For MAG and ``MAG_HR``::
 
   F,dF_AOCS,dF_other,F_error,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_error,Flags_F,Flags_B,Flags_q,Flags_Platform,ASM_Freq_Dev
 
@@ -66,7 +69,7 @@ For FAC::
 
 For EEF::
 
-  EEF,RelErr,flags
+  EEF,EEJ,RelErr,Flags
 
 For IPD::
 
@@ -79,9 +82,19 @@ For IPD::
 
 Models are evaluated along the satellite track at the positions of the time series that has been requested. These must be used together with one of the MAG collections, and one or both of the "F" and "B_NEC" measurements. This can yield either the model values together with the measurements, or the data-model residuals.
 
+.. note::
+
+  For a good estimate of the ionospheric field measured by a Swarm satellite (with the core, crust and magnetosphere effects removed) use a composed model defined as:
+  ``models=["'CHAOS-full' = 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'"]``
+  `(click for more info) <https://github.com/klaundal/notebooks/blob/master/get_external_field.ipynb>`_
+  
+  This composed model can also be accessed by an alias: ``models=["CHAOS"]`` which represents the full CHAOS model
+
+  See https://magneticearth.org for an overview introduction to geomagnetic models.
+
 ::
 
-  IGRF12,
+  IGRF,
 
   # Comprehensive inversion (CI) models:
   MCO_SHA_2C,                                # Core
@@ -93,17 +106,28 @@ Models are evaluated along the satellite track at the positions of the time seri
   MCO_SHA_2D,
   MLI_SHA_2D,
   MIO_SHA_2D-Primary, MIO_SHA_2D-Secondary
+  AMPS
 
   # Fast-track models:
   MMA_SHA_2F-Primary, MMA_SHA_2F-Secondary,
 
   # CHAOS models:
-  CHAOS-6-Core,
-  CHAOS-6-Static,
-  CHAOS-6-MMA-Primary, CHAOS-6-MMA-Secondary
+  CHAOS-Core,
+  CHAOS-Static,
+  CHAOS-MMA-Primary, CHAOS-MMA-Secondary
 
   # Other lithospheric models:
   MF7, LCS-1
+
+  # Aliases for compositions of the above models (shortcuts)
+  MCO_SHA_2X    # 'CHAOS-Core'
+  CHAOS-MMA     # 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'
+  CHAOS         # 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'
+  MMA_SHA_2F    # 'MMA_SHA_2F-Primary' + 'MMA_SHA_2F-Secondary'
+  MMA_SHA_2C    # 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'
+  MIO_SHA_2C    # 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary'
+  MIO_SHA_2D    # 'MIO_SHA_2D-Primary' + 'MIO_SHA_2D-Secondary'
+  SwarmCI       # 'MCO_SHA_2C' + 'MLI_SHA_2C' + 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary' + 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'
 
 Custom (user uploaded) models can be provided as a .shc file and become accessible in the same way as pre-defined models, under the name ``"Custom_Model"``.
 
@@ -111,7 +135,15 @@ Flexible evaluation of models and defining new derived models is possible with t
 
 .. code-block:: python
 
-  "Combined_model = 'MMA_SHA_2F-Primary'(min_degree=1,max_degree=1) + 'MMA_SHA_2F-Secondary'(min_degree=1,max_degree=1)"
+  request.set_products(
+    ...
+    models=["Combined_model = 'MMA_SHA_2F-Primary'(min_degree=1,max_degree=1) + 'MMA_SHA_2F-Secondary'(min_degree=1,max_degree=1)"],
+    ...
+  )
+
+In this case, model evaluations will then be available in the returned data under the name "Combined_model", but you can name it however you like.
+
+NB: When using model names containing a hyphen (``-``) then extra single (``'``) or double (``"``) quotes must be used around the model name. This is to distinguish from arithmetic minus (``-``).
 
 ----
 
@@ -126,15 +158,12 @@ Flexible evaluation of models and defining new derived models is possible with t
   AscendingNodeLongitude, QDLat, QDLon, QDBasis, MLT, SunDeclination,
   SunHourAngle, SunRightAscension, SunAzimuthAngle, SunZenithAngle,
   SunLongitude, SunVector, DipoleAxisVector, NGPLatitude, NGPLongitude,
-  DipoleTiltAngle,
-
-  UpwardCurrent, TotalCurrent,                        # AMPS
-  DivergenceFreeCurrentFunction, F_AMPS, B_NEC_AMPS   # AMPS
+  DipoleTiltAngle
 
 
 .. note::
 
-  - The AMPS model is currently accessible as "auxiliaries" instead of a "model"
+  - The AMPS model is currently accessible as "auxiliaries" instead of a "model" (On the DISC server it is now accessible as a regular model)
   - ``Kp`` provides the Kp values in fractional form (e.g 2.2), and ``Kp10`` is multiplied by 10 (as integers)
   - ``F107`` is the hourly 10.7 cm solar radio flux value, and ``F10_INDEX`` is the daily average
   - ``QDLat`` and ``QDLon`` are quasi-dipole coordinates

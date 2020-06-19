@@ -35,6 +35,19 @@ from viresclient import ClientConfig
 from .common import ConfigurationCommand, UrlConfigurationCommand
 
 
+class InitializeConfigurationCommand(ConfigurationCommand):
+    help = (
+        "Initialize client configuration from VIRES_ACCESS_CONFIG "
+        "environment variable. "
+        "Intended to be used for VRE client initialization."
+    )
+
+    def execute(self, config_path):
+        config = ClientConfig(path=config_path)
+        config.init()
+        config.save()
+
+
 class SetTokenCommand(UrlConfigurationCommand):
     help = "Set an access token for the given server URL."
 

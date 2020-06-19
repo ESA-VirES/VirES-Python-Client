@@ -73,6 +73,14 @@ class WPSError(Exception):
         ))
 
 
+class AuthenticationError(Exception):
+    """ Authentication error exception """
+    def __init__(self, text=None):
+        Exception.__init__(
+            self, "Perhaps credentials are missing or invalid. {}"
+            .format(text if text else ""))
+
+
 class WPS10Service(object):
     """ WPS 1.0 service proxy class.
 
@@ -251,6 +259,8 @@ class WPS10Service(object):
     @classmethod
     def error_handler(cls, http_error):
         """ Handle HTTP error and parse OWS exception. """
+        if http_error.status in [401, 403]:
+            raise AuthenticationError
         try:
             xml = ElementTree.parse(http_error)
             ows_exception, namespace = cls.find_exception(xml)

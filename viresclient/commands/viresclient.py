@@ -29,12 +29,13 @@
 # pylint: disable=missing-docstring,arguments-differ
 
 import sys
+import logging
 from argparse import ArgumentParser
 from .common import Command
 from .configuration import (
     SetTokenCommand, SetPasswordCommand, RemoveServerCommand,
     SetDefaultServerCommand, RemoveDefaultServerCommand,
-    ShowConfigurationCommand,
+    ShowConfigurationCommand, InitializeConfigurationCommand,
 )
 from .upload import (
     UploadDataFileCommand, ShowUploadsCommand, RemoveUploadsCommand,
@@ -56,6 +57,8 @@ COMMANDS = {
     "clear_uploads": RemoveUploadsCommand(),
     "clear_upload_parameters": RemoveConstantParameters(),
     "set_upload_parameters": SetConstantParameters(),
+    # automatic configuration initialization
+    "init_configuration": InitializeConfigurationCommand(),
 }
 
 
@@ -64,9 +67,12 @@ def main(*cli_args):
     parser = ArgumentParser()
 
     # add registered subcommands
-    subparsers = parser.add_subparsers(
-        dest="command", required=True, metavar="<command>",
-    )
+    subparsers = parser.add_subparsers(dest="command", metavar="<command>")
+
+    # NOTE: .add_subparsers() in Python < 3.7 does not support the 'required'
+    # parameter and it has to be set as an object property.
+    subparsers.required = True
+
     for command_name, command in COMMANDS.items():
         command_parser = subparsers.add_parser(command_name, help=command.help)
         command.add_arguments_to_parser(command_parser)
