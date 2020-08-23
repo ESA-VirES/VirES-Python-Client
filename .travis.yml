@@ -10,9 +10,9 @@ python:
 - '3.7'
 - '3.8'
 install:
-- pip install pytest coveralls
+- pip install pytest coveralls pytest-cov
 - pip install .
 script:
-- coverage run --source=viresclient setup.py pytest
+- pytest --cov=viresclient
 after_success:
 - coveralls
