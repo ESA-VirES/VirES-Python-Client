@@ -6,9 +6,9 @@ addons:
     packages:
       - libhdf5-dev
 python:
-- '3.5'
 - '3.6'
 - '3.7'
+- '3.8'
 install:
 - pip install pytest coveralls
 - pip install .

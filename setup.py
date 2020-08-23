@@ -61,7 +61,7 @@ setup(
             '_wps/templates/*'
         ],
     },
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     install_requires=[
         'Jinja2>=2.10, <3.0.0',
         'pandas>=0.18, <2.0.0',
