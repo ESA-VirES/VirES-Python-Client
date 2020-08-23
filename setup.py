@@ -71,8 +71,6 @@ setup(
         'xarray>=0.11.0, <1.0.0',
         'requests>=2.0.0, <3.0.0',
     ],
-    setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'viresclient=viresclient.commands.viresclient:start',
