@@ -912,6 +912,8 @@ class SwarmRequest(ClientRequest):
         # Change to spacecraft = "A" etc. for this request
         if spacecraft in ("Alpha", "Bravo", "Charlie"):
             spacecraft = spacecraft[0]
+        if spacecraft not in "ABC":
+            raise ValueError("Invalid spacecraft ID")
         collections = ["SW_OPER_MAG{}_LR_1B".format(spacecraft[0])]
         request_inputs = SwarmWPSInputs(
             collection_ids={spacecraft: collections},
@@ -928,8 +930,15 @@ class SwarmRequest(ClientRequest):
         self._get(
             request, asynchronous=False, response_handler=response_handler,
             show_progress=False)
-        # self._wps_service.retrieve(request, handler=response_handler)
-        return retdata.as_dataframe()["OrbitNumber"][0]
+        df = retdata.as_dataframe()
+        if len(df) == 0:
+            raise ValueError(
+                "Orbit number not identified. Probably outside of mission duration or orbit counter file."
+            )
+        elif len(df) > 1:
+            raise RuntimeError("Unexpected server response. More than one OrbitNumber.")
+        else:
+            return df["OrbitNumber"][0]
 
     def get_model_info(self, models=None, custom_model=None,
                        original_response=False):
