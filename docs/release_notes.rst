@@ -1,6 +1,14 @@
 Release notes
 =============
 
+Changes from 0.6.2 to 0.6.3
+---------------------------
+
+- Added support for:
+
+  - AEBS products
+  - MLI_SHA_2E
+
 Changes from 0.6.1 to 0.6.2
 ---------------------------
 
