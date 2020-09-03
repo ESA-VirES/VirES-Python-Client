@@ -155,6 +155,7 @@ COLLECTION_REFERENCES = {
             )
 }
 
+IAGA_CODES = ['AAA', 'AAE', 'ABG', 'ABK', 'ABN', 'AGN', 'AIA', 'ALE', 'ALH', 'ALM', 'AML', 'AMS', 'AMT', 'AMU', 'ANN', 'API', 'AQU', 'ARC', 'ARE', 'ARK', 'ARS', 'ASC', 'ASH', 'ASO', 'ASP', 'BAG', 'BDE', 'BDV', 'BEL', 'BFE', 'BFO', 'BGY', 'BJI', 'BJN', 'BLC', 'BLT', 'BMT', 'BNG', 'BOU', 'BOX', 'BRD', 'BRT', 'BRW', 'BSL', 'BYR', 'CAO', 'CAX', 'CBB', 'CBI', 'CCS', 'CDP', 'CKI', 'CLF', 'CLH', 'CMO', 'CNB', 'CNH', 'COI', 'CPA', 'CPL', 'CRP', 'CSY', 'CTA', 'CTO', 'CTS', 'CTX', 'CWE', 'CYG', 'CZT', 'DAL', 'DAV', 'DBN', 'DED', 'DIK', 'DLR', 'DLT', 'DMC', 'DOB', 'DOU', 'DRV', 'DUR', 'DVS', 'EBR', 'EGS', 'EIC', 'EKT', 'ELT', 'ESA', 'ESK', 'ETT', 'EYR', 'FAN', 'FCC', 'FRA', 'FRD', 'FRN', 'FSP', 'FTN', 'FUQ', 'FUR', 'GAN', 'GCK', 'GDH', 'GLM', 'GLN', 'GNA', 'GNG', 'GRM', 'GUA', 'GUI', 'GUL', 'GWC', 'GZH', 'HAD', 'HBA', 'HBK', 'HER', 'HIS', 'HLP', 'HLW', 'HNA', 'HON', 'HRB', 'HRN', 'HTY', 'HUA', 'HVN', 'HYB', 'IBD', 'IPM', 'IQA', 'IRT', 'ISK', 'IZN', 'JAI', 'JCO', 'JRV', 'KAK', 'KDU', 'KEP', 'KGD', 'KHB', 'KIR', 'KIV', 'KLI', 'KMH', 'KNY', 'KNZ', 'KOD', 'KOR', 'KOU', 'KPG', 'KRC', 'KSH', 'KZN', 'LAA', 'LDV', 'LEN', 'LER', 'LGR', 'LIV', 'LMM', 'LNN', 'LNP', 'LON', 'LOV', 'LPB', 'LQA', 'LRM', 'LRV', 'LUA', 'LVV', 'LWI', 'LYC', 'LZH', 'MAB', 'MAW', 'MBC', 'MBO', 'MCP', 'MCQ', 'MEA', 'MFP', 'MGD', 'MID', 'MIR', 'MIZ', 'MLT', 'MMB', 'MMK', 'MNK', 'MOL', 'MOS', 'MRN', 'MUB', 'MUT', 'MZL', 'NAI', 'NAQ', 'NCK', 'NEW', 'NGK', 'NGP', 'NKK', 'NMP', 'NRD', 'NUR', 'NVL', 'NVS', 'NWS', 'OAS', 'ODE', 'OTT', 'PAB', 'PAF', 'PAG', 'PBQ', 'PCU', 'PEG', 'PET', 'PHU', 'PIL', 'PIO', 'PLR', 'PMG', 'PND', 'POD', 'POT', 'PPT', 'PRU', 'PSM', 'PST', 'PTU', 'QGZ', 'QIX', 'QSB', 'QUE', 'QZH', 'RBD', 'RES', 'RKT', 'ROB', 'RSV', 'SAB', 'SBA', 'SBL', 'SCO', 'SED', 'SFS', 'SGE', 'SHE', 'SHL', 'SHU', 'SIL', 'SIT', 'SJG', 'SKT', 'SMG', 'SNA', 'SOD', 'SPA', 'SPG', 'SPT', 'SSH', 'SSO', 'STJ', 'STO', 'SUA', 'SVD', 'SWI', 'SZT', 'TAH', 'TAL', 'TAM', 'TAN', 'TDC', 'TEH', 'TEN', 'TEO', 'TFS', 'THJ', 'THL', 'THY', 'TIK', 'TIR', 'TKH', 'TKT', 'TMK', 'TND', 'TNG', 'TOK', 'TOL', 'TOO', 'TRD', 'TRO', 'TRW', 'TSU', 'TTB', 'TUC', 'TUN', 'UBA', 'UJJ', 'UPS', 'VAL', 'VIC', 'VLA', 'VLJ', 'VNA', 'VOS', 'VQS', 'VSK', 'VSS', 'WAT', 'WHN', 'WHS', 'WIA', 'WIC', 'WIK', 'WIL', 'WIT', 'WNG', 'YAK', 'YKC', 'YSS']
 
 class SwarmWPSInputs(WPSInputs):
     """Holds the set of inputs to be passed to the request template for Swarm
@@ -209,11 +210,17 @@ class SwarmWPSInputs(WPSInputs):
 
     @staticmethod
     def _spacecraft_from_collection(collection):
-        """Identify spacecraft from collection name."""
-        # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
-        sc = collection[11]
-        sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie", "_": "NSC"}
-        return sc_to_name[sc]
+        """Identify spacecraft (or ground observatory name) from collection name."""
+        if "AUX_OBS" in collection:
+            name = "AUX_OBS"
+            if ":" in collection:
+                name = f"{name}:{collection[19:22]}"
+        else:
+            # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
+            sc = collection[11]
+            sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie", "_": "NSC"}
+            name = sc_to_name[sc]
+        return name
 
     def set_collections(self, collections):
         """Restructure given list of collections as dict required by VirES."""
@@ -388,7 +395,15 @@ class SwarmRequest(ClientRequest):
             "SW_OPER_AEJ{}PBS_2F:GroundMagneticDisturbance".format(x) for x in "ABC"
         ],
         "AOB_FAC": ["SW_OPER_AOB{}FAC_2F".format(x) for x in "ABC"],
-        }
+        "AUX_OBSM": [
+            "SW_OPER_AUX_OBSM2_",
+            *[f"SW_OPER_AUX_OBSM2_:{code}" for code in IAGA_CODES]
+        ],
+        "AUX_OBSS": [
+            "SW_OPER_AUX_OBSS2_",
+            *[f"SW_OPER_AUX_OBSS2_:{code}" for code in IAGA_CODES]
+        ]
+    }
 
     # These are not necessarily real sampling steps, but are good enough to use
     # for splitting long requests into chunks
@@ -403,6 +418,8 @@ class SwarmRequest(ClientRequest):
         "IPD": "PT1S",
         "AEJ_LPL": "PT15.6S",
         "AEJ_LPS": "PT1S",
+        "AUX_OBSM": "PT60S",
+        "AUX_OBSS": "PT1S"
     }
 
     PRODUCT_VARIABLES = {
@@ -464,7 +481,9 @@ class SwarmRequest(ClientRequest):
             "Latitude_QD", "Longitude_QD", "MLT_QD",
             "Boundary_Flag", "Quality", "Pair_Indicator"
             ],
-        }
+        "AUX_OBSM": ["B_NEC", "F", "IAGA_code", "Quality"],
+        "AUX_OBSS": ["B_NEC", "F", "IAGA_code", "Quality"],
+    }
 
     AUXILIARY_VARIABLES = [
         "Timestamp", "Latitude", "Longitude", "Radius", "Spacecraft",
@@ -475,7 +494,7 @@ class SwarmRequest(ClientRequest):
         "SunRightAscension", "SunAzimuthAngle", "SunZenithAngle",
         "SunLongitude", "SunVector", "DipoleAxisVector", "NGPLatitude",
         "NGPLongitude", "DipoleTiltAngle",
-        ]
+    ]
 
     MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
 
@@ -490,7 +509,7 @@ class SwarmRequest(ClientRequest):
         "MIO_SHA_2D-Primary", "MIO_SHA_2D-Secondary",
         "AMPS",
         "MCO_SHA_2X", "CHAOS", "CHAOS-MMA", "MMA_SHA_2C", "MMA_SHA_2F", "MIO_SHA_2C", "MIO_SHA_2D", "SwarmCI",
-        ]
+    ]
 
     def __init__(self, url=None, username=None, password=None, token=None,
                  config=None, logging_level="NO_LOGGING"):
