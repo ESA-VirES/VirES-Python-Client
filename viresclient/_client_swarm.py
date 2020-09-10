@@ -611,17 +611,27 @@ class SwarmRequest(ClientRequest):
                 If False then return a dict of available collections.
 
         """
+        # Shorter form of the available collections
+        collections_short = self._available["collections"].copy()
+        collections_short["AUX_OBSS"] = ['SW_OPER_AUX_OBSS2_']
+        collections_short["AUX_OBSM"] = ['SW_OPER_AUX_OBSM2_']
+        collections_short["AUX_OBSH"] = ['SW_OPER_AUX_OBSH2_']
+
         def _filter_collections(groupname):
-            groups = list(self._available["collections"].keys())
-            if groupname in groups:
-                return {groupname:
-                        self._available["collections"][groupname]}
+            """ Reduce the full list to just one group, e.g. "MAG """
+            if groupname:
+                groups = list(collections_short.keys())
+                if groupname in groups:
+                    return {
+                        groupname:
+                        collections_short[groupname]
+                    }
+                else:
+                    raise ValueError("Invalid collection group name")
             else:
-                raise ValueError("Invalid collection group name")
-        if groupname:
-            collections_filtered = _filter_collections(groupname)
-        else:
-            collections_filtered = self._available["collections"]
+                return collections_short
+
+        collections_filtered = _filter_collections(groupname)
         if details:
             print("General References:")
             for i in REFERENCES["General Swarm"]:
