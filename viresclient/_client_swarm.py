@@ -158,7 +158,8 @@ COLLECTION_REFERENCES = {
             )
 }
 
-IAGA_CODES = ['AAA', 'AAE', 'ABG', 'ABK', 'ABN', 'AGN', 'AIA', 'ALE', 'ALH', 'ALM', 'AML', 'AMS', 'AMT', 'AMU', 'ANN', 'API', 'AQU', 'ARC', 'ARE', 'ARK', 'ARS', 'ASC', 'ASH', 'ASO', 'ASP', 'BAG', 'BDE', 'BDV', 'BEL', 'BFE', 'BFO', 'BGY', 'BJI', 'BJN', 'BLC', 'BLT', 'BMT', 'BNG', 'BOU', 'BOX', 'BRD', 'BRT', 'BRW', 'BSL', 'BYR', 'CAO', 'CAX', 'CBB', 'CBI', 'CCS', 'CDP', 'CKI', 'CLF', 'CLH', 'CMO', 'CNB', 'CNH', 'COI', 'CPA', 'CPL', 'CRP', 'CSY', 'CTA', 'CTO', 'CTS', 'CTX', 'CWE', 'CYG', 'CZT', 'DAL', 'DAV', 'DBN', 'DED', 'DIK', 'DLR', 'DLT', 'DMC', 'DOB', 'DOU', 'DRV', 'DUR', 'DVS', 'EBR', 'EGS', 'EIC', 'EKT', 'ELT', 'ESA', 'ESK', 'ETT', 'EYR', 'FAN', 'FCC', 'FRA', 'FRD', 'FRN', 'FSP', 'FTN', 'FUQ', 'FUR', 'GAN', 'GCK', 'GDH', 'GLM', 'GLN', 'GNA', 'GNG', 'GRM', 'GUA', 'GUI', 'GUL', 'GWC', 'GZH', 'HAD', 'HBA', 'HBK', 'HER', 'HIS', 'HLP', 'HLW', 'HNA', 'HON', 'HRB', 'HRN', 'HTY', 'HUA', 'HVN', 'HYB', 'IBD', 'IPM', 'IQA', 'IRT', 'ISK', 'IZN', 'JAI', 'JCO', 'JRV', 'KAK', 'KDU', 'KEP', 'KGD', 'KHB', 'KIR', 'KIV', 'KLI', 'KMH', 'KNY', 'KNZ', 'KOD', 'KOR', 'KOU', 'KPG', 'KRC', 'KSH', 'KZN', 'LAA', 'LDV', 'LEN', 'LER', 'LGR', 'LIV', 'LMM', 'LNN', 'LNP', 'LON', 'LOV', 'LPB', 'LQA', 'LRM', 'LRV', 'LUA', 'LVV', 'LWI', 'LYC', 'LZH', 'MAB', 'MAW', 'MBC', 'MBO', 'MCP', 'MCQ', 'MEA', 'MFP', 'MGD', 'MID', 'MIR', 'MIZ', 'MLT', 'MMB', 'MMK', 'MNK', 'MOL', 'MOS', 'MRN', 'MUB', 'MUT', 'MZL', 'NAI', 'NAQ', 'NCK', 'NEW', 'NGK', 'NGP', 'NKK', 'NMP', 'NRD', 'NUR', 'NVL', 'NVS', 'NWS', 'OAS', 'ODE', 'OTT', 'PAB', 'PAF', 'PAG', 'PBQ', 'PCU', 'PEG', 'PET', 'PHU', 'PIL', 'PIO', 'PLR', 'PMG', 'PND', 'POD', 'POT', 'PPT', 'PRU', 'PSM', 'PST', 'PTU', 'QGZ', 'QIX', 'QSB', 'QUE', 'QZH', 'RBD', 'RES', 'RKT', 'ROB', 'RSV', 'SAB', 'SBA', 'SBL', 'SCO', 'SED', 'SFS', 'SGE', 'SHE', 'SHL', 'SHU', 'SIL', 'SIT', 'SJG', 'SKT', 'SMG', 'SNA', 'SOD', 'SPA', 'SPG', 'SPT', 'SSH', 'SSO', 'STJ', 'STO', 'SUA', 'SVD', 'SWI', 'SZT', 'TAH', 'TAL', 'TAM', 'TAN', 'TDC', 'TEH', 'TEN', 'TEO', 'TFS', 'THJ', 'THL', 'THY', 'TIK', 'TIR', 'TKH', 'TKT', 'TMK', 'TND', 'TNG', 'TOK', 'TOL', 'TOO', 'TRD', 'TRO', 'TRW', 'TSU', 'TTB', 'TUC', 'TUN', 'UBA', 'UJJ', 'UPS', 'VAL', 'VIC', 'VLA', 'VLJ', 'VNA', 'VOS', 'VQS', 'VSK', 'VSS', 'WAT', 'WHN', 'WHS', 'WIA', 'WIC', 'WIK', 'WIL', 'WIT', 'WNG', 'YAK', 'YKC', 'YSS']
+IAGA_CODES = ['AAA', 'AAE', 'ABG', 'ABK', 'AIA', 'ALE', 'AMS', 'API', 'AQU', 'ARS', 'ASC', 'ASP', 'BDV', 'BEL', 'BFE', 'BFO', 'BGY', 'BJN', 'BLC', 'BMT', 'BNG', 'BOU', 'BOX', 'BRD', 'BRW', 'BSL', 'CBB', 'CBI', 'CDP', 'CKI', 'CLF', 'CMO', 'CNB', 'CNH', 'COI', 'CPL', 'CSY', 'CTA', 'CTS', 'CYG', 'CZT', 'DED', 'DLR', 'DLT', 'DMC', 'DOB', 'DOU', 'DRV', 'DUR', 'EBR', 'ELT', 'ESA', 'ESK', 'EYR', 'FCC', 'FRD', 'FRN', 'FUQ', 'FUR', 'GAN', 'GCK', 'GDH', 'GLM', 'GLN', 'GNA', 'GNG', 'GUA', 'GUI', 'GZH', 'HAD', 'HBK', 'HER', 'HLP', 'HON', 'HRB', 'HRN', 'HUA', 'HYB', 'IPM', 'IQA', 'IRT', 'IZN', 'JAI', 'JCO', 'KAK', 'KDU', 'KEP', 'KHB', 'KIR', 'KIV', 'KMH', 'KNY', 'KNZ', 'KOU', 'KSH', 'LER', 'LIV', 'LMM', 'LNP', 'LON', 'LOV', 'LRM', 'LRV', 'LVV', 'LYC', 'LZH', 'MAB', 'MAW', 'MBC', 'MBO', 'MCQ', 'MEA', 'MGD', 'MID', 'MIZ', 'MMB', 'MZL', 'NAQ', 'NCK', 'NEW', 'NGK', 'NGP', 'NMP', 'NUR', 'NVS', 'ORC', 'OTT', 'PAF', 'PAG', 'PBQ', 'PEG', 'PET', 'PHU', 'PIL', 'PND', 'PPT', 'PST', 'QGZ', 'QIX', 'QSB', 'QZH', 'RES', 'SBA', 'SBL', 'SFS', 'SHE', 'SHL', 'SHU', 'SIL', 'SIT', 'SJG', 'SOD', 'SPG', 'SPT', 'STJ', 'SUA', 'TAM', 'TAN', 'TDC', 'TEO', 'THJ', 'THL', 'THY', 'TIR', 'TND', 'TRO', 'TRW', 'TSU', 'TUC', 'UPS', 'VAL', 'VIC', 'VNA', 'VOS', 'VSK', 'VSS', 'WHN', 'WIC', 'WIK', 'WNG', 'YAK', 'YKC']
+
 
 class SwarmWPSInputs(WPSInputs):
     """Holds the set of inputs to be passed to the request template for Swarm
@@ -398,6 +399,10 @@ class SwarmRequest(ClientRequest):
             "SW_OPER_AEJ{}PBS_2F:GroundMagneticDisturbance".format(x) for x in "ABC"
         ],
         "AOB_FAC": ["SW_OPER_AOB{}FAC_2F".format(x) for x in "ABC"],
+        "AUX_OBSH": [
+            "SW_OPER_AUX_OBSH2_",
+            *[f"SW_OPER_AUX_OBSH2_:{code}" for code in IAGA_CODES]
+        ],
         "AUX_OBSM": [
             "SW_OPER_AUX_OBSM2_",
             *[f"SW_OPER_AUX_OBSM2_:{code}" for code in IAGA_CODES]
@@ -421,6 +426,7 @@ class SwarmRequest(ClientRequest):
         "IPD": "PT1S",
         "AEJ_LPL": "PT15.6S",
         "AEJ_LPS": "PT1S",
+        "AUX_OBSH": "PT60M",
         "AUX_OBSM": "PT60S",
         "AUX_OBSS": "PT1S"
     }
@@ -484,6 +490,7 @@ class SwarmRequest(ClientRequest):
             "Latitude_QD", "Longitude_QD", "MLT_QD",
             "Boundary_Flag", "Quality", "Pair_Indicator"
             ],
+        "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "SensorIndex"],
         "AUX_OBSM": ["B_NEC", "F", "IAGA_code", "Quality"],
         "AUX_OBSS": ["B_NEC", "F", "IAGA_code", "Quality"],
     }
