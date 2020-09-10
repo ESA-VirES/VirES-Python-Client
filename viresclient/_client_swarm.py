@@ -3,6 +3,8 @@ import json
 from collections import OrderedDict
 import os
 import sys
+from io import StringIO
+from pandas import read_csv
 
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.time_util import parse_datetime
@@ -15,7 +17,8 @@ TEMPLATE_FILES = {
     'sync': "vires_fetch_filtered_data.xml",
     'async': "vires_fetch_filtered_data_async.xml",
     'model_info': "vires_get_model_info.xml",
-    'times_from_orbits': "vires_times_from_orbits.xml"
+    'times_from_orbits': "vires_times_from_orbits.xml",
+    'get_observatories': 'vires_get_observatories.xml'
 }
 
 REFERENCES = {
@@ -723,6 +726,79 @@ class SwarmRequest(ClientRequest):
         """Returns a list of the available auxiliary parameters.
         """
         return self._available["auxiliaries"]
+
+    def available_observatories(
+        self, collection=None, start_time=None, end_time=None, details=False
+    ):
+        """Get list of available observatories from server.
+
+        Search availability by collection, one of:
+        "SW_OPER_AUX_OBSH2_"
+        "SW_OPER_AUX_OBSM2_"
+        "SW_OPER_AUX_OBSS2_"
+
+        Example usage::
+
+            from viresclient import SwarmRequest
+            request = SwarmRequest()
+            # For a list of observatories available:
+            request.available_observatories("SW_OPER_AUX_OBSM2_")
+            # For a DataFrame also containing availability start and end times:
+            request.available_observatories("SW_OPER_AUX_OBSM2_", details=True)
+            # For available observatories during a given time period:
+            request.available_observatories(
+                "SW_OPER_AUX_OBSM2_", "2013-01-01", "2013-02-01"
+            )
+
+        Args:
+            collection (str): collection name (e.g. "SW_OPER_AUX_OBSM2_")
+            custom_model (str): as with set_products
+            details (bool): returns DataFrame if True
+
+        Returns:
+            list or DataFrame: Containing IAGA codes (and start/end times)
+
+        """
+        def _request_get_observatories(collection=None, start_time=None, end_time=None):
+            """ Make the get_observatories request to the server """
+            templatefile = TEMPLATE_FILES["get_observatories"]
+            template = JINJA2_ENVIRONMENT.get_template(templatefile)
+            request = template.render(
+                collection_id=collection,
+                begin_time=start_time,
+                end_time=end_time,
+                response_type="text/csv"
+            ).encode('UTF-8')
+            response = self._get(
+                request, asynchronous=False, show_progress=False
+            )
+            return response
+
+        def _csv_to_df(csv_data):
+            """ Convert bytes data to pandas dataframe """
+            return read_csv(
+                StringIO(str(csv_data, 'utf-8'))
+            )
+
+        obs_collections = [
+            "SW_OPER_AUX_OBSH2_",
+            "SW_OPER_AUX_OBSM2_",
+            "SW_OPER_AUX_OBSS2_"
+        ]
+        if collection not in obs_collections:
+            raise ValueError(f"Invalid collection: {collection}")
+        if start_time and end_time:
+            start_time = parse_datetime(start_time)
+            end_time = parse_datetime(end_time)
+        else:
+            start_time, end_time = None, None
+
+        response = _request_get_observatories(collection, start_time, end_time)
+        df = _csv_to_df(response)
+        if details:
+            return df
+        else:
+            return list(df["IAGACode"])
 
     def set_collection(self, *args):
         """Set the collection(s) to use.
