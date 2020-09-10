@@ -749,10 +749,11 @@ class SwarmRequest(ClientRequest):
     ):
         """Get list of available observatories from server.
 
-        Search availability by collection, one of:
-        "SW_OPER_AUX_OBSH2_"
-        "SW_OPER_AUX_OBSM2_"
-        "SW_OPER_AUX_OBSS2_"
+        Search availability by collection, one of::
+
+            "SW_OPER_AUX_OBSH2_"
+            "SW_OPER_AUX_OBSM2_"
+            "SW_OPER_AUX_OBSS2_"
 
         Example usage::
 
@@ -768,12 +769,12 @@ class SwarmRequest(ClientRequest):
             )
 
         Args:
-            collection (str): collection name (e.g. "SW_OPER_AUX_OBSM2_")
+            collection (str): collection name (e.g. `"SW_OPER_AUX_OBSM2_"`)
             custom_model (str): as with set_products
             details (bool): returns DataFrame if True
 
         Returns:
-            list or DataFrame: Containing IAGA codes (and start/end times)
+            list or DataFrame: IAGA codes (and start/end times)
 
         """
         def _request_get_observatories(collection=None, start_time=None, end_time=None):
