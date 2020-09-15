@@ -226,4 +226,3 @@ NB: When using model names containing a hyphen (``-``) then extra single (``'``)
 
 .. _`PyHC`: http://heliopython.org/projects/
 
-----
