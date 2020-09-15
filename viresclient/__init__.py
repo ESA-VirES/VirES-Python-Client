@@ -35,4 +35,4 @@ from ._data_handling import ReturnedDataFile
 from ._api.upload import DataUpload
 from ._api.token import TokenManager
 
-__version__ = "0.6.3-alpha.3"
+__version__ = "0.7.0-alpha.1"
