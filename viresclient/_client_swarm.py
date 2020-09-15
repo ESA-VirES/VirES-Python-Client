@@ -5,6 +5,8 @@ import os
 import sys
 from io import StringIO
 from pandas import read_csv
+from tqdm import tqdm
+from textwrap import dedent
 
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.time_util import parse_datetime
@@ -155,7 +157,16 @@ COLLECTION_REFERENCES = {
     "EEF": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#EEFxTMS_2F ",
             " https://earth.esa.int/documents/10174/1514862/Swarm-Level-2-EEF-Product-Description "),
     "IPD": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#IPDxIPR_2F ",
-            )
+            ),
+    "AUX_OBSH": ("https://doi.org/10.5047/eps.2013.07.011",),
+    "AUX_OBSM": ("https://doi.org/10.5047/eps.2013.07.011",),
+    "AUX_OBSS": ("https://doi.org/10.5047/eps.2013.07.011",),
+}
+
+DATA_CITATIONS = {
+    "AUX_OBSH": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/hour/README",
+    "AUX_OBSM": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/minute/README",
+    "AUX_OBSS": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/second/README",
 }
 
 IAGA_CODES = ['AAA', 'AAE', 'ABG', 'ABK', 'AIA', 'ALE', 'AMS', 'API', 'AQU', 'ARS', 'ASC', 'ASP', 'BDV', 'BEL', 'BFE', 'BFO', 'BGY', 'BJN', 'BLC', 'BMT', 'BNG', 'BOU', 'BOX', 'BRD', 'BRW', 'BSL', 'CBB', 'CBI', 'CDP', 'CKI', 'CLF', 'CMO', 'CNB', 'CNH', 'COI', 'CPL', 'CSY', 'CTA', 'CTS', 'CYG', 'CZT', 'DED', 'DLR', 'DLT', 'DMC', 'DOB', 'DOU', 'DRV', 'DUR', 'EBR', 'ELT', 'ESA', 'ESK', 'EYR', 'FCC', 'FRD', 'FRN', 'FUQ', 'FUR', 'GAN', 'GCK', 'GDH', 'GLM', 'GLN', 'GNA', 'GNG', 'GUA', 'GUI', 'GZH', 'HAD', 'HBK', 'HER', 'HLP', 'HON', 'HRB', 'HRN', 'HUA', 'HYB', 'IPM', 'IQA', 'IRT', 'IZN', 'JAI', 'JCO', 'KAK', 'KDU', 'KEP', 'KHB', 'KIR', 'KIV', 'KMH', 'KNY', 'KNZ', 'KOU', 'KSH', 'LER', 'LIV', 'LMM', 'LNP', 'LON', 'LOV', 'LRM', 'LRV', 'LVV', 'LYC', 'LZH', 'MAB', 'MAW', 'MBC', 'MBO', 'MCQ', 'MEA', 'MGD', 'MID', 'MIZ', 'MMB', 'MZL', 'NAQ', 'NCK', 'NEW', 'NGK', 'NGP', 'NMP', 'NUR', 'NVS', 'ORC', 'OTT', 'PAF', 'PAG', 'PBQ', 'PEG', 'PET', 'PHU', 'PIL', 'PND', 'PPT', 'PST', 'QGZ', 'QIX', 'QSB', 'QZH', 'RES', 'SBA', 'SBL', 'SFS', 'SHE', 'SHL', 'SHU', 'SIL', 'SIT', 'SJG', 'SOD', 'SPG', 'SPT', 'STJ', 'SUA', 'TAM', 'TAN', 'TDC', 'TEO', 'THJ', 'THL', 'THY', 'TIR', 'TND', 'TRO', 'TRW', 'TSU', 'TUC', 'UPS', 'VAL', 'VIC', 'VNA', 'VOS', 'VSK', 'VSS', 'WHN', 'WIC', 'WIK', 'WNG', 'YAK', 'YKC']
@@ -818,6 +829,24 @@ class SwarmRequest(ClientRequest):
         else:
             return list(df["IAGACode"])
 
+    def _detect_AUX_OBS(self, collections):
+        # Identify collection types present
+        collection_types_requested = {
+            self._available["collections_to_keys"].get(collection)
+            for collection in collections
+        }
+        # Output notification for each of aux_type
+        for aux_type in ["AUX_OBSH", "AUX_OBSM", "AUX_OBSS"]:
+            if aux_type in collection_types_requested:
+                tqdm.write(
+                    dedent(
+                        f"""
+                Accessing INTERMAGNET and/or WDC data
+                Check usage terms at {DATA_CITATIONS.get(aux_type)}
+                """
+                    )
+                )
+
     def set_collection(self, *args):
         """Set the collection(s) to use.
 
@@ -832,13 +861,13 @@ class SwarmRequest(ClientRequest):
                     "{} invalid. Must be string."
                     .format(collection)
                     )
-        for collection in collections:
             if collection not in self._available["collections_to_keys"]:
                 raise ValueError(
                     "Invalid collection: {}. "
                     "Check available with SwarmRequest().available_collections()"
                     .format(collection)
                     )
+        self._detect_AUX_OBS(collections)
         self._collection_list = collections
         self._request_inputs.set_collections(collections)
         return self
