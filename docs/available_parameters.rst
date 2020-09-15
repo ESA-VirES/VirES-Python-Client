@@ -63,6 +63,18 @@ SW_OPER_AEJxPBS_2F:GroundMagneticDisturbance AEJ_PBS:GroundMagneticDisturbance -
 SW_OPER_AOBxFAC_2F                           AOB_FAC                           Auroral oval boundaries derived from FACs
 ============================================ ================================= ==============================================================
 
+The AUX_OBS collections contain ground magnetic observatory data from `INTERMAGNET <https://intermagnet.github.io/data_conditions.html>`_ and `WDC <http://www.wdc.bgs.ac.uk/>`_. Please note that these data are provided under different usage terms than the ESA data, and must be acknowledged accordingly.
+
+======================== ================ ==============================================================
+Collection full name     Collection type  Description
+======================== ================ ==============================================================
+SW_OPER_AUX_OBSH2\_       AUX_OBSH         Hourly values derived from both WDC and INTERMAGNET data
+SW_OPER_AUX_OBSM2\_       AUX_OBSM         Minute values from INTERMAGNET
+SW_OPER_AUX_OBSS2\_       AUX_OBSS         Second values from INTERMAGNET
+======================== ================ ==============================================================
+
+The AUX_OBS collections contain data from all observatories together (distinguishable by the ``IAGA_code`` variable). Data from a single observatory can be accessed with special collection names like ``SW_OPER_AUX_OBSM2_:ABK`` where ``ABK`` can be replaced with the IAGA code of the observatory. Use :py:meth:`viresclient.SwarmRequest.available_observatories` to find these IAGA codes.
+
 The ``measurements``, ``models``, and ``auxiliaries`` chosen will match the cadence of the ``collection`` chosen.
 
 ----
@@ -99,6 +111,16 @@ AEJ_PBS                           ``Latitude_QD,Longitude_QD,MLT_QD,J_DF_SemiQD,
 AEJ_PBS:GroundMagneticDisturbance ``B_NE``
 AOB_FAC                           ``Latitude_QD,Longitude_QD,MLT_QD,Boundary_Flag,Quality,Pair_Indicator``
 ================================= ================================================================================
+
+AUX_OBS products:
+
+=============== =========================================
+Collection type Available measurement names
+=============== =========================================
+AUX_OBSH        ``B_NEC,F,IAGA_code,Quality,SensorIndex``
+AUX_OBSM        ``B_NEC,F,IAGA_code,Quality``
+AUX_OBSS        ``B_NEC,F,IAGA_code,Quality``
+=============== =========================================
 
 ----
 
