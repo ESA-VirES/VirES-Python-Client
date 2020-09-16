@@ -41,11 +41,15 @@ if os.name == "nt":
 CDF_EPOCH_1970 = 62167219200000.0
 
 # Frame names to use as xarray dimension names
-FRAME_NAMES = {"NEC": ["B_NEC"],
-               "VFM": ["B_VFM", "dB_Sun", "dB_AOCS", "dB_other", "B_error"],
-               "quaternion": ["q_NEC_CRF"],
-               "WGS84": ["GPS_Position", "LEO_Position"],
-               "EEJ_QDLat": ["EEJ"]}
+FRAME_NAMES = {
+    "NEC": ["B_NEC"],
+    "VFM": ["B_VFM", "dB_Sun", "dB_AOCS", "dB_other", "B_error"],
+    "quaternion": ["q_NEC_CRF"],
+    "WGS84": ["GPS_Position", "LEO_Position"],
+    "EEJ_QDLat": ["EEJ"],
+    "NE": ["J_NE", "J_CF_NE", "J_DF_NE", "B_NE"],
+    "AOB_Quality": ["Quality"],
+}
 # Reverse mapping of the above
 DATANAMES_TO_FRAME_NAMES = {}
 for framename, datanameset in FRAME_NAMES.items():
@@ -53,15 +57,21 @@ for framename, datanameset in FRAME_NAMES.items():
         DATANAMES_TO_FRAME_NAMES[dataname] = framename
 # Labels to use for suffixes on expanded columns in pandas dataframe
 #   and on dimension coordinates in xarray
-FRAME_LABELS = {"NEC": ["N", "E", "C"],
-                "VFM": ["i", "j", "k"],
-                "quaternion": ["1", "i", "j", "k"],
-                "WGS84": ["X", "Y", "Z"],
-                "EEJ_QDLat": numpy.linspace(-20, 20, 81)}
+FRAME_LABELS = {
+    "NEC": ["N", "E", "C"],
+    "VFM": ["i", "j", "k"],
+    "quaternion": ["1", "i", "j", "k"],
+    "WGS84": ["X", "Y", "Z"],
+    "EEJ_QDLat": numpy.linspace(-20, 20, 81),
+    "NE": ["N", "E"],
+    "AOB_Quality": ["Pa", "Sigma"],
+}
 FRAME_DESCRIPTIONS = {
     "NEC": "NEC frame - North, East, Centre (down)",
+    "NE": "Horizontal NE frame - North, East",
     "VFM": "Vector Field Magnetometer instrument frame",
-    "EEJ_QDLat": "Quasi-dipole latitude profile between -20 and 20 degrees from the EEF product"
+    "EEJ_QDLat": "Quasi-dipole latitude profile between -20 and 20 degrees from the EEF product",
+    "AEJ_Quality": "Boundary quality indicator (Pa, Sigma)",
 }
 
 

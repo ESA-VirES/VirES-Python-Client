@@ -4,8 +4,8 @@ Welcome to VirES-Python-Client's documentation!
 .. toctree::
   :caption: Virtual Research Environment
 
-  --> [Launch VRE] <https://vre.vires.services/>
-  --> [VRE docs] <https://swarm-vre.readthedocs.io/en/latest/intro.html>
+  --> [Launch VRE] JupyterLab <https://vre.vires.services/>
+  --> [VRE docs] Guides and Recipes <https://swarm-vre.readthedocs.io/en/latest/intro.html>
 
 .. toctree::
   :maxdepth: 2

@@ -1,6 +1,18 @@
 Release notes
 =============
 
+Changes from 0.6.2 to 0.7.0
+---------------------------
+
+- Added support for:
+
+  - AUX_OBS products
+  - AEBS products
+  - MLI_SHA_2E
+
+- See :ref:`Available parameters for Swarm data` for details of the collection and measurement names
+- Added :py:meth:`viresclient.SwarmRequest.available_observatories` to query the AUX_OBS collections to identify IAGA codes available within each collection
+
 Changes from 0.6.1 to 0.6.2
 ---------------------------
 

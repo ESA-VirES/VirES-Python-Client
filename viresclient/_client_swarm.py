@@ -3,6 +3,10 @@ import json
 from collections import OrderedDict
 import os
 import sys
+from io import StringIO
+from pandas import read_csv
+from tqdm import tqdm
+from textwrap import dedent
 
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.time_util import parse_datetime
@@ -15,7 +19,8 @@ TEMPLATE_FILES = {
     'sync': "vires_fetch_filtered_data.xml",
     'async': "vires_fetch_filtered_data_async.xml",
     'model_info': "vires_get_model_info.xml",
-    'times_from_orbits': "vires_times_from_orbits.xml"
+    'times_from_orbits': "vires_times_from_orbits.xml",
+    'get_observatories': 'vires_get_observatories.xml'
 }
 
 REFERENCES = {
@@ -152,8 +157,19 @@ COLLECTION_REFERENCES = {
     "EEF": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#EEFxTMS_2F ",
             " https://earth.esa.int/documents/10174/1514862/Swarm-Level-2-EEF-Product-Description "),
     "IPD": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#IPDxIPR_2F ",
-            )
+            ),
+    "AUX_OBSH": ("https://doi.org/10.5047/eps.2013.07.011",),
+    "AUX_OBSM": ("https://doi.org/10.5047/eps.2013.07.011",),
+    "AUX_OBSS": ("https://doi.org/10.5047/eps.2013.07.011",),
 }
+
+DATA_CITATIONS = {
+    "AUX_OBSH": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/hour/README",
+    "AUX_OBSM": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/minute/README",
+    "AUX_OBSS": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/second/README",
+}
+
+IAGA_CODES = ['AAA', 'AAE', 'ABG', 'ABK', 'AIA', 'ALE', 'AMS', 'API', 'AQU', 'ARS', 'ASC', 'ASP', 'BDV', 'BEL', 'BFE', 'BFO', 'BGY', 'BJN', 'BLC', 'BMT', 'BNG', 'BOU', 'BOX', 'BRD', 'BRW', 'BSL', 'CBB', 'CBI', 'CDP', 'CKI', 'CLF', 'CMO', 'CNB', 'CNH', 'COI', 'CPL', 'CSY', 'CTA', 'CTS', 'CYG', 'CZT', 'DED', 'DLR', 'DLT', 'DMC', 'DOB', 'DOU', 'DRV', 'DUR', 'EBR', 'ELT', 'ESA', 'ESK', 'EYR', 'FCC', 'FRD', 'FRN', 'FUQ', 'FUR', 'GAN', 'GCK', 'GDH', 'GLM', 'GLN', 'GNA', 'GNG', 'GUA', 'GUI', 'GZH', 'HAD', 'HBK', 'HER', 'HLP', 'HON', 'HRB', 'HRN', 'HUA', 'HYB', 'IPM', 'IQA', 'IRT', 'IZN', 'JAI', 'JCO', 'KAK', 'KDU', 'KEP', 'KHB', 'KIR', 'KIV', 'KMH', 'KNY', 'KNZ', 'KOU', 'KSH', 'LER', 'LIV', 'LMM', 'LNP', 'LON', 'LOV', 'LRM', 'LRV', 'LVV', 'LYC', 'LZH', 'MAB', 'MAW', 'MBC', 'MBO', 'MCQ', 'MEA', 'MGD', 'MID', 'MIZ', 'MMB', 'MZL', 'NAQ', 'NCK', 'NEW', 'NGK', 'NGP', 'NMP', 'NUR', 'NVS', 'ORC', 'OTT', 'PAF', 'PAG', 'PBQ', 'PEG', 'PET', 'PHU', 'PIL', 'PND', 'PPT', 'PST', 'QGZ', 'QIX', 'QSB', 'QZH', 'RES', 'SBA', 'SBL', 'SFS', 'SHE', 'SHL', 'SHU', 'SIL', 'SIT', 'SJG', 'SOD', 'SPG', 'SPT', 'STJ', 'SUA', 'TAM', 'TAN', 'TDC', 'TEO', 'THJ', 'THL', 'THY', 'TIR', 'TND', 'TRO', 'TRW', 'TSU', 'TUC', 'UPS', 'VAL', 'VIC', 'VNA', 'VOS', 'VSK', 'VSS', 'WHN', 'WIC', 'WIK', 'WNG', 'YAK', 'YKC']
 
 
 class SwarmWPSInputs(WPSInputs):
@@ -209,11 +225,17 @@ class SwarmWPSInputs(WPSInputs):
 
     @staticmethod
     def _spacecraft_from_collection(collection):
-        """Identify spacecraft from collection name."""
-        # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
-        sc = collection[11]
-        sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie", "_": "NSC"}
-        return sc_to_name[sc]
+        """Identify spacecraft (or ground observatory name) from collection name."""
+        if "AUX_OBS" in collection:
+            name = "AUX_OBS"
+            if ":" in collection:
+                name = f"{name}:{collection[19:22]}"
+        else:
+            # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
+            sc = collection[11]
+            sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie", "_": "NSC"}
+            name = sc_to_name[sc]
+        return name
 
     def set_collections(self, collections):
         """Restructure given list of collections as dict required by VirES."""
@@ -373,7 +395,34 @@ class SwarmRequest(ClientRequest):
         "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in "ABC_"],
         "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in "ABC"],
         "IPD": ["SW_OPER_IPD{}IRR_2F".format(x) for x in "ABC"],
-        }
+
+        "AEJ_LPL": ["SW_OPER_AEJ{}LPL_2F".format(x) for x in "ABC"],
+        "AEJ_LPL:Quality": [
+            "SW_OPER_AEJ{}LPL_2F:Quality".format(x) for x in "ABC"
+        ],
+        "AEJ_LPS": ["SW_OPER_AEJ{}LPS_2F".format(x) for x in "ABC"],
+        "AEJ_LPS:Quality": [
+            "SW_OPER_AEJ{}LPS_2F:Quality".format(x) for x in "ABC"
+        ],
+        "AEJ_PBL": ["SW_OPER_AEJ{}PBL_2F".format(x) for x in "ABC"],
+        "AEJ_PBS": ["SW_OPER_AEJ{}PBS_2F".format(x) for x in "ABC"],
+        "AEJ_PBS:GroundMagneticDisturbance": [
+            "SW_OPER_AEJ{}PBS_2F:GroundMagneticDisturbance".format(x) for x in "ABC"
+        ],
+        "AOB_FAC": ["SW_OPER_AOB{}FAC_2F".format(x) for x in "ABC"],
+        "AUX_OBSH": [
+            "SW_OPER_AUX_OBSH2_",
+            *[f"SW_OPER_AUX_OBSH2_:{code}" for code in IAGA_CODES]
+        ],
+        "AUX_OBSM": [
+            "SW_OPER_AUX_OBSM2_",
+            *[f"SW_OPER_AUX_OBSM2_:{code}" for code in IAGA_CODES]
+        ],
+        "AUX_OBSS": [
+            "SW_OPER_AUX_OBSS2_",
+            *[f"SW_OPER_AUX_OBSS2_:{code}" for code in IAGA_CODES]
+        ]
+    }
 
     # These are not necessarily real sampling steps, but are good enough to use
     # for splitting long requests into chunks
@@ -386,6 +435,11 @@ class SwarmRequest(ClientRequest):
         "FAC": "PT1S",
         "EEF": "PT90M",
         "IPD": "PT1S",
+        "AEJ_LPL": "PT15.6S",
+        "AEJ_LPS": "PT1S",
+        "AUX_OBSH": "PT60M",
+        "AUX_OBSM": "PT60S",
+        "AUX_OBSS": "PT1S"
     }
 
     PRODUCT_VARIABLES = {
@@ -424,7 +478,33 @@ class SwarmRequest(ClientRequest):
             "IBI_flag", "Ionosphere_region_flag", "IPIR_index",
             "Ne_quality_flag", "TEC_STD"
             ],
-        }
+        "AEJ_LPL": [
+            "Latitude_QD", "Longitude_QD", "MLT_QD",
+            "J_NE", "J_QD"
+        ],
+        "AEJ_LPL:Quality": ["RMS_misfit", "Confidence"],
+        "AEJ_LPS": [
+            "Latitude_QD", "Longitude_QD", "MLT_QD",
+            "J_CF_NE", "J_DF_NE", "J_CF_SemiQD", "J_DF_SemiQD", "J_R"
+            ],
+        "AEJ_LPS:Quality": ["RMS_misfit", "Confidence"],
+        "AEJ_PBL": [
+            "Latitude_QD", "Longitude_QD", "MLT_QD",
+            "J_QD",  "Flags", "PointType"
+            ],
+        "AEJ_PBS": [
+            "Latitude_QD", "Longitude_QD", "MLT_QD",
+            "J_DF_SemiQD", "Flags", "PointType"
+            ],
+        "AEJ_PBS:GroundMagneticDisturbance": ["B_NE"],
+        "AOB_FAC": [
+            "Latitude_QD", "Longitude_QD", "MLT_QD",
+            "Boundary_Flag", "Quality", "Pair_Indicator"
+            ],
+        "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "SensorIndex"],
+        "AUX_OBSM": ["B_NEC", "F", "IAGA_code", "Quality"],
+        "AUX_OBSS": ["B_NEC", "F", "IAGA_code", "Quality"],
+    }
 
     AUXILIARY_VARIABLES = [
         "Timestamp", "Latitude", "Longitude", "Radius", "Spacecraft",
@@ -435,7 +515,7 @@ class SwarmRequest(ClientRequest):
         "SunRightAscension", "SunAzimuthAngle", "SunZenithAngle",
         "SunLongitude", "SunVector", "DipoleAxisVector", "NGPLatitude",
         "NGPLongitude", "DipoleTiltAngle",
-        ]
+    ]
 
     MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
 
@@ -450,7 +530,7 @@ class SwarmRequest(ClientRequest):
         "MIO_SHA_2D-Primary", "MIO_SHA_2D-Secondary",
         "AMPS",
         "MCO_SHA_2X", "CHAOS", "CHAOS-MMA", "MMA_SHA_2C", "MMA_SHA_2F", "MIO_SHA_2C", "MIO_SHA_2D", "SwarmCI",
-        ]
+    ]
 
     def __init__(self, url=None, username=None, password=None, token=None,
                  config=None, logging_level="NO_LOGGING"):
@@ -542,17 +622,27 @@ class SwarmRequest(ClientRequest):
                 If False then return a dict of available collections.
 
         """
+        # Shorter form of the available collections
+        collections_short = self._available["collections"].copy()
+        collections_short["AUX_OBSS"] = ['SW_OPER_AUX_OBSS2_']
+        collections_short["AUX_OBSM"] = ['SW_OPER_AUX_OBSM2_']
+        collections_short["AUX_OBSH"] = ['SW_OPER_AUX_OBSH2_']
+
         def _filter_collections(groupname):
-            groups = list(self._available["collections"].keys())
-            if groupname in groups:
-                return {groupname:
-                        self._available["collections"][groupname]}
+            """ Reduce the full list to just one group, e.g. "MAG """
+            if groupname:
+                groups = list(collections_short.keys())
+                if groupname in groups:
+                    return {
+                        groupname:
+                        collections_short[groupname]
+                    }
+                else:
+                    raise ValueError("Invalid collection group name")
             else:
-                raise ValueError("Invalid collection group name")
-        if groupname:
-            collections_filtered = _filter_collections(groupname)
-        else:
-            collections_filtered = self._available["collections"]
+                return collections_short
+
+        collections_filtered = _filter_collections(groupname)
         if details:
             print("General References:")
             for i in REFERENCES["General Swarm"]:
@@ -665,6 +755,98 @@ class SwarmRequest(ClientRequest):
         """
         return self._available["auxiliaries"]
 
+    def available_observatories(
+        self, collection=None, start_time=None, end_time=None, details=False
+    ):
+        """Get list of available observatories from server.
+
+        Search availability by collection, one of::
+
+            "SW_OPER_AUX_OBSH2_"
+            "SW_OPER_AUX_OBSM2_"
+            "SW_OPER_AUX_OBSS2_"
+
+        Example usage::
+
+            from viresclient import SwarmRequest
+            request = SwarmRequest()
+            # For a list of observatories available:
+            request.available_observatories("SW_OPER_AUX_OBSM2_")
+            # For a DataFrame also containing availability start and end times:
+            request.available_observatories("SW_OPER_AUX_OBSM2_", details=True)
+            # For available observatories during a given time period:
+            request.available_observatories(
+                "SW_OPER_AUX_OBSM2_", "2013-01-01", "2013-02-01"
+            )
+
+        Args:
+            collection (str): collection name (e.g. `"SW_OPER_AUX_OBSM2_"`)
+            custom_model (str): as with set_products
+            details (bool): returns DataFrame if True
+
+        Returns:
+            list or DataFrame: IAGA codes (and start/end times)
+
+        """
+        def _request_get_observatories(collection=None, start_time=None, end_time=None):
+            """ Make the get_observatories request to the server """
+            templatefile = TEMPLATE_FILES["get_observatories"]
+            template = JINJA2_ENVIRONMENT.get_template(templatefile)
+            request = template.render(
+                collection_id=collection,
+                begin_time=start_time,
+                end_time=end_time,
+                response_type="text/csv"
+            ).encode('UTF-8')
+            response = self._get(
+                request, asynchronous=False, show_progress=False
+            )
+            return response
+
+        def _csv_to_df(csv_data):
+            """ Convert bytes data to pandas dataframe """
+            return read_csv(
+                StringIO(str(csv_data, 'utf-8'))
+            )
+
+        obs_collections = [
+            "SW_OPER_AUX_OBSH2_",
+            "SW_OPER_AUX_OBSM2_",
+            "SW_OPER_AUX_OBSS2_"
+        ]
+        if collection not in obs_collections:
+            raise ValueError(f"Invalid collection: {collection}")
+        if start_time and end_time:
+            start_time = parse_datetime(start_time)
+            end_time = parse_datetime(end_time)
+        else:
+            start_time, end_time = None, None
+
+        response = _request_get_observatories(collection, start_time, end_time)
+        df = _csv_to_df(response)
+        if details:
+            return df
+        else:
+            return list(df["IAGACode"])
+
+    def _detect_AUX_OBS(self, collections):
+        # Identify collection types present
+        collection_types_requested = {
+            self._available["collections_to_keys"].get(collection)
+            for collection in collections
+        }
+        # Output notification for each of aux_type
+        for aux_type in ["AUX_OBSH", "AUX_OBSM", "AUX_OBSS"]:
+            if aux_type in collection_types_requested:
+                tqdm.write(
+                    dedent(
+                        f"""
+                Accessing INTERMAGNET and/or WDC data
+                Check usage terms at {DATA_CITATIONS.get(aux_type)}
+                """
+                    )
+                )
+
     def set_collection(self, *args):
         """Set the collection(s) to use.
 
@@ -679,13 +861,13 @@ class SwarmRequest(ClientRequest):
                     "{} invalid. Must be string."
                     .format(collection)
                     )
-        for collection in collections:
             if collection not in self._available["collections_to_keys"]:
                 raise ValueError(
                     "Invalid collection: {}. "
                     "Check available with SwarmRequest().available_collections()"
                     .format(collection)
                     )
+        self._detect_AUX_OBS(collections)
         self._collection_list = collections
         self._request_inputs.set_collections(collections)
         return self
@@ -872,6 +1054,8 @@ class SwarmRequest(ClientRequest):
         # Change to spacecraft = "A" etc. for this request
         if spacecraft in ("Alpha", "Bravo", "Charlie"):
             spacecraft = spacecraft[0]
+        if spacecraft not in "ABC":
+            raise ValueError("Invalid spacecraft ID")
         collections = ["SW_OPER_MAG{}_LR_1B".format(spacecraft[0])]
         request_inputs = SwarmWPSInputs(
             collection_ids={spacecraft: collections},
@@ -888,8 +1072,15 @@ class SwarmRequest(ClientRequest):
         self._get(
             request, asynchronous=False, response_handler=response_handler,
             show_progress=False)
-        # self._wps_service.retrieve(request, handler=response_handler)
-        return retdata.as_dataframe()["OrbitNumber"][0]
+        df = retdata.as_dataframe()
+        if len(df) == 0:
+            raise ValueError(
+                "Orbit number not identified. Probably outside of mission duration or orbit counter file."
+            )
+        elif len(df) > 1:
+            raise RuntimeError("Unexpected server response. More than one OrbitNumber.")
+        else:
+            return df["OrbitNumber"][0]
 
     def get_model_info(self, models=None, custom_model=None,
                        original_response=False):

@@ -8,7 +8,7 @@ Installation and first usage
 
   viresclient is already installed so skip this step. Log in at https://vre.vires.services/ and refer to documentation at https://swarm-vre.readthedocs.io/. The access token should be automatically configured so you can jump in with the notebook demos.
 
-Python ≥ 3.5 is required. Tested primarily on Linux, but macOS and Windows should also work (on v0.4+).
+Python ≥ 3.6 is required. Testing is primarily on Linux, but macOS and Windows should also work.
 
 It can currently be installed with::
 
@@ -59,7 +59,7 @@ Recommended setup if starting without Python already
 
   and follow the instructions.
 
-  A first usage guide is provided as a Jupyter notebook (`view <https://nbviewer.jupyter.org/github/Swarm-DISC/Swarm_notebooks/blob/master/02a__Intro-Swarm-viresclient.ipynb>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/Swarm-DISC/Swarm_notebooks/master/02a__Intro-Swarm-viresclient.ipynb>`_, or use git to get the whole example repository::
+  A first usage guide is provided as a Jupyter notebook (`view <https://swarm-vre.readthedocs.io/en/latest/Swarm_notebooks/02a__Intro-Swarm-viresclient.html>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/Swarm-DISC/Swarm_notebooks/master/02a__Intro-Swarm-viresclient.ipynb>`_, or use git to get the whole example repository::
 
     git clone https://github.com/Swarm-DISC/Swarm_notebooks.git
 

@@ -50,6 +50,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'nbsphinx',
     'sphinx.ext.imgmath',
+    'sphinx.ext.autosectionlabel'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
