@@ -160,9 +160,16 @@ class FileReader(object):
         columns = set(self.variables)
         columns.remove("Timestamp")
         # Split columns according to those to be expanded into multiple columns
-        columns_to_expand = set(c for c in columns
-                                if c in DATANAMES_TO_FRAME_NAMES.keys()
-                                or "B_NEC" in c) if expand else set()
+        if expand:
+            columns_to_expand = set(c for c in columns
+                                    if c in DATANAMES_TO_FRAME_NAMES.keys()
+                                    or "B_NEC" in c)
+            # Avoid conflict with 2D AOB_FAC Quality variable
+            # when accessing AUX_OBS Quality
+            if any(["AUX_OBS" in s for s in self.sources]):
+                columns_to_expand.discard("Quality")
+        else:
+            columns_to_expand = set()
         columns_standard = columns.difference(columns_to_expand)
         # Initialise dataframe with Timestamp as index
         df = pandas.DataFrame(index=self.get_variable("Timestamp"))
