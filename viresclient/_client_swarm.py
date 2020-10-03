@@ -756,7 +756,8 @@ class SwarmRequest(ClientRequest):
         return self._available["auxiliaries"]
 
     def available_observatories(
-        self, collection=None, start_time=None, end_time=None, details=False
+        self, collection, start_time=None, end_time=None,
+        details=False
     ):
         """Get list of available observatories from server.
 
@@ -780,8 +781,9 @@ class SwarmRequest(ClientRequest):
             )
 
         Args:
-            collection (str): collection name (e.g. `"SW_OPER_AUX_OBSM2_"`)
-            custom_model (str): as with set_products
+            collection (str): OBS collection name, e.g. "SW_OPER_AUX_OBSM2_"
+            start_time (datetime / ISO_8601 string)
+            end_time (datetime / ISO_8601 string)
             details (bool): returns DataFrame if True
 
         Returns:
@@ -822,6 +824,7 @@ class SwarmRequest(ClientRequest):
         else:
             start_time, end_time = None, None
 
+        self._detect_AUX_OBS([collection])
         response = _request_get_observatories(collection, start_time, end_time)
         df = _csv_to_df(response)
         if details:
@@ -838,20 +841,20 @@ class SwarmRequest(ClientRequest):
         # Output notification for each of aux_type
         for aux_type in ["AUX_OBSH", "AUX_OBSM", "AUX_OBSS"]:
             if aux_type in collection_types_requested:
-                tqdm.write(
-                    dedent(
-                        f"""
+                output_text = dedent(f"""
                 Accessing INTERMAGNET and/or WDC data
                 Check usage terms at {DATA_CITATIONS.get(aux_type)}
-                """
-                    )
-                )
+                """)
+                if aux_type == "AUX_OBSH":
+                    output_text += "WARNING: AUX_OBSH is not yet public"
+                tqdm.write(output_text)
 
-    def set_collection(self, *args):
+    def set_collection(self, *args, verbose=True):
         """Set the collection(s) to use.
 
         Args:
             (str): one or several from .available_collections()
+            verbose (bool): Notify if special data terms
 
         """
         collections = [*args]
@@ -867,7 +870,8 @@ class SwarmRequest(ClientRequest):
                     "Check available with SwarmRequest().available_collections()"
                     .format(collection)
                     )
-        self._detect_AUX_OBS(collections)
+        if verbose:
+            self._detect_AUX_OBS(collections)
         self._collection_list = collections
         self._request_inputs.set_collections(collections)
         return self
