@@ -838,20 +838,20 @@ class SwarmRequest(ClientRequest):
         # Output notification for each of aux_type
         for aux_type in ["AUX_OBSH", "AUX_OBSM", "AUX_OBSS"]:
             if aux_type in collection_types_requested:
-                tqdm.write(
-                    dedent(
-                        f"""
+                output_text = dedent(f"""
                 Accessing INTERMAGNET and/or WDC data
                 Check usage terms at {DATA_CITATIONS.get(aux_type)}
-                """
-                    )
-                )
+                """)
+                if aux_type == "AUX_OBSH":
+                    output_text += "WARNING: AUX_OBSH is not yet public"
+                tqdm.write(output_text)
 
-    def set_collection(self, *args):
+    def set_collection(self, *args, verbose=True):
         """Set the collection(s) to use.
 
         Args:
             (str): one or several from .available_collections()
+            verbose (bool): Notify if special data terms
 
         """
         collections = [*args]
@@ -867,7 +867,8 @@ class SwarmRequest(ClientRequest):
                     "Check available with SwarmRequest().available_collections()"
                     .format(collection)
                     )
-        self._detect_AUX_OBS(collections)
+        if verbose:
+            self._detect_AUX_OBS(collections)
         self._collection_list = collections
         self._request_inputs.set_collections(collections)
         return self
