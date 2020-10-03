@@ -756,7 +756,8 @@ class SwarmRequest(ClientRequest):
         return self._available["auxiliaries"]
 
     def available_observatories(
-        self, collection=None, start_time=None, end_time=None, details=False
+        self, collection, start_time=None, end_time=None,
+        details=False
     ):
         """Get list of available observatories from server.
 
@@ -780,8 +781,9 @@ class SwarmRequest(ClientRequest):
             )
 
         Args:
-            collection (str): collection name (e.g. `"SW_OPER_AUX_OBSM2_"`)
-            custom_model (str): as with set_products
+            collection (str): OBS collection name, e.g. "SW_OPER_AUX_OBSM2_"
+            start_time (datetime / ISO_8601 string)
+            end_time (datetime / ISO_8601 string)
             details (bool): returns DataFrame if True
 
         Returns:
@@ -822,6 +824,7 @@ class SwarmRequest(ClientRequest):
         else:
             start_time, end_time = None, None
 
+        self._detect_AUX_OBS([collection])
         response = _request_get_observatories(collection, start_time, end_time)
         df = _csv_to_df(response)
         if details:
