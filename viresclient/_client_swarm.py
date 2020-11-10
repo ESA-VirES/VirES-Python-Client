@@ -817,7 +817,9 @@ class SwarmRequest(ClientRequest):
             "SW_OPER_AUX_OBSS2_"
         ]
         if collection not in obs_collections:
-            raise ValueError(f"Invalid collection: {collection}")
+            raise ValueError(
+                f"Invalid collection: {collection}. Must be one of: {obs_collections}."
+            )
         if start_time and end_time:
             start_time = parse_datetime(start_time)
             end_time = parse_datetime(end_time)
