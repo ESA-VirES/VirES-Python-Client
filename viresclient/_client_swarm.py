@@ -501,7 +501,7 @@ class SwarmRequest(ClientRequest):
             "Latitude_QD", "Longitude_QD", "MLT_QD",
             "Boundary_Flag", "Quality", "Pair_Indicator"
             ],
-        "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "SensorIndex"],
+        "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "ObsIndex"],
         "AUX_OBSM": ["B_NEC", "F", "IAGA_code", "Quality"],
         "AUX_OBSS": ["B_NEC", "F", "IAGA_code", "Quality"],
     }
