@@ -233,8 +233,8 @@ class SwarmWPSInputs(WPSInputs):
         else:
             # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
             sc = collection[11]
-            sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie", "_": "NSC"}
-            name = sc_to_name[sc]
+            sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie"}
+            name = sc_to_name.get(sc, "NSC")
         return name
 
     def set_collections(self, collections):
@@ -423,6 +423,13 @@ class SwarmRequest(ClientRequest):
             *[f"SW_OPER_AUX_OBSS2_:{code}" for code in IAGA_CODES]
         ]
     }
+
+    OBS_COLLECTIONS = [
+        "SW_OPER_AUX_OBSH2_",
+        "SW_OPER_AUX_OBSM2_",
+        "SW_OPER_AUX_OBSS2_"
+    ]
+
 
     # These are not necessarily real sampling steps, but are good enough to use
     # for splitting long requests into chunks
@@ -811,14 +818,9 @@ class SwarmRequest(ClientRequest):
                 StringIO(str(csv_data, 'utf-8'))
             )
 
-        obs_collections = [
-            "SW_OPER_AUX_OBSH2_",
-            "SW_OPER_AUX_OBSM2_",
-            "SW_OPER_AUX_OBSS2_"
-        ]
-        if collection not in obs_collections:
+        if collection not in self.OBS_COLLECTIONS:
             raise ValueError(
-                f"Invalid collection: {collection}. Must be one of: {obs_collections}."
+                f"Invalid collection: {collection}. Must be one of: {self.OBS_COLLECTIONS}."
             )
         if start_time and end_time:
             start_time = parse_datetime(start_time)
@@ -832,7 +834,9 @@ class SwarmRequest(ClientRequest):
         if details:
             return df
         else:
-            return list(df["IAGACode"])
+            # note: "IAGACode" has been renamed to "site" in VirES 3.5
+            key = "IAGACode" if "IAGACode" in df.keys() else "site"
+            return list(df[key])
 
     def _detect_AUX_OBS(self, collections):
         # Identify collection types present

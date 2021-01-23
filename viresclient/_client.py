@@ -77,6 +77,9 @@ CONFIG_FILE_PATH = os.path.join(os.path.expanduser("~"), ".viresclient,ini")
 
 # Maximum selectable time interval ~25 years
 MAX_TIME_SELECTION = timedelta(days=25*365.25)
+# Maximum time-chunk size ~50 years
+MAX_CHUNK_DURATION = 2 * MAX_TIME_SELECTION
+
 
 TEMPLATE_FILES = {
     'list_jobs': "vires_list_jobs.xml"
@@ -392,9 +395,9 @@ class ClientRequest(object):
                 e.g. [(start1, end1), (start2, end2)]
         """
         # maximum chunk duration as a timedelta object
-        chunk_duration = timedelta(seconds=(
+        chunk_duration = min(timedelta(seconds=(
             nrecords_limit * parse_duration(sampling_step).total_seconds()
-        ))
+        )), MAX_CHUNK_DURATION)
 
         # calculate the chunk intervals ...
         request_intervals = []
