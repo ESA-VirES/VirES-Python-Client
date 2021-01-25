@@ -12,7 +12,10 @@ from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.time_util import parse_datetime
 from ._client import WPSInputs, ClientRequest, TEMPLATE_FILES
 from ._data_handling import ReturnedDataFile
+from ._data import CONFIG_SWARM
 
+with open(CONFIG_SWARM, "r") as f:
+    CONFIG_SWARM = json.load(f)
 
 TEMPLATE_FILES = {
     **TEMPLATE_FILES,
@@ -161,6 +164,7 @@ COLLECTION_REFERENCES = {
     "AUX_OBSH": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSM": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSS": ("https://doi.org/10.5047/eps.2013.07.011",),
+    "VOBS_SW_1M": ("https://www.space.dtu.dk/english/research/projects/project-descriptions/geomagnetic-virtual-observatories",),
 }
 
 DATA_CITATIONS = {
@@ -169,8 +173,10 @@ DATA_CITATIONS = {
     "AUX_OBSS": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/second/README",
 }
 
-IAGA_CODES = ['AAA', 'AAE', 'ABG', 'ABK', 'AIA', 'ALE', 'AMS', 'API', 'AQU', 'ARS', 'ASC', 'ASP', 'BDV', 'BEL', 'BFE', 'BFO', 'BGY', 'BJN', 'BLC', 'BMT', 'BNG', 'BOU', 'BOX', 'BRD', 'BRW', 'BSL', 'CBB', 'CBI', 'CDP', 'CKI', 'CLF', 'CMO', 'CNB', 'CNH', 'COI', 'CPL', 'CSY', 'CTA', 'CTS', 'CYG', 'CZT', 'DED', 'DLR', 'DLT', 'DMC', 'DOB', 'DOU', 'DRV', 'DUR', 'EBR', 'ELT', 'ESA', 'ESK', 'EYR', 'FCC', 'FRD', 'FRN', 'FUQ', 'FUR', 'GAN', 'GCK', 'GDH', 'GLM', 'GLN', 'GNA', 'GNG', 'GUA', 'GUI', 'GZH', 'HAD', 'HBK', 'HER', 'HLP', 'HON', 'HRB', 'HRN', 'HUA', 'HYB', 'IPM', 'IQA', 'IRT', 'IZN', 'JAI', 'JCO', 'KAK', 'KDU', 'KEP', 'KHB', 'KIR', 'KIV', 'KMH', 'KNY', 'KNZ', 'KOU', 'KSH', 'LER', 'LIV', 'LMM', 'LNP', 'LON', 'LOV', 'LRM', 'LRV', 'LVV', 'LYC', 'LZH', 'MAB', 'MAW', 'MBC', 'MBO', 'MCQ', 'MEA', 'MGD', 'MID', 'MIZ', 'MMB', 'MZL', 'NAQ', 'NCK', 'NEW', 'NGK', 'NGP', 'NMP', 'NUR', 'NVS', 'ORC', 'OTT', 'PAF', 'PAG', 'PBQ', 'PEG', 'PET', 'PHU', 'PIL', 'PND', 'PPT', 'PST', 'QGZ', 'QIX', 'QSB', 'QZH', 'RES', 'SBA', 'SBL', 'SFS', 'SHE', 'SHL', 'SHU', 'SIL', 'SIT', 'SJG', 'SOD', 'SPG', 'SPT', 'STJ', 'SUA', 'TAM', 'TAN', 'TDC', 'TEO', 'THJ', 'THL', 'THY', 'TIR', 'TND', 'TRO', 'TRW', 'TSU', 'TUC', 'UPS', 'VAL', 'VIC', 'VNA', 'VOS', 'VSK', 'VSS', 'WHN', 'WIC', 'WIK', 'WNG', 'YAK', 'YKC']
+# IAGA_CODES = ['AAA', 'AAE', 'ABG', 'ABK', 'AIA', 'ALE', 'AMS', 'API', 'AQU', 'ARS', 'ASC', 'ASP', 'BDV', 'BEL', 'BFE', 'BFO', 'BGY', 'BJN', 'BLC', 'BMT', 'BNG', 'BOU', 'BOX', 'BRD', 'BRW', 'BSL', 'CBB', 'CBI', 'CDP', 'CKI', 'CLF', 'CMO', 'CNB', 'CNH', 'COI', 'CPL', 'CSY', 'CTA', 'CTS', 'CYG', 'CZT', 'DED', 'DLR', 'DLT', 'DMC', 'DOB', 'DOU', 'DRV', 'DUR', 'EBR', 'ELT', 'ESA', 'ESK', 'EYR', 'FCC', 'FRD', 'FRN', 'FUQ', 'FUR', 'GAN', 'GCK', 'GDH', 'GLM', 'GLN', 'GNA', 'GNG', 'GUA', 'GUI', 'GZH', 'HAD', 'HBK', 'HER', 'HLP', 'HON', 'HRB', 'HRN', 'HUA', 'HYB', 'IPM', 'IQA', 'IRT', 'IZN', 'JAI', 'JCO', 'KAK', 'KDU', 'KEP', 'KHB', 'KIR', 'KIV', 'KMH', 'KNY', 'KNZ', 'KOU', 'KSH', 'LER', 'LIV', 'LMM', 'LNP', 'LON', 'LOV', 'LRM', 'LRV', 'LVV', 'LYC', 'LZH', 'MAB', 'MAW', 'MBC', 'MBO', 'MCQ', 'MEA', 'MGD', 'MID', 'MIZ', 'MMB', 'MZL', 'NAQ', 'NCK', 'NEW', 'NGK', 'NGP', 'NMP', 'NUR', 'NVS', 'ORC', 'OTT', 'PAF', 'PAG', 'PBQ', 'PEG', 'PET', 'PHU', 'PIL', 'PND', 'PPT', 'PST', 'QGZ', 'QIX', 'QSB', 'QZH', 'RES', 'SBA', 'SBL', 'SFS', 'SHE', 'SHL', 'SHU', 'SIL', 'SIT', 'SJG', 'SOD', 'SPG', 'SPT', 'STJ', 'SUA', 'TAM', 'TAN', 'TDC', 'TEO', 'THJ', 'THL', 'THY', 'TIR', 'TND', 'TRO', 'TRW', 'TSU', 'TUC', 'UPS', 'VAL', 'VIC', 'VNA', 'VOS', 'VSK', 'VSS', 'WHN', 'WIC', 'WIK', 'WNG', 'YAK', 'YKC']
+IAGA_CODES = CONFIG_SWARM.get("IAGA_CODES")
 
+VOBS_SITES = CONFIG_SWARM.get("VOBS_SITES")
 
 class SwarmWPSInputs(WPSInputs):
     """Holds the set of inputs to be passed to the request template for Swarm
@@ -421,13 +427,38 @@ class SwarmRequest(ClientRequest):
         "AUX_OBSS": [
             "SW_OPER_AUX_OBSS2_",
             *[f"SW_OPER_AUX_OBSS2_:{code}" for code in IAGA_CODES]
-        ]
+        ],
+        "VOBS_SW_1M": [
+            "SW_OPER_VOBS_1M_2_",
+            *[f"SW_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_SW_4M": [
+            "SW_OPER_VOBS_4M_2_",
+            *[f"SW_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CH_1M": [
+            "CH_OPER_VOBS_1M_2_",
+            *[f"CH_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CH_4M": [
+            "CH_OPER_VOBS_4M_2_",
+            *[f"CH_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CR_4M": [
+            "CR_OPER_VOBS_4M_2_",
+            *[f"CR_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+        ],
     }
 
     OBS_COLLECTIONS = [
         "SW_OPER_AUX_OBSH2_",
         "SW_OPER_AUX_OBSM2_",
-        "SW_OPER_AUX_OBSS2_"
+        "SW_OPER_AUX_OBSS2_",
+        "SW_OPER_VOBS_1M_2_",
+        "SW_OPER_VOBS_4M_2_",
+        "CH_OPER_VOBS_1M_2_",
+        "CH_OPER_VOBS_4M_2_",
+        "CR_OPER_VOBS_4M_2_",
     ]
 
 
@@ -446,7 +477,12 @@ class SwarmRequest(ClientRequest):
         "AEJ_LPS": "PT1S",
         "AUX_OBSH": "PT60M",
         "AUX_OBSM": "PT60S",
-        "AUX_OBSS": "PT1S"
+        "AUX_OBSS": "PT1S",
+        "VOBS_SW_1M": "P31D",
+        "VOBS_CH_1M": "P31D",
+        "VOBS_SW_4M": "P122D",
+        "VOBS_CH_4M": "P122D",
+        "VOBS_CR_4M": "P122D",
     }
 
     PRODUCT_VARIABLES = {
@@ -511,6 +547,11 @@ class SwarmRequest(ClientRequest):
         "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "SensorIndex"],
         "AUX_OBSM": ["B_NEC", "F", "IAGA_code", "Quality"],
         "AUX_OBSS": ["B_NEC", "F", "IAGA_code", "Quality"],
+        "VOBS_SW_1M": ["SiteCode", "B_CF", "B_OB", "B_SV", "sigma_CF", "sigma_OB", "sigma_SV"],
+        "VOBS_CH_1M": ["SiteCode", "B_CF", "B_OB", "B_SV", "sigma_CF", "sigma_OB", "sigma_SV"],
+        "VOBS_SW_4M": ["SiteCode", "B_CF", "B_OB", "B_SV", "sigma_CF", "sigma_OB", "sigma_SV"],
+        "VOBS_CH_4M": ["SiteCode", "B_CF", "B_OB", "B_SV", "sigma_CF", "sigma_OB", "sigma_SV"],
+        "VOBS_CR_4M": ["SiteCode", "B_CF", "B_OB", "B_SV", "sigma_CF", "sigma_OB", "sigma_SV"],
     }
 
     AUXILIARY_VARIABLES = [
@@ -629,11 +670,17 @@ class SwarmRequest(ClientRequest):
                 If False then return a dict of available collections.
 
         """
-        # Shorter form of the available collections
+        # Shorter form of the available collections,
+        # without all the individual SiteCodes
         collections_short = self._available["collections"].copy()
-        collections_short["AUX_OBSS"] = ['SW_OPER_AUX_OBSS2_']
-        collections_short["AUX_OBSM"] = ['SW_OPER_AUX_OBSM2_']
-        collections_short["AUX_OBSH"] = ['SW_OPER_AUX_OBSH2_']
+        collections_short["AUX_OBSS"] = ["SW_OPER_AUX_OBSS2_"]
+        collections_short["AUX_OBSM"] = ["SW_OPER_AUX_OBSM2_"]
+        collections_short["AUX_OBSH"] = ["SW_OPER_AUX_OBSH2_"]
+        collections_short["VOBS_SW_1M"] = ["SW_OPER_VOBS_1M_2_"]
+        collections_short["VOBS_SW_4M"] = ["SW_OPER_VOBS_4M_2_"]
+        collections_short["VOBS_CH_1M"] = ["CH_OPER_VOBS_1M_2_"]
+        collections_short["VOBS_CH_4M"] = ["CH_OPER_VOBS_4M_2_"]
+        collections_short["VOBS_CR_4M"] = ["CR_OPER_VOBS_4M_2_"]
 
         def _filter_collections(groupname):
             """ Reduce the full list to just one group, e.g. "MAG """

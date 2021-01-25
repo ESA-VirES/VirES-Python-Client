@@ -42,7 +42,7 @@ CDF_EPOCH_1970 = 62167219200000.0
 
 # Frame names to use as xarray dimension names
 FRAME_NAMES = {
-    "NEC": ["B_NEC"],
+    "NEC": ["B_NEC", "B_OB", "B_CF", "B_SV", "sigma_OB", "sigma_CF", "sigma_SV"],
     "VFM": ["B_VFM", "dB_Sun", "dB_AOCS", "dB_other", "B_error"],
     "quaternion": ["q_NEC_CRF"],
     "WGS84": ["GPS_Position", "LEO_Position"],
@@ -202,7 +202,7 @@ class FileReader(object):
                 df[column + "_" + str(suffix)] = vector_data[:, i]
         return df
 
-    def as_xarray_dataset(self):
+    def as_xarray_dataset(self, reshape=False):
         # NB currrently does not set the global metadata (attrs)
         #  (avoids issues with concatenating them)
         #  (this is done in ReturnedData)
@@ -260,6 +260,50 @@ class FileReader(object):
             ds[dataname].attrs["units"] = self.get_variable_units(dataname)
             ds[dataname].attrs["description"] = self.get_variable_description(
                 dataname)
+        # Reshape to a sensible higher dimensional structure
+        # Currently only for GVO data, and without magnetic model values or auxiliaries
+        # Inefficient as it is duplicating the data (ds -> ds2)
+        if reshape:
+            if "SiteCode" not in ds.data_vars:
+                raise NotImplementedError(
+                    """
+                    Only available for GVO dataset where the "SiteCode"
+                    parameter has been requested 
+                    """
+                )
+            if len(set(ds["SiteCode"].values)) != 300:
+                raise NotImplementedError(
+                    """
+                    Only available when all 300 GVO's have been requested
+                    """
+                )
+            ds = ds.drop("Spacecraft")
+            # TODO: extend to account for all data_vars
+            remaining_vars = set(ds.data_vars) - {"Latitude", "Longitude", "Radius", "SiteCode"}
+            incompatible = remaining_vars - {"B_OB", "B_CF", "B_SV", "sigma_OB", "sigma_CF", "sigma_SV"}
+            if len(incompatible) != 0:
+                raise NotImplementedError(f"Parameters: {incompatible} not supported")
+            # Extract unique coordinate values
+            t = ds["Timestamp"][0:-1:300]
+            lat = ds["Latitude"][0:300].values
+            lon = ds["Longitude"][0:300].values
+            rad = ds["Radius"][0:300].values
+            sitecodes = ds["SiteCode"][0:300].values
+            # Create new dataset based on reshaped variables
+            ds2 = xarray.Dataset(
+                coords={
+                    "Timestamp": t, "SiteCode": (("Site"), sitecodes),
+                    "Latitude": ("Site", lat), "Longitude": ("Site", lon), "Radius": ("Site", rad),
+                    "NEC": ["N", "E", "C"]
+                },
+            )
+            len_t = len(t)
+            for var in remaining_vars:
+                ds2[var] = (
+                    ("Timestamp", "Site", "NEC"),
+                    numpy.reshape(ds[var].values, (len_t, 300, 3))
+                )
+            return ds2
         return ds
 
 
@@ -428,7 +472,7 @@ class ReturnedDataFile(object):
                 df = f.as_pandas_dataframe(expand=expand)
         return df
 
-    def as_xarray(self, group=None):
+    def as_xarray(self, group=None, reshape=False):
         """Convert the data to an xarray Dataset.
 
         Note:
@@ -444,7 +488,7 @@ class ReturnedDataFile(object):
             raise NotImplementedError("csv to xarray is not supported")
         elif self.filetype == 'cdf':
             with FileReader(self._file) as f:
-                ds = f.as_xarray_dataset()
+                ds = f.as_xarray_dataset(reshape=reshape)
         elif self.filetype == 'nc':
             ds = xarray.open_dataset(self._file.name, group=group)
         return ds
@@ -573,8 +617,11 @@ class ReturnedData(object):
         return pandas.concat(
             [d.as_dataframe(expand=expand) for d in self.contents])
 
-    def as_xarray(self):
+    def as_xarray(self, reshape=False):
         """Convert the data to an xarray Dataset.
+
+        Args:
+            reshape (bool): Reshape to a convenient higher dimensional form
 
         Returns:
             xarray.Dataset
@@ -586,7 +633,7 @@ class ReturnedData(object):
         #  and the filtering that has been applied.
         ds_list = []
         for i, data in enumerate(self.contents):
-            ds_part = data.as_xarray()
+            ds_part = data.as_xarray(reshape=reshape)
             if ds_part is None:
                 print("Warning: ",
                       "Unable to create dataset from part {} of {}".format(
