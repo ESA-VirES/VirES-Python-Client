@@ -252,14 +252,10 @@ class FileReader(object):
         for dimname, dimlabels in FRAME_LABELS.items():
             if dimname in dims_used:
                 ds[dimname] = numpy.array(dimlabels)
-                ds[dimname].attrs["description"] = FRAME_DESCRIPTIONS.get(
-                    dimname, None)
                 ds = ds.set_coords(dimname)
-        # Add metadata of each variable
-        for dataname in ds:
-            ds[dataname].attrs["units"] = self.get_variable_units(dataname)
-            ds[dataname].attrs["description"] = self.get_variable_description(
-                dataname)
+        #         ds[dimname].attrs["description"] = FRAME_DESCRIPTIONS.get(
+        #             dimname, None)
+        #         ds = ds.set_coords(dimname)
         # Reshape to a sensible higher dimensional structure
         # Currently only for GVO data, and without magnetic model values or auxiliaries
         # Inefficient as it is duplicating the data (ds -> ds2)
@@ -268,7 +264,7 @@ class FileReader(object):
                 raise NotImplementedError(
                     """
                     Only available for GVO dataset where the "SiteCode"
-                    parameter has been requested 
+                    parameter has been requested
                     """
                 )
             if len(set(ds["SiteCode"].values)) != 300:
@@ -300,7 +296,17 @@ class FileReader(object):
                     ("Timestamp", "Site", "NEC"),
                     numpy.reshape(ds[var].values, (len_t, 300, 3))
                 )
-            return ds2
+            ds = ds2
+        # Add metadata of each variable
+        for var in list(ds.data_vars) + list(ds.coords):
+            try:
+                ds[var].attrs["units"] = self.get_variable_units(var)
+            except KeyError:
+                ds[var].attrs["units"] = None
+            try:
+                ds[var].attrs["description"] = self.get_variable_description(var)
+            except KeyError:
+                ds[var].attrs["description"] = FRAME_DESCRIPTIONS.get(var, None)
         return ds
 
 
