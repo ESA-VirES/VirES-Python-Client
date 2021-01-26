@@ -544,7 +544,7 @@ class SwarmRequest(ClientRequest):
             "Latitude_QD", "Longitude_QD", "MLT_QD",
             "Boundary_Flag", "Quality", "Pair_Indicator"
             ],
-        "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "SensorIndex"],
+        "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "ObsIndex"],
         "AUX_OBSM": ["B_NEC", "F", "IAGA_code", "Quality"],
         "AUX_OBSS": ["B_NEC", "F", "IAGA_code", "Quality"],
         "VOBS_SW_1M": ["SiteCode", "B_CF", "B_OB", "B_SV", "sigma_CF", "sigma_OB", "sigma_SV"],
@@ -999,25 +999,38 @@ class SwarmRequest(ClientRequest):
                 raise OSError("Custom model .shc file not found")
         else:
             custom_shc = None
+
         # Set up the variables that actually get passed to the WPS request
+
+        def _model_datavar_names(variable, residuals=False):
+            """Give the list of allowable variable names containing model evaluations"""
+            if variable not in model_variables:
+                raise ValueError(f"Expected one of {model_variables}; got '{variable}'")
+            affix = "_res_" if residuals else "_"
+            return [f"{variable}{affix}{model_name}" for model_name in model_ids]
+
+        # Identify which (if any) of ["F", "B_NEC", ...] are requested
+        model_variables_present = set(measurements).intersection(set(model_variables))
+        # Create the list of variable names to request
         variables = []
-        for variable in measurements:
-            if variable in model_variables:
-                if residuals:
-                    variables.extend(
-                        "%s_res_%s" % (variable, model_name)
-                        for model_name in model_ids
-                    )
-                else:
-                    variables.append(variable)
-                    variables.extend(
-                        "%s_%s" % (variable, model_name)
-                        for model_name in model_ids
-                    )
-            else:  # not a model variable
+        for variable in model_variables_present:
+            if not residuals:
+                # Include "F" / "B_NEC" as requested...
                 variables.append(variable)
+            # Include e.g. "F_IGRF" / "B_NEC_IGRF" / "B_NEC_res_IGRF" etc.
+            variables.extend(_model_datavar_names(variable, residuals=residuals))
+        if models and (len(model_variables_present) == 0):
+            if residuals:
+                raise ValueError(
+                    f"""
+                    Residuals requested without one of {model_variables} set as measurements
+                    """
+                )
+            # If "F" / "B_NEC" have not been requested, include e.g. "B_NEC_IGRF" etc.
+            variables.extend(_model_datavar_names("B_NEC"))
+        # Include all the non-model-related variables
+        variables.extend(list(set(measurements) - model_variables_present))
         variables.extend(auxiliaries)
-        # Set these in the SwarmWPSInputs object
         self._request_inputs.model_expression = model_expression_string
         self._request_inputs.variables = variables
         self._request_inputs.sampling_step = sampling_step

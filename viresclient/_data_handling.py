@@ -280,9 +280,6 @@ class FileReader(object):
             ds = ds.drop("Spacecraft")
             # TODO: extend to account for all data_vars
             remaining_vars = set(ds.data_vars) - {"Latitude", "Longitude", "Radius", "SiteCode"}
-            incompatible = remaining_vars - {"B_OB", "B_CF", "B_SV", "sigma_OB", "sigma_CF", "sigma_SV"}
-            if len(incompatible) != 0:
-                raise NotImplementedError(f"Parameters: {incompatible} not supported")
             # Extract unique coordinate values
             t = ds["Timestamp"][0:-1:300]
             lat = ds["Latitude"][0:300].values
