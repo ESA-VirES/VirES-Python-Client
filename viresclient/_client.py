@@ -35,7 +35,7 @@ import json
 try:
     from IPython import get_ipython
     IN_JUPYTER = 'zmqshell' in str(type(get_ipython()))
-except ImportError:
+except Exception:
     IN_JUPYTER = False
 from tqdm import tqdm
 
