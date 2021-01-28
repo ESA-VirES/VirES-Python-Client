@@ -336,7 +336,7 @@ class ReturnedDataFile(object):
     def open_cdf(self):
         """Returns the opened file as cdflib.CDF
         """
-        return FileReader.open_cdf(self._file.name)
+        return FileReader._open_cdf(self._file.name)
 
     def _write_new_data(self, data):
         """Replace the tempfile contents with 'data' (bytes)
