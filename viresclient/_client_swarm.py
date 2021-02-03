@@ -448,6 +448,26 @@ class SwarmRequest(ClientRequest):
             "CR_OPER_VOBS_4M_2_",
             *[f"CR_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
         ],
+        "VOBS_SW_1M:SecularVariation": [
+            "SW_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"SW_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_SW_4M:SecularVariation": [
+            "SW_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"SW_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CH_1M:SecularVariation": [
+            "CH_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"CH_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CH_4M:SecularVariation": [
+            "CH_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"CH_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CR_4M:SecularVariation": [
+            "CR_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"CR_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
     }
 
     OBS_COLLECTIONS = [
@@ -459,6 +479,11 @@ class SwarmRequest(ClientRequest):
         "CH_OPER_VOBS_1M_2_",
         "CH_OPER_VOBS_4M_2_",
         "CR_OPER_VOBS_4M_2_",
+        "SW_OPER_VOBS_1M_2_:SecularVariation",
+        "SW_OPER_VOBS_4M_2_:SecularVariation",
+        "CH_OPER_VOBS_1M_2_:SecularVariation",
+        "CH_OPER_VOBS_4M_2_:SecularVariation",
+        "CR_OPER_VOBS_4M_2_:SecularVariation",
     ]
 
 
@@ -483,6 +508,11 @@ class SwarmRequest(ClientRequest):
         "VOBS_SW_4M": "P122D",
         "VOBS_CH_4M": "P122D",
         "VOBS_CR_4M": "P122D",
+        "VOBS_SW_1M:SecularVariation": "P31D",
+        "VOBS_CH_1M:SecularVariation": "P31D",
+        "VOBS_SW_4M:SecularVariation": "P122D",
+        "VOBS_CH_4M:SecularVariation": "P122D",
+        "VOBS_CR_4M:SecularVariation": "P122D",
     }
 
     PRODUCT_VARIABLES = {
@@ -547,11 +577,16 @@ class SwarmRequest(ClientRequest):
         "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "ObsIndex"],
         "AUX_OBSM": ["B_NEC", "F", "IAGA_code", "Quality"],
         "AUX_OBSS": ["B_NEC", "F", "IAGA_code", "Quality"],
-        "VOBS_SW_1M": ["SiteCode", "B_CF", "B_OB", "B_SV", "sigma_CF", "sigma_OB", "sigma_SV"],
-        "VOBS_CH_1M": ["SiteCode", "B_CF", "B_OB", "B_SV", "sigma_CF", "sigma_OB", "sigma_SV"],
-        "VOBS_SW_4M": ["SiteCode", "B_CF", "B_OB", "B_SV", "sigma_CF", "sigma_OB", "sigma_SV"],
-        "VOBS_CH_4M": ["SiteCode", "B_CF", "B_OB", "B_SV", "sigma_CF", "sigma_OB", "sigma_SV"],
-        "VOBS_CR_4M": ["SiteCode", "B_CF", "B_OB", "B_SV", "sigma_CF", "sigma_OB", "sigma_SV"],
+        "VOBS_SW_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CH_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_SW_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CH_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CR_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_SW_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CH_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_SW_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CH_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CR_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
     }
 
     AUXILIARY_VARIABLES = [
@@ -681,6 +716,11 @@ class SwarmRequest(ClientRequest):
         collections_short["VOBS_CH_1M"] = ["CH_OPER_VOBS_1M_2_"]
         collections_short["VOBS_CH_4M"] = ["CH_OPER_VOBS_4M_2_"]
         collections_short["VOBS_CR_4M"] = ["CR_OPER_VOBS_4M_2_"]
+        collections_short["VOBS_SW_1M:SecularVariation"] = ["SW_OPER_VOBS_1M_2_:SecularVariation"]
+        collections_short["VOBS_SW_4M:SecularVariation"] = ["SW_OPER_VOBS_4M_2_:SecularVariation"]
+        collections_short["VOBS_CH_1M:SecularVariation"] = ["CH_OPER_VOBS_1M_2_:SecularVariation"]
+        collections_short["VOBS_CH_4M:SecularVariation"] = ["CH_OPER_VOBS_4M_2_:SecularVariation"]
+        collections_short["VOBS_CR_4M:SecularVariation"] = ["CR_OPER_VOBS_4M_2_:SecularVariation"]
 
         def _filter_collections(groupname):
             """ Reduce the full list to just one group, e.g. "MAG """
