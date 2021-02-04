@@ -14,9 +14,6 @@ from ._client import WPSInputs, ClientRequest, TEMPLATE_FILES
 from ._data_handling import ReturnedDataFile
 from ._data import CONFIG_SWARM
 
-with open(CONFIG_SWARM, "r") as f:
-    CONFIG_SWARM = json.load(f)
-
 TEMPLATE_FILES = {
     **TEMPLATE_FILES,
     'sync': "vires_fetch_filtered_data.xml",

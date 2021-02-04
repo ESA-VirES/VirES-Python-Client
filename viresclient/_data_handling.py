@@ -38,6 +38,8 @@ from ._wps import time_util
 if os.name == "nt":
     import atexit
 
+from ._data import CONFIG_SWARM
+
 CDF_EPOCH_1970 = 62167219200000.0
 
 # Frame names to use as xarray dimension names
@@ -260,43 +262,7 @@ class FileReader(object):
         # Currently only for GVO data, and without magnetic model values or auxiliaries
         # Inefficient as it is duplicating the data (ds -> ds2)
         if reshape:
-            if "SiteCode" not in ds.data_vars:
-                raise NotImplementedError(
-                    """
-                    Only available for GVO dataset where the "SiteCode"
-                    parameter has been requested
-                    """
-                )
-            if len(set(ds["SiteCode"].values)) != 300:
-                raise NotImplementedError(
-                    """
-                    Only available when all 300 GVO's have been requested
-                    """
-                )
-            ds = ds.drop("Spacecraft")
-            # TODO: extend to account for all data_vars
-            remaining_vars = set(ds.data_vars) - {"Latitude", "Longitude", "Radius", "SiteCode"}
-            # Extract unique coordinate values
-            t = ds["Timestamp"][0:-1:300]
-            lat = ds["Latitude"][0:300].values
-            lon = ds["Longitude"][0:300].values
-            rad = ds["Radius"][0:300].values
-            sitecodes = ds["SiteCode"][0:300].values
-            # Create new dataset based on reshaped variables
-            ds2 = xarray.Dataset(
-                coords={
-                    "Timestamp": t, "SiteCode": (("Site"), sitecodes),
-                    "Latitude": ("Site", lat), "Longitude": ("Site", lon), "Radius": ("Site", rad),
-                    "NEC": ["N", "E", "C"]
-                },
-            )
-            len_t = len(t)
-            for var in remaining_vars:
-                ds2[var] = (
-                    ("Timestamp", "Site", "NEC"),
-                    numpy.reshape(ds[var].values, (len_t, 300, 3))
-                )
-            ds = ds2
+            ds = self.reshape_dataset(ds)
         # Add metadata of each variable
         for var in list(ds.data_vars) + list(ds.coords):
             try:
@@ -308,6 +274,55 @@ class FileReader(object):
             except KeyError:
                 ds[var].attrs["description"] = FRAME_DESCRIPTIONS.get(var, None)
         return ds
+
+    @staticmethod
+    def reshape_dataset(ds):
+        if "SiteCode" not in ds.data_vars:
+            raise NotImplementedError(
+                """
+                Only available for GVO dataset where the "SiteCode"
+                parameter has been requested
+                """
+            )
+        vobs_sites = dict(enumerate(CONFIG_SWARM.get("VOBS_SITES")))
+        vobs_sites_inv = {v: k for k, v in vobs_sites.items()}
+        # temporary fix for SV SiteCode's
+        if "B_SV" in ds.data_vars:
+            northings = [f"N{i:02}" if i>=0 else f"S{-i:02}" for i in numpy.round(ds["Latitude"].values).astype(int)]
+            eastings = [f"E{i:03}" if i>=0 else f"W{-i:03}" for i in numpy.round(ds["Longitude"].values).astype(int)]
+            ds["SiteCode"] = "Timestamp", [f"{n}{e}" for n, e in zip(northings, eastings)]
+        # Identify VOBS locations and mapping from integer "Site" identifier
+        pos_vars = ["Longitude", "Latitude", "Radius", "SiteCode"]
+        _ds_locs = next(iter(ds[pos_vars].groupby("Timestamp")))[1]
+        _ds_locs = _ds_locs.drop(("Timestamp")).rename({"Timestamp": "Site"})
+        _ds_locs["Site"] = [vobs_sites_inv.get(code) for code in _ds_locs["SiteCode"].values]
+        _ds_locs = _ds_locs.sortby("Site")
+        # Create dataset initialised with the VOBS positional info as coords
+        # and datavars (empty) reshaped to (Site, Timestamp, ...)
+        t = numpy.unique(ds["Timestamp"])
+        ds2 = xarray.Dataset(
+            coords={
+                "Timestamp": t,
+                "SiteCode": (("Site"), _ds_locs["SiteCode"]),
+                "Latitude": ("Site", _ds_locs["Latitude"]),
+                "Longitude": ("Site", _ds_locs["Longitude"]),
+                "Radius": ("Site", _ds_locs["Radius"]),
+                "NEC": ["N", "E", "C"]
+            },
+        )
+        # (Dropping unused Spacecraft var)
+        data_vars = set(ds.data_vars) - {"Latitude", "Longitude", "Radius", "SiteCode", "Spacecraft"}
+        N_sites = len(_ds_locs["SiteCode"])
+        for var in data_vars:
+            shape = [N_sites, len(t), *ds[var].shape[1:]]
+            ds2[var] = ("Site", *ds[var].dims), numpy.empty(shape, dtype=ds[var].dtype)
+            ds2[var][...] = None
+        # Loop through each VOBS site to insert the datavars into ds2
+        for k, _ds in dict(ds.groupby("SiteCode")).items():
+            site = vobs_sites_inv.get(k)
+            for var in data_vars:
+                ds2[var][site, ...] = _ds[var].values
+        return ds2
 
 
 def make_pandas_DataFrame_from_csv(csv_filename):

@@ -1,5 +1,7 @@
 from os.path import join, dirname
+import json
 
 _DIRNAME = dirname(__file__)
 
-CONFIG_SWARM = join(_DIRNAME, "config_swarm.json")
+with open(join(_DIRNAME, "config_swarm.json"), "r") as f:
+    CONFIG_SWARM = json.load(f)
