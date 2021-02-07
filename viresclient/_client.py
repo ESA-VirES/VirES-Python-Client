@@ -38,6 +38,8 @@ try:
 except ImportError:
     IN_JUPYTER = False
 from tqdm import tqdm
+from io import StringIO
+from pandas import read_csv, to_datetime
 
 
 from ._wps.wps_vires import ViresWPS10Service
@@ -79,7 +81,8 @@ CONFIG_FILE_PATH = os.path.join(os.path.expanduser("~"), ".viresclient,ini")
 MAX_TIME_SELECTION = timedelta(days=25*365.25)
 
 TEMPLATE_FILES = {
-    'list_jobs': "vires_list_jobs.xml"
+    'list_jobs': "vires_list_jobs.xml",
+    'getTimeData': "vires_getTimeData.xml"
 }
 
 AUTH_ERROR_TEXT = """
@@ -569,3 +572,38 @@ class ClientRequest(object):
         request = template.render().encode('UTF-8')
         response = self._get(request, asynchronous=False, show_progress=False)
         return json.loads(response.decode('UTF-8'))
+    
+    def available_times(self, collection, start_time=None, end_time=None):
+        """Returns temporal availability for a given collection
+
+        Args:
+            (str): collection name
+            start_time (datetime / ISO_8601 string)
+            end_time (datetime / ISO_8601 string)
+        
+        Returns:
+            DataFrame
+
+        """
+        template = JINJA2_ENVIRONMENT.get_template(
+            TEMPLATE_FILES["getTimeData"]
+        )
+        request = template.render(
+            collection_id=collection,
+            begin_time=start_time,
+            end_time=end_time
+        ).encode('UTF-8')
+        response = self._get(
+            request, asynchronous=False, show_progress=False
+        )
+        df = read_csv(
+            StringIO(str(response, 'utf-8'))
+        )
+        # Convert to datetime objects
+        df["starttime"] = to_datetime(df["starttime"])
+        df["endtime"] = to_datetime(df["endtime"])
+        return df
+
+        
+
+
