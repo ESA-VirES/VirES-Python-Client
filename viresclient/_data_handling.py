@@ -135,10 +135,10 @@ class FileReader(object):
         return data
 
     def get_variable_units(self, var):
-        return self._varatts[var].get("UNITS", None)
+        return self._varatts[var].get("UNITS", "")
 
     def get_variable_description(self, var):
-        return self._varatts[var].get("DESCRIPTION", None)
+        return self._varatts[var].get("DESCRIPTION", "")
 
     def get_variable_numdims(self, var):
         return self._varinfo[var].get("Num_Dims")
@@ -268,11 +268,11 @@ class FileReader(object):
             try:
                 ds[var].attrs["units"] = self.get_variable_units(var)
             except KeyError:
-                ds[var].attrs["units"] = None
+                ds[var].attrs["units"] = ""
             try:
                 ds[var].attrs["description"] = self.get_variable_description(var)
             except KeyError:
-                ds[var].attrs["description"] = FRAME_DESCRIPTIONS.get(var, None)
+                ds[var].attrs["description"] = FRAME_DESCRIPTIONS.get(var, "")
         return ds
 
     @staticmethod
@@ -286,11 +286,6 @@ class FileReader(object):
             )
         vobs_sites = dict(enumerate(CONFIG_SWARM.get("VOBS_SITES")))
         vobs_sites_inv = {v: k for k, v in vobs_sites.items()}
-        # temporary fix for SV SiteCode's
-        if "B_SV" in ds.data_vars:
-            northings = [f"N{i:02}" if i>=0 else f"S{-i:02}" for i in numpy.round(ds["Latitude"].values).astype(int)]
-            eastings = [f"E{i:03}" if i>=0 else f"W{-i:03}" for i in numpy.round(ds["Longitude"].values).astype(int)]
-            ds["SiteCode"] = "Timestamp", [f"{n}{e}" for n, e in zip(northings, eastings)]
         # Identify VOBS locations and mapping from integer "Site" identifier
         pos_vars = ["Longitude", "Latitude", "Radius", "SiteCode"]
         _ds_locs = next(iter(ds[pos_vars].groupby("Timestamp")))[1]
