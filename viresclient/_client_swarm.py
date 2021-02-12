@@ -33,7 +33,7 @@ REFERENCES = {
 
 MODEL_REFERENCES = {
     'IGRF':
-        (" International Geomagnetic Reference Field: the 13th generation, (waiting for publication) ",
+        (" International Geomagnetic Reference Field: the thirteenth generation, (https://doi.org/10.1186/s40623-020-01288-x) ",
          " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
     'IGRF12':
         (" International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
