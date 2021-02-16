@@ -113,9 +113,13 @@ class FileReader(object):
     @staticmethod
     def _open_cdf(file):
         try:
-            return cdflib.CDF(file.name)
+            f = file.name
         except AttributeError:
-            return cdflib.CDF(file)
+            f = file
+        try:
+            return cdflib.cdfread.CDF(f, string_encoding="utf-8")
+        except TypeError:
+            return cdflib.cdfread.CDF(f)
 
     @staticmethod
     def _ensure_list(attribute):
@@ -389,7 +393,7 @@ class ReturnedDataFile(object):
     def open_cdf(self):
         """Returns the opened file as cdflib.CDF
         """
-        return cdflib.CDF(self._file.name)
+        return FileReader._open_cdf(self._file.name)
 
     def _write_new_data(self, data):
         """Replace the tempfile contents with 'data' (bytes)
