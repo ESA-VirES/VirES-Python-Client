@@ -12,7 +12,7 @@ from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.time_util import parse_datetime
 from ._client import WPSInputs, ClientRequest, TEMPLATE_FILES
 from ._data_handling import ReturnedDataFile
-
+from ._data import CONFIG_SWARM
 
 TEMPLATE_FILES = {
     **TEMPLATE_FILES,
@@ -33,7 +33,7 @@ REFERENCES = {
 
 MODEL_REFERENCES = {
     'IGRF':
-        (" International Geomagnetic Reference Field: the 13th generation, (waiting for publication) ",
+        (" International Geomagnetic Reference Field: the thirteenth generation, (https://doi.org/10.1186/s40623-020-01288-x) ",
          " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
     'IGRF12':
         (" International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
@@ -161,6 +161,7 @@ COLLECTION_REFERENCES = {
     "AUX_OBSH": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSM": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSS": ("https://doi.org/10.5047/eps.2013.07.011",),
+    "VOBS_SW_1M": ("https://www.space.dtu.dk/english/research/projects/project-descriptions/geomagnetic-virtual-observatories",),
 }
 
 DATA_CITATIONS = {
@@ -169,8 +170,10 @@ DATA_CITATIONS = {
     "AUX_OBSS": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/second/README",
 }
 
-IAGA_CODES = ['AAA', 'AAE', 'ABG', 'ABK', 'AIA', 'ALE', 'AMS', 'API', 'AQU', 'ARS', 'ASC', 'ASP', 'BDV', 'BEL', 'BFE', 'BFO', 'BGY', 'BJN', 'BLC', 'BMT', 'BNG', 'BOU', 'BOX', 'BRD', 'BRW', 'BSL', 'CBB', 'CBI', 'CDP', 'CKI', 'CLF', 'CMO', 'CNB', 'CNH', 'COI', 'CPL', 'CSY', 'CTA', 'CTS', 'CYG', 'CZT', 'DED', 'DLR', 'DLT', 'DMC', 'DOB', 'DOU', 'DRV', 'DUR', 'EBR', 'ELT', 'ESA', 'ESK', 'EYR', 'FCC', 'FRD', 'FRN', 'FUQ', 'FUR', 'GAN', 'GCK', 'GDH', 'GLM', 'GLN', 'GNA', 'GNG', 'GUA', 'GUI', 'GZH', 'HAD', 'HBK', 'HER', 'HLP', 'HON', 'HRB', 'HRN', 'HUA', 'HYB', 'IPM', 'IQA', 'IRT', 'IZN', 'JAI', 'JCO', 'KAK', 'KDU', 'KEP', 'KHB', 'KIR', 'KIV', 'KMH', 'KNY', 'KNZ', 'KOU', 'KSH', 'LER', 'LIV', 'LMM', 'LNP', 'LON', 'LOV', 'LRM', 'LRV', 'LVV', 'LYC', 'LZH', 'MAB', 'MAW', 'MBC', 'MBO', 'MCQ', 'MEA', 'MGD', 'MID', 'MIZ', 'MMB', 'MZL', 'NAQ', 'NCK', 'NEW', 'NGK', 'NGP', 'NMP', 'NUR', 'NVS', 'ORC', 'OTT', 'PAF', 'PAG', 'PBQ', 'PEG', 'PET', 'PHU', 'PIL', 'PND', 'PPT', 'PST', 'QGZ', 'QIX', 'QSB', 'QZH', 'RES', 'SBA', 'SBL', 'SFS', 'SHE', 'SHL', 'SHU', 'SIL', 'SIT', 'SJG', 'SOD', 'SPG', 'SPT', 'STJ', 'SUA', 'TAM', 'TAN', 'TDC', 'TEO', 'THJ', 'THL', 'THY', 'TIR', 'TND', 'TRO', 'TRW', 'TSU', 'TUC', 'UPS', 'VAL', 'VIC', 'VNA', 'VOS', 'VSK', 'VSS', 'WHN', 'WIC', 'WIK', 'WNG', 'YAK', 'YKC']
+# IAGA_CODES = ['AAA', 'AAE', 'ABG', 'ABK', 'AIA', 'ALE', 'AMS', 'API', 'AQU', 'ARS', 'ASC', 'ASP', 'BDV', 'BEL', 'BFE', 'BFO', 'BGY', 'BJN', 'BLC', 'BMT', 'BNG', 'BOU', 'BOX', 'BRD', 'BRW', 'BSL', 'CBB', 'CBI', 'CDP', 'CKI', 'CLF', 'CMO', 'CNB', 'CNH', 'COI', 'CPL', 'CSY', 'CTA', 'CTS', 'CYG', 'CZT', 'DED', 'DLR', 'DLT', 'DMC', 'DOB', 'DOU', 'DRV', 'DUR', 'EBR', 'ELT', 'ESA', 'ESK', 'EYR', 'FCC', 'FRD', 'FRN', 'FUQ', 'FUR', 'GAN', 'GCK', 'GDH', 'GLM', 'GLN', 'GNA', 'GNG', 'GUA', 'GUI', 'GZH', 'HAD', 'HBK', 'HER', 'HLP', 'HON', 'HRB', 'HRN', 'HUA', 'HYB', 'IPM', 'IQA', 'IRT', 'IZN', 'JAI', 'JCO', 'KAK', 'KDU', 'KEP', 'KHB', 'KIR', 'KIV', 'KMH', 'KNY', 'KNZ', 'KOU', 'KSH', 'LER', 'LIV', 'LMM', 'LNP', 'LON', 'LOV', 'LRM', 'LRV', 'LVV', 'LYC', 'LZH', 'MAB', 'MAW', 'MBC', 'MBO', 'MCQ', 'MEA', 'MGD', 'MID', 'MIZ', 'MMB', 'MZL', 'NAQ', 'NCK', 'NEW', 'NGK', 'NGP', 'NMP', 'NUR', 'NVS', 'ORC', 'OTT', 'PAF', 'PAG', 'PBQ', 'PEG', 'PET', 'PHU', 'PIL', 'PND', 'PPT', 'PST', 'QGZ', 'QIX', 'QSB', 'QZH', 'RES', 'SBA', 'SBL', 'SFS', 'SHE', 'SHL', 'SHU', 'SIL', 'SIT', 'SJG', 'SOD', 'SPG', 'SPT', 'STJ', 'SUA', 'TAM', 'TAN', 'TDC', 'TEO', 'THJ', 'THL', 'THY', 'TIR', 'TND', 'TRO', 'TRW', 'TSU', 'TUC', 'UPS', 'VAL', 'VIC', 'VNA', 'VOS', 'VSK', 'VSS', 'WHN', 'WIC', 'WIK', 'WNG', 'YAK', 'YKC']
+IAGA_CODES = CONFIG_SWARM.get("IAGA_CODES")
 
+VOBS_SITES = CONFIG_SWARM.get("VOBS_SITES")
 
 class SwarmWPSInputs(WPSInputs):
     """Holds the set of inputs to be passed to the request template for Swarm
@@ -233,8 +236,8 @@ class SwarmWPSInputs(WPSInputs):
         else:
             # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
             sc = collection[11]
-            sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie", "_": "NSC"}
-            name = sc_to_name[sc]
+            sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie"}
+            name = sc_to_name.get(sc, "NSC")
         return name
 
     def set_collections(self, collections):
@@ -421,8 +424,65 @@ class SwarmRequest(ClientRequest):
         "AUX_OBSS": [
             "SW_OPER_AUX_OBSS2_",
             *[f"SW_OPER_AUX_OBSS2_:{code}" for code in IAGA_CODES]
-        ]
+        ],
+        "VOBS_SW_1M": [
+            "SW_OPER_VOBS_1M_2_",
+            *[f"SW_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_SW_4M": [
+            "SW_OPER_VOBS_4M_2_",
+            *[f"SW_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CH_1M": [
+            "CH_OPER_VOBS_1M_2_",
+            *[f"CH_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CH_4M": [
+            "CH_OPER_VOBS_4M_2_",
+            *[f"CH_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CR_4M": [
+            "CR_OPER_VOBS_4M_2_",
+            *[f"CR_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_SW_1M:SecularVariation": [
+            "SW_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"SW_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_SW_4M:SecularVariation": [
+            "SW_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"SW_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CH_1M:SecularVariation": [
+            "CH_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"CH_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CH_4M:SecularVariation": [
+            "CH_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"CH_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CR_4M:SecularVariation": [
+            "CR_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"CR_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
     }
+
+    OBS_COLLECTIONS = [
+        "SW_OPER_AUX_OBSH2_",
+        "SW_OPER_AUX_OBSM2_",
+        "SW_OPER_AUX_OBSS2_",
+        "SW_OPER_VOBS_1M_2_",
+        "SW_OPER_VOBS_4M_2_",
+        "CH_OPER_VOBS_1M_2_",
+        "CH_OPER_VOBS_4M_2_",
+        "CR_OPER_VOBS_4M_2_",
+        "SW_OPER_VOBS_1M_2_:SecularVariation",
+        "SW_OPER_VOBS_4M_2_:SecularVariation",
+        "CH_OPER_VOBS_1M_2_:SecularVariation",
+        "CH_OPER_VOBS_4M_2_:SecularVariation",
+        "CR_OPER_VOBS_4M_2_:SecularVariation",
+    ]
+
 
     # These are not necessarily real sampling steps, but are good enough to use
     # for splitting long requests into chunks
@@ -439,7 +499,17 @@ class SwarmRequest(ClientRequest):
         "AEJ_LPS": "PT1S",
         "AUX_OBSH": "PT60M",
         "AUX_OBSM": "PT60S",
-        "AUX_OBSS": "PT1S"
+        "AUX_OBSS": "PT1S",
+        "VOBS_SW_1M": "P31D",
+        "VOBS_CH_1M": "P31D",
+        "VOBS_SW_4M": "P122D",
+        "VOBS_CH_4M": "P122D",
+        "VOBS_CR_4M": "P122D",
+        "VOBS_SW_1M:SecularVariation": "P31D",
+        "VOBS_CH_1M:SecularVariation": "P31D",
+        "VOBS_SW_4M:SecularVariation": "P122D",
+        "VOBS_CH_4M:SecularVariation": "P122D",
+        "VOBS_CR_4M:SecularVariation": "P122D",
     }
 
     PRODUCT_VARIABLES = {
@@ -501,9 +571,19 @@ class SwarmRequest(ClientRequest):
             "Latitude_QD", "Longitude_QD", "MLT_QD",
             "Boundary_Flag", "Quality", "Pair_Indicator"
             ],
-        "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "SensorIndex"],
+        "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "ObsIndex"],
         "AUX_OBSM": ["B_NEC", "F", "IAGA_code", "Quality"],
         "AUX_OBSS": ["B_NEC", "F", "IAGA_code", "Quality"],
+        "VOBS_SW_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CH_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_SW_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CH_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CR_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_SW_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CH_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_SW_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CH_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CR_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
     }
 
     AUXILIARY_VARIABLES = [
@@ -622,11 +702,22 @@ class SwarmRequest(ClientRequest):
                 If False then return a dict of available collections.
 
         """
-        # Shorter form of the available collections
+        # Shorter form of the available collections,
+        # without all the individual SiteCodes
         collections_short = self._available["collections"].copy()
-        collections_short["AUX_OBSS"] = ['SW_OPER_AUX_OBSS2_']
-        collections_short["AUX_OBSM"] = ['SW_OPER_AUX_OBSM2_']
-        collections_short["AUX_OBSH"] = ['SW_OPER_AUX_OBSH2_']
+        collections_short["AUX_OBSS"] = ["SW_OPER_AUX_OBSS2_"]
+        collections_short["AUX_OBSM"] = ["SW_OPER_AUX_OBSM2_"]
+        collections_short["AUX_OBSH"] = ["SW_OPER_AUX_OBSH2_"]
+        collections_short["VOBS_SW_1M"] = ["SW_OPER_VOBS_1M_2_"]
+        collections_short["VOBS_SW_4M"] = ["SW_OPER_VOBS_4M_2_"]
+        collections_short["VOBS_CH_1M"] = ["CH_OPER_VOBS_1M_2_"]
+        collections_short["VOBS_CH_4M"] = ["CH_OPER_VOBS_4M_2_"]
+        collections_short["VOBS_CR_4M"] = ["CR_OPER_VOBS_4M_2_"]
+        collections_short["VOBS_SW_1M:SecularVariation"] = ["SW_OPER_VOBS_1M_2_:SecularVariation"]
+        collections_short["VOBS_SW_4M:SecularVariation"] = ["SW_OPER_VOBS_4M_2_:SecularVariation"]
+        collections_short["VOBS_CH_1M:SecularVariation"] = ["CH_OPER_VOBS_1M_2_:SecularVariation"]
+        collections_short["VOBS_CH_4M:SecularVariation"] = ["CH_OPER_VOBS_4M_2_:SecularVariation"]
+        collections_short["VOBS_CR_4M:SecularVariation"] = ["CR_OPER_VOBS_4M_2_:SecularVariation"]
 
         def _filter_collections(groupname):
             """ Reduce the full list to just one group, e.g. "MAG """
@@ -811,14 +902,9 @@ class SwarmRequest(ClientRequest):
                 StringIO(str(csv_data, 'utf-8'))
             )
 
-        obs_collections = [
-            "SW_OPER_AUX_OBSH2_",
-            "SW_OPER_AUX_OBSM2_",
-            "SW_OPER_AUX_OBSS2_"
-        ]
-        if collection not in obs_collections:
+        if collection not in self.OBS_COLLECTIONS:
             raise ValueError(
-                f"Invalid collection: {collection}. Must be one of: {obs_collections}."
+                f"Invalid collection: {collection}. Must be one of: {self.OBS_COLLECTIONS}."
             )
         if start_time and end_time:
             start_time = parse_datetime(start_time)
@@ -832,7 +918,9 @@ class SwarmRequest(ClientRequest):
         if details:
             return df
         else:
-            return list(df["IAGACode"])
+            # note: "IAGACode" has been renamed to "site" in VirES 3.5
+            key = "IAGACode" if "IAGACode" in df.keys() else "site"
+            return list(df[key])
 
     def _detect_AUX_OBS(self, collections):
         # Identify collection types present
@@ -948,25 +1036,38 @@ class SwarmRequest(ClientRequest):
                 raise OSError("Custom model .shc file not found")
         else:
             custom_shc = None
+
         # Set up the variables that actually get passed to the WPS request
+
+        def _model_datavar_names(variable, residuals=False):
+            """Give the list of allowable variable names containing model evaluations"""
+            if variable not in model_variables:
+                raise ValueError(f"Expected one of {model_variables}; got '{variable}'")
+            affix = "_res_" if residuals else "_"
+            return [f"{variable}{affix}{model_name}" for model_name in model_ids]
+
+        # Identify which (if any) of ["F", "B_NEC", ...] are requested
+        model_variables_present = set(measurements).intersection(set(model_variables))
+        # Create the list of variable names to request
         variables = []
-        for variable in measurements:
-            if variable in model_variables:
-                if residuals:
-                    variables.extend(
-                        "%s_res_%s" % (variable, model_name)
-                        for model_name in model_ids
-                    )
-                else:
-                    variables.append(variable)
-                    variables.extend(
-                        "%s_%s" % (variable, model_name)
-                        for model_name in model_ids
-                    )
-            else:  # not a model variable
+        for variable in model_variables_present:
+            if not residuals:
+                # Include "F" / "B_NEC" as requested...
                 variables.append(variable)
+            # Include e.g. "F_IGRF" / "B_NEC_IGRF" / "B_NEC_res_IGRF" etc.
+            variables.extend(_model_datavar_names(variable, residuals=residuals))
+        if models and (len(model_variables_present) == 0):
+            if residuals:
+                raise ValueError(
+                    f"""
+                    Residuals requested without one of {model_variables} set as measurements
+                    """
+                )
+            # If "F" / "B_NEC" have not been requested, include e.g. "B_NEC_IGRF" etc.
+            variables.extend(_model_datavar_names("B_NEC"))
+        # Include all the non-model-related variables
+        variables.extend(list(set(measurements) - model_variables_present))
         variables.extend(auxiliaries)
-        # Set these in the SwarmWPSInputs object
         self._request_inputs.model_expression = model_expression_string
         self._request_inputs.variables = variables
         self._request_inputs.sampling_step = sampling_step

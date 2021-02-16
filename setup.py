@@ -58,7 +58,8 @@ setup(
     scripts=[],
     package_data={
         'viresclient': [
-            '_wps/templates/*'
+            '_wps/templates/*',
+            '_data/*'
         ],
     },
     python_requires='>=3.6',

@@ -38,11 +38,13 @@ from ._wps import time_util
 if os.name == "nt":
     import atexit
 
+from ._data import CONFIG_SWARM
+
 CDF_EPOCH_1970 = 62167219200000.0
 
 # Frame names to use as xarray dimension names
 FRAME_NAMES = {
-    "NEC": ["B_NEC"],
+    "NEC": ["B_NEC", "B_OB", "B_CF", "B_SV", "sigma_OB", "sigma_CF", "sigma_SV"],
     "VFM": ["B_VFM", "dB_Sun", "dB_AOCS", "dB_other", "B_error"],
     "quaternion": ["q_NEC_CRF"],
     "WGS84": ["GPS_Position", "LEO_Position"],
@@ -137,10 +139,10 @@ class FileReader(object):
         return data
 
     def get_variable_units(self, var):
-        return self._varatts[var].get("UNITS", None)
+        return self._varatts[var].get("UNITS", "")
 
     def get_variable_description(self, var):
-        return self._varatts[var].get("DESCRIPTION", None)
+        return self._varatts[var].get("DESCRIPTION", "")
 
     def get_variable_numdims(self, var):
         return self._varinfo[var].get("Num_Dims")
@@ -206,7 +208,7 @@ class FileReader(object):
                 df[column + "_" + str(suffix)] = vector_data[:, i]
         return df
 
-    def as_xarray_dataset(self):
+    def as_xarray_dataset(self, reshape=False):
         # NB currrently does not set the global metadata (attrs)
         #  (avoids issues with concatenating them)
         #  (this is done in ReturnedData)
@@ -256,15 +258,70 @@ class FileReader(object):
         for dimname, dimlabels in FRAME_LABELS.items():
             if dimname in dims_used:
                 ds[dimname] = numpy.array(dimlabels)
-                ds[dimname].attrs["description"] = FRAME_DESCRIPTIONS.get(
-                    dimname, None)
                 ds = ds.set_coords(dimname)
+        #         ds[dimname].attrs["description"] = FRAME_DESCRIPTIONS.get(
+        #             dimname, None)
+        #         ds = ds.set_coords(dimname)
+        # Reshape to a sensible higher dimensional structure
+        # Currently only for GVO data, and without magnetic model values or auxiliaries
+        # Inefficient as it is duplicating the data (ds -> ds2)
+        if reshape:
+            ds = self.reshape_dataset(ds)
         # Add metadata of each variable
-        for dataname in ds:
-            ds[dataname].attrs["units"] = self.get_variable_units(dataname)
-            ds[dataname].attrs["description"] = self.get_variable_description(
-                dataname)
+        for var in list(ds.data_vars) + list(ds.coords):
+            try:
+                ds[var].attrs["units"] = self.get_variable_units(var)
+            except KeyError:
+                ds[var].attrs["units"] = ""
+            try:
+                ds[var].attrs["description"] = self.get_variable_description(var)
+            except KeyError:
+                ds[var].attrs["description"] = FRAME_DESCRIPTIONS.get(var, "")
         return ds
+
+    @staticmethod
+    def reshape_dataset(ds):
+        if "SiteCode" not in ds.data_vars:
+            raise NotImplementedError(
+                """
+                Only available for GVO dataset where the "SiteCode"
+                parameter has been requested
+                """
+            )
+        vobs_sites = dict(enumerate(CONFIG_SWARM.get("VOBS_SITES")))
+        vobs_sites_inv = {v: k for k, v in vobs_sites.items()}
+        # Identify VOBS locations and mapping from integer "Site" identifier
+        pos_vars = ["Longitude", "Latitude", "Radius", "SiteCode"]
+        _ds_locs = next(iter(ds[pos_vars].groupby("Timestamp")))[1]
+        _ds_locs = _ds_locs.drop(("Timestamp")).rename({"Timestamp": "Site"})
+        _ds_locs["Site"] = [vobs_sites_inv.get(code) for code in _ds_locs["SiteCode"].values]
+        _ds_locs = _ds_locs.sortby("Site")
+        # Create dataset initialised with the VOBS positional info as coords
+        # and datavars (empty) reshaped to (Site, Timestamp, ...)
+        t = numpy.unique(ds["Timestamp"])
+        ds2 = xarray.Dataset(
+            coords={
+                "Timestamp": t,
+                "SiteCode": (("Site"), _ds_locs["SiteCode"]),
+                "Latitude": ("Site", _ds_locs["Latitude"]),
+                "Longitude": ("Site", _ds_locs["Longitude"]),
+                "Radius": ("Site", _ds_locs["Radius"]),
+                "NEC": ["N", "E", "C"]
+            },
+        )
+        # (Dropping unused Spacecraft var)
+        data_vars = set(ds.data_vars) - {"Latitude", "Longitude", "Radius", "SiteCode", "Spacecraft"}
+        N_sites = len(_ds_locs["SiteCode"])
+        for var in data_vars:
+            shape = [N_sites, len(t), *ds[var].shape[1:]]
+            ds2[var] = ("Site", *ds[var].dims), numpy.empty(shape, dtype=ds[var].dtype)
+            ds2[var][...] = None
+        # Loop through each VOBS site to insert the datavars into ds2
+        for k, _ds in dict(ds.groupby("SiteCode")).items():
+            site = vobs_sites_inv.get(k)
+            for var in data_vars:
+                ds2[var][site, ...] = _ds[var].values
+        return ds2
 
 
 def make_pandas_DataFrame_from_csv(csv_filename):
@@ -432,7 +489,7 @@ class ReturnedDataFile(object):
                 df = f.as_pandas_dataframe(expand=expand)
         return df
 
-    def as_xarray(self, group=None):
+    def as_xarray(self, group=None, reshape=False):
         """Convert the data to an xarray Dataset.
 
         Note:
@@ -448,7 +505,7 @@ class ReturnedDataFile(object):
             raise NotImplementedError("csv to xarray is not supported")
         elif self.filetype == 'cdf':
             with FileReader(self._file) as f:
-                ds = f.as_xarray_dataset()
+                ds = f.as_xarray_dataset(reshape=reshape)
         elif self.filetype == 'nc':
             ds = xarray.open_dataset(self._file.name, group=group)
         return ds
@@ -577,8 +634,11 @@ class ReturnedData(object):
         return pandas.concat(
             [d.as_dataframe(expand=expand) for d in self.contents])
 
-    def as_xarray(self):
+    def as_xarray(self, reshape=False):
         """Convert the data to an xarray Dataset.
+
+        Args:
+            reshape (bool): Reshape to a convenient higher dimensional form
 
         Returns:
             xarray.Dataset
@@ -590,7 +650,7 @@ class ReturnedData(object):
         #  and the filtering that has been applied.
         ds_list = []
         for i, data in enumerate(self.contents):
-            ds_part = data.as_xarray()
+            ds_part = data.as_xarray(reshape=reshape)
             if ds_part is None:
                 print("Warning: ",
                       "Unable to create dataset from part {} of {}".format(
