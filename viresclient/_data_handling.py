@@ -321,6 +321,9 @@ class FileReader(object):
             site = vobs_sites_inv.get(k)
             for var in data_vars:
                 ds2[var][site, ...] = _ds[var].values
+        # Revert to using only the "SiteCode" identifier
+        ds2 = ds2.set_index({"Site": "SiteCode"})
+        ds2 = ds2.rename({"Site": "SiteCode"})
         return ds2
 
 

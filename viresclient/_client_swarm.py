@@ -170,10 +170,10 @@ DATA_CITATIONS = {
     "AUX_OBSS": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/second/README",
 }
 
-# IAGA_CODES = ['AAA', 'AAE', 'ABG', 'ABK', 'AIA', 'ALE', 'AMS', 'API', 'AQU', 'ARS', 'ASC', 'ASP', 'BDV', 'BEL', 'BFE', 'BFO', 'BGY', 'BJN', 'BLC', 'BMT', 'BNG', 'BOU', 'BOX', 'BRD', 'BRW', 'BSL', 'CBB', 'CBI', 'CDP', 'CKI', 'CLF', 'CMO', 'CNB', 'CNH', 'COI', 'CPL', 'CSY', 'CTA', 'CTS', 'CYG', 'CZT', 'DED', 'DLR', 'DLT', 'DMC', 'DOB', 'DOU', 'DRV', 'DUR', 'EBR', 'ELT', 'ESA', 'ESK', 'EYR', 'FCC', 'FRD', 'FRN', 'FUQ', 'FUR', 'GAN', 'GCK', 'GDH', 'GLM', 'GLN', 'GNA', 'GNG', 'GUA', 'GUI', 'GZH', 'HAD', 'HBK', 'HER', 'HLP', 'HON', 'HRB', 'HRN', 'HUA', 'HYB', 'IPM', 'IQA', 'IRT', 'IZN', 'JAI', 'JCO', 'KAK', 'KDU', 'KEP', 'KHB', 'KIR', 'KIV', 'KMH', 'KNY', 'KNZ', 'KOU', 'KSH', 'LER', 'LIV', 'LMM', 'LNP', 'LON', 'LOV', 'LRM', 'LRV', 'LVV', 'LYC', 'LZH', 'MAB', 'MAW', 'MBC', 'MBO', 'MCQ', 'MEA', 'MGD', 'MID', 'MIZ', 'MMB', 'MZL', 'NAQ', 'NCK', 'NEW', 'NGK', 'NGP', 'NMP', 'NUR', 'NVS', 'ORC', 'OTT', 'PAF', 'PAG', 'PBQ', 'PEG', 'PET', 'PHU', 'PIL', 'PND', 'PPT', 'PST', 'QGZ', 'QIX', 'QSB', 'QZH', 'RES', 'SBA', 'SBL', 'SFS', 'SHE', 'SHL', 'SHU', 'SIL', 'SIT', 'SJG', 'SOD', 'SPG', 'SPT', 'STJ', 'SUA', 'TAM', 'TAN', 'TDC', 'TEO', 'THJ', 'THL', 'THY', 'TIR', 'TND', 'TRO', 'TRW', 'TSU', 'TUC', 'UPS', 'VAL', 'VIC', 'VNA', 'VOS', 'VSK', 'VSS', 'WHN', 'WIC', 'WIK', 'WNG', 'YAK', 'YKC']
 IAGA_CODES = CONFIG_SWARM.get("IAGA_CODES")
 
 VOBS_SITES = CONFIG_SWARM.get("VOBS_SITES")
+
 
 class SwarmWPSInputs(WPSInputs):
     """Holds the set of inputs to be passed to the request template for Swarm
@@ -433,9 +433,13 @@ class SwarmRequest(ClientRequest):
             "SW_OPER_VOBS_4M_2_",
             *[f"SW_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
         ],
-        "VOBS_CH_1M": [
-            "CH_OPER_VOBS_1M_2_",
-            *[f"CH_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        # "VOBS_CH_1M": [
+        #     "CH_OPER_VOBS_1M_2_",
+        #     *[f"CH_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        # ],
+        "VOBS_OR_4M": [
+            "OR_OPER_VOBS_4M_2_",
+            *[f"OR_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
         ],
         "VOBS_CH_4M": [
             "CH_OPER_VOBS_4M_2_",
@@ -445,6 +449,10 @@ class SwarmRequest(ClientRequest):
             "CR_OPER_VOBS_4M_2_",
             *[f"CR_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
         ],
+        "VOBS_CO_4M": [
+            "CO_OPER_VOBS_4M_2_",
+            *[f"CO_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+        ],
         "VOBS_SW_1M:SecularVariation": [
             "SW_OPER_VOBS_1M_2_:SecularVariation",
             *[f"SW_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
@@ -453,9 +461,13 @@ class SwarmRequest(ClientRequest):
             "SW_OPER_VOBS_4M_2_:SecularVariation",
             *[f"SW_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
         ],
-        "VOBS_CH_1M:SecularVariation": [
-            "CH_OPER_VOBS_1M_2_:SecularVariation",
-            *[f"CH_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        # "VOBS_CH_1M:SecularVariation": [
+        #     "CH_OPER_VOBS_1M_2_:SecularVariation",
+        #     *[f"CH_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        # ],
+        "VOBS_OR_4M:SecularVariation": [
+            "OR_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"OR_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
         ],
         "VOBS_CH_4M:SecularVariation": [
             "CH_OPER_VOBS_4M_2_:SecularVariation",
@@ -465,6 +477,10 @@ class SwarmRequest(ClientRequest):
             "CR_OPER_VOBS_4M_2_:SecularVariation",
             *[f"CR_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
         ],
+        "VOBS_CO_4M:SecularVariation": [
+            "CO_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"CO_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
     }
 
     OBS_COLLECTIONS = [
@@ -473,16 +489,19 @@ class SwarmRequest(ClientRequest):
         "SW_OPER_AUX_OBSS2_",
         "SW_OPER_VOBS_1M_2_",
         "SW_OPER_VOBS_4M_2_",
-        "CH_OPER_VOBS_1M_2_",
+        # "CH_OPER_VOBS_1M_2_",
+        "OR_OPER_VOBS_4M_2_",
         "CH_OPER_VOBS_4M_2_",
         "CR_OPER_VOBS_4M_2_",
+        "CO_OPER_VOBS_4M_2_",
         "SW_OPER_VOBS_1M_2_:SecularVariation",
         "SW_OPER_VOBS_4M_2_:SecularVariation",
-        "CH_OPER_VOBS_1M_2_:SecularVariation",
+        # "CH_OPER_VOBS_1M_2_:SecularVariation",
+        "OR_OPER_VOBS_4M_2_:SecularVariation",
         "CH_OPER_VOBS_4M_2_:SecularVariation",
         "CR_OPER_VOBS_4M_2_:SecularVariation",
+        "CO_OPER_VOBS_4M_2_:SecularVariation",
     ]
-
 
     # These are not necessarily real sampling steps, but are good enough to use
     # for splitting long requests into chunks
@@ -501,15 +520,19 @@ class SwarmRequest(ClientRequest):
         "AUX_OBSM": "PT60S",
         "AUX_OBSS": "PT1S",
         "VOBS_SW_1M": "P31D",
-        "VOBS_CH_1M": "P31D",
+        # "VOBS_CH_1M": "P31D",
+        "VOBS_OR_4M": "P122D",
         "VOBS_SW_4M": "P122D",
         "VOBS_CH_4M": "P122D",
         "VOBS_CR_4M": "P122D",
+        "VOBS_CO_4M": "P122D",
         "VOBS_SW_1M:SecularVariation": "P31D",
-        "VOBS_CH_1M:SecularVariation": "P31D",
+        # "VOBS_CH_1M:SecularVariation": "P31D",
+        "VOBS_OR_4M:SecularVariation": "P122D",
         "VOBS_SW_4M:SecularVariation": "P122D",
         "VOBS_CH_4M:SecularVariation": "P122D",
         "VOBS_CR_4M:SecularVariation": "P122D",
+        "VOBS_CO_4M:SecularVariation": "P122D",
     }
 
     PRODUCT_VARIABLES = {
@@ -575,15 +598,19 @@ class SwarmRequest(ClientRequest):
         "AUX_OBSM": ["B_NEC", "F", "IAGA_code", "Quality"],
         "AUX_OBSS": ["B_NEC", "F", "IAGA_code", "Quality"],
         "VOBS_SW_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
-        "VOBS_CH_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        # "VOBS_CH_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_OR_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
         "VOBS_SW_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
         "VOBS_CH_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
         "VOBS_CR_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CO_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
         "VOBS_SW_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
-        "VOBS_CH_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        # "VOBS_CH_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_OR_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
         "VOBS_SW_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
         "VOBS_CH_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
         "VOBS_CR_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CO_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
     }
 
     AUXILIARY_VARIABLES = [
@@ -710,14 +737,18 @@ class SwarmRequest(ClientRequest):
         collections_short["AUX_OBSH"] = ["SW_OPER_AUX_OBSH2_"]
         collections_short["VOBS_SW_1M"] = ["SW_OPER_VOBS_1M_2_"]
         collections_short["VOBS_SW_4M"] = ["SW_OPER_VOBS_4M_2_"]
-        collections_short["VOBS_CH_1M"] = ["CH_OPER_VOBS_1M_2_"]
+        # collections_short["VOBS_CH_1M"] = ["CH_OPER_VOBS_1M_2_"]
+        collections_short["VOBS_OR_4M"] = ["OR_OPER_VOBS_4M_2_"]
         collections_short["VOBS_CH_4M"] = ["CH_OPER_VOBS_4M_2_"]
         collections_short["VOBS_CR_4M"] = ["CR_OPER_VOBS_4M_2_"]
+        collections_short["VOBS_CO_4M"] = ["CO_OPER_VOBS_4M_2_"]
         collections_short["VOBS_SW_1M:SecularVariation"] = ["SW_OPER_VOBS_1M_2_:SecularVariation"]
         collections_short["VOBS_SW_4M:SecularVariation"] = ["SW_OPER_VOBS_4M_2_:SecularVariation"]
-        collections_short["VOBS_CH_1M:SecularVariation"] = ["CH_OPER_VOBS_1M_2_:SecularVariation"]
+        # collections_short["VOBS_CH_1M:SecularVariation"] = ["CH_OPER_VOBS_1M_2_:SecularVariation"]
+        collections_short["VOBS_OR_4M:SecularVariation"] = ["OR_OPER_VOBS_4M_2_:SecularVariation"]
         collections_short["VOBS_CH_4M:SecularVariation"] = ["CH_OPER_VOBS_4M_2_:SecularVariation"]
         collections_short["VOBS_CR_4M:SecularVariation"] = ["CR_OPER_VOBS_4M_2_:SecularVariation"]
+        collections_short["VOBS_CO_4M:SecularVariation"] = ["CO_OPER_VOBS_4M_2_:SecularVariation"]
 
         def _filter_collections(groupname):
             """ Reduce the full list to just one group, e.g. "MAG """
