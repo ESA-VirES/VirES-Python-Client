@@ -236,11 +236,13 @@ class SwarmWPSInputs(WPSInputs):
             name = "AUX_OBS"
             if ":" in collection:
                 name = f"{name}:{collection[19:22]}"
-        else:
+        elif collection[:3] == "SW_":
             # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
             sc = collection[11]
             sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie"}
             name = sc_to_name.get(sc, "NSC")
+        else:
+            name = collection
         return name
 
     def set_collections(self, collections):
