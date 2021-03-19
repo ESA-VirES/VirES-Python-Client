@@ -281,28 +281,36 @@ class FileReader(object):
 
     @staticmethod
     def reshape_dataset(ds):
-        if "SiteCode" not in ds.data_vars:
+        if "SiteCode" in ds.data_vars:
+            codevar = "SiteCode"
+        elif "IAGA_code" in ds.data_vars:
+            codevar = "IAGA_code"
+        else:
             raise NotImplementedError(
                 """
                 Only available for GVO dataset where the "SiteCode"
-                parameter has been requested
+                parameter has been requested, or OBS dataset with "IAGA_code"
                 """
             )
-        vobs_sites = dict(enumerate(CONFIG_SWARM.get("VOBS_SITES")))
-        vobs_sites_inv = {v: k for k, v in vobs_sites.items()}
-        # Identify VOBS locations and mapping from integer "Site" identifier
-        pos_vars = ["Longitude", "Latitude", "Radius", "SiteCode"]
+        # Create integer "Site" identifier based on SiteCode / IAGA_code
+        sites = dict(enumerate(sorted(set(ds[codevar].values))))
+        sites_inv = {v: k for k, v in sites.items()}
+        # Identify (V)OBS locations and mapping from integer "Site" identifier
+        pos_vars = ["Longitude", "Latitude", "Radius", codevar]
         _ds_locs = next(iter(ds[pos_vars].groupby("Timestamp")))[1]
-        _ds_locs = _ds_locs.drop(("Timestamp")).rename({"Timestamp": "Site"})
-        _ds_locs["Site"] = [vobs_sites_inv.get(code) for code in _ds_locs["SiteCode"].values]
+        if len(sites) > 1:
+            _ds_locs = _ds_locs.drop(("Timestamp")).rename({"Timestamp": "Site"})
+        else:
+            _ds_locs = _ds_locs.drop(("Timestamp")).expand_dims("Site")
+        _ds_locs["Site"] = [sites_inv.get(code) for code in _ds_locs[codevar].values]
         _ds_locs = _ds_locs.sortby("Site")
-        # Create dataset initialised with the VOBS positional info as coords
+        # Create dataset initialised with the (V)OBS positional info as coords
         # and datavars (empty) reshaped to (Site, Timestamp, ...)
         t = numpy.unique(ds["Timestamp"])
         ds2 = xarray.Dataset(
             coords={
                 "Timestamp": t,
-                "SiteCode": (("Site"), _ds_locs["SiteCode"]),
+                codevar: (("Site"), _ds_locs[codevar]),
                 "Latitude": ("Site", _ds_locs["Latitude"]),
                 "Longitude": ("Site", _ds_locs["Longitude"]),
                 "Radius": ("Site", _ds_locs["Radius"]),
@@ -310,20 +318,20 @@ class FileReader(object):
             },
         )
         # (Dropping unused Spacecraft var)
-        data_vars = set(ds.data_vars) - {"Latitude", "Longitude", "Radius", "SiteCode", "Spacecraft"}
-        N_sites = len(_ds_locs["SiteCode"])
+        data_vars = set(ds.data_vars) - {"Latitude", "Longitude", "Radius", codevar, "Spacecraft"}
+        N_sites = len(_ds_locs[codevar])
         for var in data_vars:
             shape = [N_sites, len(t), *ds[var].shape[1:]]
             ds2[var] = ("Site", *ds[var].dims), numpy.empty(shape, dtype=ds[var].dtype)
             ds2[var][...] = None
-        # Loop through each VOBS site to insert the datavars into ds2
-        for k, _ds in dict(ds.groupby("SiteCode")).items():
-            site = vobs_sites_inv.get(k)
+        # Loop through each (V)OBS site to insert the datavars into ds2
+        for k, _ds in dict(ds.groupby(codevar)).items():
+            site = sites_inv.get(k)
             for var in data_vars:
                 ds2[var][site, ...] = _ds[var].values
-        # Revert to using only the "SiteCode" identifier
-        ds2 = ds2.set_index({"Site": "SiteCode"})
-        ds2 = ds2.rename({"Site": "SiteCode"})
+        # Revert to using only the "SiteCode"/"IAGA_code" identifier
+        ds2 = ds2.set_index({"Site": codevar})
+        ds2 = ds2.rename({"Site": codevar})
         return ds2
 
 
