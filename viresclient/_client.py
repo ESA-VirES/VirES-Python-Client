@@ -37,7 +37,10 @@ try:
     IN_JUPYTER = 'zmqshell' in str(type(get_ipython()))
 except Exception:
     IN_JUPYTER = False
-from tqdm import tqdm
+if IN_JUPYTER:
+    from tqdm.notebook import tqdm
+else:
+    from tqdm import tqdm
 from io import StringIO
 from pandas import read_csv, to_datetime
 
@@ -144,10 +147,7 @@ class ProgressBar(object):
     def __init__(self, bar_format):
         self.percentCompleted = 0
         self.lastpercent = 0
-
         self.tqdm_pbar = tqdm(total=100, bar_format=bar_format)
-
-        # self.refresh_tqdm()
 
     def __enter__(self):
         return self
@@ -168,12 +168,7 @@ class ProgressBar(object):
             self.cleanup()
 
     def write(self, message):
-        """Command line output that doesn't interfere with the tqdm
-
-        This isn't working right in notebooks.
-        Could be fixed by using tqdm_notebook, but this doesn't work with
-        regular terminals and also messes up the bar_format at present.
-        """
+        """Command line output that doesn't interfere with the tqdm"""
         self.tqdm_pbar.write(message)
 
 
@@ -183,12 +178,12 @@ class ProgressBarProcessing(ProgressBar):
     Depends on ._wps.wps.WPSStatus
     """
 
-    def __init__(self, left_text=None):
-        left_text = str() if left_text is None else left_text
-        l_bar = left_text + 'Processing:  {percentage:3.0f}%|'
+    def __init__(self, extra_text=None):
+        extra_text = str() if extra_text is None else extra_text
+        l_bar = 'Processing:  {percentage:3.0f}%|'
         bar = '{bar}'
         r_bar = '|  [ Elapsed: {elapsed}, Remaining: {remaining} {postfix}]'
-        bar_format = '{}{}{}'.format(l_bar, bar, r_bar)
+        bar_format = '{}{}{} {}'.format(l_bar, bar, r_bar, extra_text)
         super().__init__(bar_format)
 
     def update(self, wpsstatus):
@@ -210,7 +205,7 @@ class ProgressBarDownloading(ProgressBar):
         sizeMB = round(size/1e6, 3)
         # if sizeMB > 1:
         #     sizeMB = round(sizeMB,)
-        l_bar = '      Downloading: {percentage:3.0f}%|'
+        l_bar = 'Downloading: {percentage:3.0f}%|'
         bar = '{bar}'
         r_bar = '|  [ Elapsed: {{elapsed}}, '\
                 'Remaining: {{remaining}} {{postfix}}] '\
