@@ -3,7 +3,7 @@ Available parameters for Swarm data
 
 .. note::
 
-  | `See also: Jupyter notebook about data and model availability <https://swarm-vre.readthedocs.io/en/latest/Swarm_notebooks/02b__viresclient-Available-Data.html>`_ - check out the other demo notebooks there too. If you can't see a suitable recipe to help you get started, do `get in touch <https://swarm-vre.readthedocs.io/en/latest/help.html>`_ (email ashley.smith@ed.ac.uk) and I will help you out.
+  | `See also: Jupyter notebook about data and model availability <https://swarm.magneticearth.org/notebooks/02b__viresclient-available-data>`_ - check out the other demo notebooks there too.
 
 You can check which parameters are available with:
 
@@ -23,9 +23,9 @@ The available measurements are segregated according to the "collection" (essenti
 
 See the `Swarm Data Handbook`_ for details about the products and `Swarm Product Demos`_ (Jupyter notebooks) for basic recipes to get started.
 
-.. _`Swarm Data Handbook`: https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/
+.. _`Swarm Data Handbook`: https://earth.esa.int/eogateway/missions/swarm/product-data-handbook
 
-.. _`Swarm Product Demos`: https://swarm-vre.readthedocs.io/en/latest/Swarm_notebooks.html#swarm-product-demos
+.. _`Swarm Product Demos`: https://swarm.magneticearth.org/notebooks/03a1_demo-magx_lr_1b
 
 ----
 
@@ -75,6 +75,23 @@ SW_OPER_AUX_OBSS2\_       AUX_OBSS         Second values from INTERMAGNET
 
 The AUX_OBS collections contain data from all observatories together (distinguishable by the ``IAGA_code`` variable). Data from a single observatory can be accessed with special collection names like ``SW_OPER_AUX_OBSM2_:ABK`` where ``ABK`` can be replaced with the IAGA code of the observatory. Use :py:meth:`viresclient.SwarmRequest.available_observatories` to find these IAGA codes.
 
+The VOBS collections contain derived magnetic measurements from `Geomagnetic Virtual Observatories <https://earth.esa.int/eogateway/activities/gvo>`_ and have a similar interface as the AUX_OBS collections. The data are organised across several collections:
+
+==================================== =========================== ==========================================================================
+Collection full name                 Collection type             Description
+==================================== =========================== ==========================================================================
+SW_OPER_VOBS_1M_2\_                  VOBS_SW_1M                  Swarm (1-monthly cadence)
+SW_OPER_VOBS_4M_2\_                  VOBS_SW_4M                  Swarm (4-monthly)
+OR_OPER_VOBS_4M_2\_                  VOBS_OR_4M                  Ørsted (4-monthly)
+CH_OPER_VOBS_4M_2\_                  VOBS_CH_4M                  CHAMP (4-monthly)
+CR_OPER_VOBS_4M_2\_                  VOBS_CR_4M                  Cryosat-2 (4-monthly)
+CO_OPER_VOBS_4M_2\_                  VOBS_CO_4M                  Composite time series from Ørsted, CHAMP, Cryosat-2, & Swarm (4-monthly)
+SW_OPER_VOBS_1M_2\_:SecularVariation VOBS_SW_1M:SecularVariation Secular variation (``B_SV``) from Swarm 1-monthly
+(ditto for the others)
+==================================== =========================== ==========================================================================
+
+Each VOBS product (e.g. Swarm 1-monthly) is split into two collections (e.g. ``SW_OPER_VOBS_1M_2_`` (containing ``B_OB`` & ``B_CF``) and ``SW_OPER_VOBS_1M_2_:SecularVariation`` (containing ``B_SV``)) because of the different temporal sampling points (i.e. differing ``Timestamp``) of these measurements. Data can also be requested for a specific virtual observatory alone (distinguishable by the ``SiteCode`` variable) with special collection names like ``SW_OPER_VOBS_1M_2_:N65W051`` and ``SW_OPER_VOBS_1M_2_:SecularVariation:N65W051``.
+
 The ``measurements``, ``models``, and ``auxiliaries`` chosen will match the cadence of the ``collection`` chosen.
 
 ----
@@ -117,10 +134,28 @@ AUX_OBS products:
 =============== =========================================
 Collection type Available measurement names
 =============== =========================================
-AUX_OBSH        ``B_NEC,F,IAGA_code,Quality,SensorIndex``
+AUX_OBSH        ``B_NEC,F,IAGA_code,Quality,ObsIndex``
 AUX_OBSM        ``B_NEC,F,IAGA_code,Quality``
 AUX_OBSS        ``B_NEC,F,IAGA_code,Quality``
 =============== =========================================
+
+AUX_OBSH contains a special variable, ``ObsIndex``, which is set to 0, 1, 2 ... to indicate changes to the observatory where the IAGA code has remained the same (e.g. small change of location, change of instrument or calibration procedure).
+
+VOBS products:
+
+==================================== =========================================== 
+Collection full name                 Available measurement names
+==================================== ===========================================
+SW_OPER_VOBS_1M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
+SW_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
+OR_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
+CH_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
+CR_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
+CO_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
+SW_OPER_VOBS_1M_2\_:SecularVariation ``SiteCode,B_SV,sigma_SV``
+(ditto for the others)
+==================================== ===========================================
+
 
 ----
 
@@ -220,7 +255,7 @@ NB: When using model names containing a hyphen (``-``) then extra single (``'``)
 
 .. note::
 
-  Check other packages such `hapiclient`_ and others from `PyHC`_ for data from other sources.
+  Check other packages such as `hapiclient`_ and others from `PyHC`_ for data from other sources.
   
 .. _`hapiclient`: https://github.com/hapi-server/client-python
 

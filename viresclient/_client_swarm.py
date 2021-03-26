@@ -161,7 +161,8 @@ COLLECTION_REFERENCES = {
     "AUX_OBSH": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSM": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSS": ("https://doi.org/10.5047/eps.2013.07.011",),
-    "VOBS_SW_1M": ("https://www.space.dtu.dk/english/research/projects/project-descriptions/geomagnetic-virtual-observatories",),
+    "VOBS_SW_1M": ("https://earth.esa.int/eogateway/activities/gvo",),
+    "AEJ_LPL": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
 }
 
 DATA_CITATIONS = {
@@ -903,7 +904,7 @@ class SwarmRequest(ClientRequest):
             )
 
         Args:
-            collection (str): OBS collection name, e.g. "SW_OPER_AUX_OBSM2_"
+            collection (str): OBS collection name, e.g. "SW_OPER_AUX_OBSM2\\_"
             start_time (datetime / ISO_8601 string)
             end_time (datetime / ISO_8601 string)
             details (bool): returns DataFrame if True
