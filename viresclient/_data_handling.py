@@ -277,6 +277,9 @@ class FileReader(object):
                 ds[var].attrs["description"] = self.get_variable_description(var)
             except KeyError:
                 ds[var].attrs["description"] = FRAME_DESCRIPTIONS.get(var, "")
+        # Remove unused Timestamp unit (-)
+        # for xarray 0.17 compatibility when writing to netcdf
+        ds["Timestamp"].attrs.pop("units", None)
         return ds
 
     @staticmethod
