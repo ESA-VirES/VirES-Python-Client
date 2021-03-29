@@ -880,7 +880,7 @@ class SwarmRequest(ClientRequest):
 
     def available_observatories(
         self, collection, start_time=None, end_time=None,
-        details=False
+        details=False, verbose=True
     ):
         """Get list of available observatories from server.
 
@@ -908,6 +908,7 @@ class SwarmRequest(ClientRequest):
             start_time (datetime / ISO_8601 string)
             end_time (datetime / ISO_8601 string)
             details (bool): returns DataFrame if True
+            verbose (bool): Notify with special data terms
 
         Returns:
             list or DataFrame: IAGA codes (and start/end times)
@@ -944,7 +945,8 @@ class SwarmRequest(ClientRequest):
         else:
             start_time, end_time = None, None
 
-        self._detect_AUX_OBS([collection])
+        if verbose:
+            self._detect_AUX_OBS([collection])
         response = _request_get_observatories(collection, start_time, end_time)
         df = _csv_to_df(response)
         if details:
@@ -967,8 +969,6 @@ class SwarmRequest(ClientRequest):
                 Accessing INTERMAGNET and/or WDC data
                 Check usage terms at {DATA_CITATIONS.get(aux_type)}
                 """)
-                if aux_type == "AUX_OBSH":
-                    output_text += "WARNING: AUX_OBSH is not yet public"
                 tqdm.write(output_text)
 
     def set_collection(self, *args, verbose=True):
