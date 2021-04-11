@@ -4,7 +4,7 @@ Release notes
 Change log
 ----------
 
-Changes from 0.7.1 to 0.8.0
+Changes from 0.7.2 to 0.8.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Added support for:
@@ -14,6 +14,9 @@ Changes from 0.7.1 to 0.8.0
 
 - Added :py:meth:`viresclient.SwarmRequest.available_times` to query temporal availability of any collection
 - Added new ``reshape=True`` kwarg to :py:meth:`viresclient.ReturnedData.as_xarray` to enable optional reshaping of xarray datasets loaded from VOBS and AUX_OBS collections to higher-dimensional objects containing a new dimension (``IAGA_code`` for AUX_OBS and ``SiteCode`` for VOBS)
+- Added command line tool, ``viresclient clear_credentials``, to help delete the stored credentials
+- Changed tqdm progress bars to use ``tqdm.notebook`` when in Jupyter notebook (otherwise still uses plain tqdm)
+- Dropped ``"Timestamp"`` variable attribute ``"units"`` (i.e. ``ds["Timestamp"].attrs["units"]``) when loading as ``xarray.Dataset``, for compatibility with xarray 0.17 when saving as netcdf
 
 Changes from 0.7.1 to 0.7.2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

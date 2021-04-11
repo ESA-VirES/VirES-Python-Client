@@ -30,6 +30,7 @@
 
 import sys
 from getpass import getpass, getuser
+from os import remove
 from os.path import exists
 from viresclient import ClientConfig
 from .common import ConfigurationCommand, UrlConfigurationCommand
@@ -133,3 +134,18 @@ class ShowConfigurationCommand(ConfigurationCommand):
                 "Configuration file %s does not exist!" % config.path
             )
         sys.stdout.write(str(config))
+
+
+class ClearCredentialsCommand(ConfigurationCommand):
+    """ Command to remove stored configuration. """
+    help = "Delete the default configuration file."
+
+    def execute(self, config_path):
+        config = ClientConfig(path=config_path)
+        if exists(config.path):
+            remove(config.path)
+            sys.stdout.write(f"Deleted configuration file: {config.path}\n")
+        else:
+            sys.stdout.write(
+                f"WARNING: No configuration file found (attempted to delete {config.path})\n"
+            )
