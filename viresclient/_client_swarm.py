@@ -602,7 +602,13 @@ class SwarmRequest(ClientRequest):
         "NGPLongitude", "DipoleTiltAngle",
     ]
 
-    MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
+    MAGNETIC_MODEL_VARIABLES = {
+        "F": "F",
+        "B_NEC": "B_NEC",
+        "B_NEC1": "B_NEC",
+        "B_NEC2": "B_NEC",
+        "B_NEC3": "B_NEC",
+    }
 
     MAGNETIC_MODELS = [
         "IGRF", "IGRF12", "LCS-1", "MF7",
@@ -992,7 +998,7 @@ class SwarmRequest(ClientRequest):
             raise Exception("Must run .set_collection() first.")
         measurements = [] if measurements is None else measurements
         models = [] if models is None else models
-        model_variables = set(self._available["model_variables"])
+        model_variables = self._available["model_variables"]
         auxiliaries = [] if auxiliaries is None else auxiliaries
         # If inputs are strings (when providing only one parameter)
         #  put them in lists
@@ -1052,16 +1058,26 @@ class SwarmRequest(ClientRequest):
             return [f"{variable}{affix}{model_name}" for model_name in model_ids]
 
         # Identify which (if any) of ["F", "B_NEC", ...] are requested
-        model_variables_present = set(measurements).intersection(set(model_variables))
+        model_variables_present = {
+            variable: model_variables[variable]
+            for variable in measurements if variable in model_variables
+        }
         # Create the list of variable names to request
-        variables = []
-        for variable in model_variables_present:
+        variables = set()
+        _model_variables_requested = set()
+
+        for variable, model_variable in model_variables_present.items():
             if not residuals:
                 # Include "F" / "B_NEC" as requested...
-                variables.append(variable)
+                variables.add(variable)
             # Include e.g. "F_IGRF" / "B_NEC_IGRF" / "B_NEC_res_IGRF" etc.
-            variables.extend(_model_datavar_names(variable, residuals=residuals))
-        if models and (len(model_variables_present) == 0):
+            if not residuals or variable == model_variable:
+                _model_variables_requested.add(model_variable)
+                variables.update(_model_datavar_names(
+                    model_variable, residuals=residuals
+                ))
+                _no_model_variable = False
+        if models and not _model_variables_requested:
             if residuals:
                 raise ValueError(
                     f"""
@@ -1069,12 +1085,12 @@ class SwarmRequest(ClientRequest):
                     """
                 )
             # If "F" / "B_NEC" have not been requested, include e.g. "B_NEC_IGRF" etc.
-            variables.extend(_model_datavar_names("B_NEC"))
+            variables.update(_model_datavar_names("B_NEC"))
         # Include all the non-model-related variables
-        variables.extend(list(set(measurements) - model_variables_present))
-        variables.extend(auxiliaries)
+        variables.update(set(measurements) - set(model_variables_present))
+        variables.update(auxiliaries)
         self._request_inputs.model_expression = model_expression_string
-        self._request_inputs.variables = variables
+        self._request_inputs.variables = list(variables)
         self._request_inputs.sampling_step = sampling_step
         self._request_inputs.custom_shc = custom_shc
         return self
