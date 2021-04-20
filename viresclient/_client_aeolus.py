@@ -71,11 +71,11 @@ class AeolusWPSInputs(WPSInputs):
         self._mie_wind_fields = self.mie_wind_fields
         self._rayleigh_wind_fields = self.rayleigh_wind_fields
         self._bbox = self.bbox
-        return {key: self.__dict__['_{}'.format(key)] for key in self.names}
+        return {key: self.__dict__['_{}'.format(key)] for key in self.NAMES}
 
     @property
     def processId(self):
-        return self._processID
+        return self.processId
 
     @processId.setter
     def processId(self, processId):
@@ -179,14 +179,29 @@ class AeolusRequest(ClientRequest):
             )
         # self._available = self._set_available_data()
         self._request_inputs = AeolusWPSInputs()
-        self._request_inputs.processId = 'aeolus:level1B:AUX'
+        self._request_inputs.processId = 'aeolus:level1B'
         self._templatefiles = TEMPLATE_FILES
         self._filterlist = []
         self._supported_filetypes = ("nc",)
 
     def set_collection(self, collection):
         # self._request_inputs.set_collection = collection
-        self._request_inputs.collection_ids = collection
+        # We set the process id corresponding to the selected collection
+        collection_mapping = {
+            "ALD_U_N_1B": "aeolus:level1B",
+            "ALD_U_N_2A": "aeolus:level2A",
+            "ALD_U_N_2B": "aeolus:level2B",
+            "ALD_U_N_2C": "aeolus:level2C",
+        }
+        if collection in collection_mapping:
+            self._request_inputs.processId = collection_mapping[collection]
+            self._request_inputs.collection_ids = collection
+        else:
+            raise ValueError("Product not found")
+
+
+    def set_fields(self, observation_fields=None):
+        self._request_inputs.observation_fields = ",".join(observation_fields)
 
     def set_variables(self, aux_type=None, fields=None):
         self._request_inputs.aux_type = aux_type
