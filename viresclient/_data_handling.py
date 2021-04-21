@@ -34,6 +34,7 @@ import numpy
 import pandas
 import xarray
 import cdflib
+import netCDF4
 from ._wps import time_util
 if os.name == "nt":
     import atexit
@@ -450,7 +451,14 @@ class ReturnedDataFile(object):
             with FileReader(self._file) as f:
                 ds = f.as_xarray_dataset()
         elif self.filetype == 'nc':
-            ds = xarray.open_dataset(self._file.name, group=group)
+            # xarrays open_dataset does not retrieve data in groups
+            # group needs to be specified while opening
+            # we iterate here over the available groups
+            # TODO: what happens with groups of different sizes and attributes
+            nc = netCDF4.Dataset(self._file.name)
+            ds = xarray.Dataset()
+            for group in nc.groups:
+                ds = ds.merge(xarray.open_dataset(self._file.name, group=group))
         return ds
 
     @property
@@ -591,6 +599,7 @@ class ReturnedData(object):
         ds_list = []
         for i, data in enumerate(self.contents):
             ds_part = data.as_xarray()
+            print("DATA: %s"%ds_part)
             if ds_part is None:
                 print("Warning: ",
                       "Unable to create dataset from part {} of {}".format(
@@ -616,9 +625,11 @@ class ReturnedData(object):
         # concat is slow. Maybe try extracting numpy arrays and rebuilding ds
 
         # Set the original data sources and models used as metadata
-        ds.attrs["Sources"] = self.sources
-        ds.attrs["MagneticModels"] = self.magnetic_models
-        ds.attrs["RangeFilters"] = self.range_filters
+        # only for cdf data types
+        if self.filetype == "cdf":
+            ds.attrs["Sources"] = self.sources
+            ds.attrs["MagneticModels"] = self.magnetic_models
+            ds.attrs["RangeFilters"] = self.range_filters
         return ds
 
     def to_files(self, paths, overwrite=False):
