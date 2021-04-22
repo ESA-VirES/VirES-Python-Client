@@ -85,6 +85,46 @@
       </wps:Data>
     </wps:Input>
     {% endif -%}
+    {% if ica_fields -%}
+    <wps:Input>
+      <ows:Identifier>ica_fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ ica_fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if sca_fields -%}
+    <wps:Input>
+      <ows:Identifier>sca_fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ sca_fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if group_fields -%}
+    <wps:Input>
+      <ows:Identifier>group_fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ group_fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if mie_grouping_fields -%}
+    <wps:Input>
+      <ows:Identifier>mie_grouping_fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ mie_grouping_fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if rayleigh_grouping_fields -%}
+    <wps:Input>
+      <ows:Identifier>rayleigh_grouping_fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ rayleigh_grouping_fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
     {% if filters -%}
     <wps:Input>
       <ows:Identifier>filters</ows:Identifier>
