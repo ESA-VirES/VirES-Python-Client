@@ -226,8 +226,9 @@ class ClientRequest(object):
     """
 
     def __init__(self, url=None, username=None, password=None, token=None,
-                 config=None, logging_level="NO_LOGGING", server_type=None, 
-                 skip_token=False):
+                 config=None, logging_level="NO_LOGGING", skip_token=False,
+                 server_type=None
+                 ):
 
         # Check and prompt for token if not already set, then store in config
         # Try to only do this if running in a notebook

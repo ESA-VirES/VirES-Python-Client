@@ -172,10 +172,10 @@ class AeolusRequest(ClientRequest):
     """
 
     def __init__(self, url=None, username=None, password=None, token=None,
-                 config=None, logging_level="NO_LOGGING"):
+                 config=None, logging_level="NO_LOGGING", skip_token=False):
         super().__init__(
             url, username, password, token, config, logging_level,
-            server_type="Aeolus"
+            skip_token, server_type="Aeolus"
             )
         # self._available = self._set_available_data()
         self._request_inputs = AeolusWPSInputs()
