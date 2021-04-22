@@ -226,11 +226,12 @@ class ClientRequest(object):
     """
 
     def __init__(self, url=None, username=None, password=None, token=None,
-                 config=None, logging_level="NO_LOGGING", server_type=None):
+                 config=None, logging_level="NO_LOGGING", server_type=None, 
+                 skip_token=False):
 
         # Check and prompt for token if not already set, then store in config
         # Try to only do this if running in a notebook
-        if IN_JUPYTER:
+        if not skip_token and IN_JUPYTER:
             if not ((username and password) or token or config):
                 cc = ClientConfig()
                 # Use production url if none chosen
@@ -255,7 +256,7 @@ class ClientRequest(object):
             config, url, username, password, token
         )
         # Test if the token is working; re-enter if not
-        if IN_JUPYTER:
+        if not skip_token and IN_JUPYTER:
             invalid_token = True
             attempts = 0
             while invalid_token:
