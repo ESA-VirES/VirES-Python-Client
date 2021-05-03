@@ -210,10 +210,18 @@ class AeolusRequest(ClientRequest):
 
     def set_fields(self,
                    observation_fields=None,
-                   ica_fields=None, sca_fields=None):
-        self._request_inputs.observation_fields = ",".join(observation_fields)
-        self._request_inputs.ica_fields = ",".join(ica_fields)
-        self._request_inputs.sca_fields = ",".join(sca_fields)
+                   ica_fields=None, sca_fields=None,
+                   rayleigh_wind_fields=None, mie_wind_fields=None):
+        if observation_fields:
+            self._request_inputs.observation_fields = ",".join(observation_fields)
+        if ica_fields:
+            self._request_inputs.ica_fields = ",".join(ica_fields)
+        if sca_fields:
+            self._request_inputs.sca_fields = ",".join(sca_fields)
+        if rayleigh_wind_fields:
+            self._request_inputs.rayleigh_wind_fields = ",".join(rayleigh_wind_fields)
+        if mie_wind_fields:
+            self._request_inputs.mie_wind_fields = ",".join(mie_wind_fields)
 
     def set_variables(self, aux_type=None, fields=None):
         self._request_inputs.aux_type = aux_type
