@@ -200,6 +200,11 @@ class AeolusRequest(ClientRequest):
             "ALD_U_N_2A": "aeolus:level2A",
             "ALD_U_N_2B": "aeolus:level2B",
             "ALD_U_N_2C": "aeolus:level2C",
+            "AUX_MRC_1B": "aeolus:level1B:AUX:MRC",
+            "AUX_RRC_1B": "aeolus:level1B:AUX:RRC",
+            "AUX_ISR_1B": "aeolus:level1B:AUX:ISR",
+            "AUX_ZWC_1B": "aeolus:level1B:AUX:ZWC",
+            "AUX_MET_12": "aeolus:AUX:MET",
         }
         if collection in collection_mapping:
             self._request_inputs.processId = collection_mapping[collection]
