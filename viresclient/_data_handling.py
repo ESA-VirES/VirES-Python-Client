@@ -433,7 +433,7 @@ class ReturnedDataFile(object):
                 df = f.as_pandas_dataframe(expand=expand)
         return df
 
-    def as_xarray(self, engine='netcdf4'):
+    def as_xarray(self):
         """Convert the data to an xarray Dataset.
 
         Note:
@@ -459,7 +459,7 @@ class ReturnedDataFile(object):
             ds = xarray.Dataset()
             for group in nc.groups:
                 ds = ds.merge(xarray.open_dataset(
-                    self._file.name, group=group, engine=engine
+                    self._file.name, group=group, engine='netcdf4'
                 ))
         return ds
 
