@@ -1,4 +1,4 @@
-import datetime
+import datetime, json
 
 from ._client import WPSInputs, ClientRequest
 
@@ -144,6 +144,17 @@ class AeolusWPSInputs(WPSInputs):
             raise TypeError
 
     @property
+    def filters(self):
+        return self._filters
+
+    @filters.setter
+    def filters(self, filters):
+        if isinstance(filters, str) or filters is None:
+            self._filters = filters
+        else:
+            raise TypeError
+
+    @property
     def response_type(self):
         return self._response_type
 
@@ -189,7 +200,7 @@ class AeolusRequest(ClientRequest):
         self._request_inputs = AeolusWPSInputs()
         self._request_inputs.processId = 'aeolus:level1B'
         self._templatefiles = TEMPLATE_FILES
-        self._filterlist = []
+        self._filterlist = {}
         self._supported_filetypes = ("nc",)
 
     def set_collection(self, collection):
@@ -234,3 +245,36 @@ class AeolusRequest(ClientRequest):
     def set_variables(self, aux_type=None, fields=None):
         self._request_inputs.aux_type = aux_type
         self._request_inputs.fields = fields
+
+    def set_range_filter(self, parameter=None, minimum=None, maximum=None):
+        """Set a filter to apply.
+
+        Filters data for minimum ≤ parameter ≤ maximum
+
+        Note:
+            Apply multiple filters with successive calls to set_range_filter()
+
+        Args:
+            parameter (str)
+            minimum (float)
+            maximum (float)
+
+        """
+        if not isinstance(parameter, str):
+            raise TypeError("parameter must be a str")
+        # Update filter dictionary
+        self._filterlist[parameter] = {
+            "min": minimum,
+            "max": maximum
+        }
+        # Update the inputs object with dictionary converted
+        # to JSON used by XML template
+        self._request_inputs.filters = json.dumps(self._filterlist)
+        return self
+
+    def clear_range_filter(self):
+        """Remove all applied filters."""
+        self._filterlist = []
+        self._request_inputs.filters = None
+        return self
+
