@@ -50,7 +50,7 @@ FRAME_NAMES = {
     "WGS84": ["GPS_Position", "LEO_Position"],
     "EEJ_QDLat": ["EEJ"],
     "NE": ["J_NE", "J_CF_NE", "J_DF_NE", "B_NE"],
-    "AOB_Quality": ["Quality"],
+    #"AOB_Quality": ["Quality"], # FIXME - collides with the MIT and PPI Quality
 }
 # Reverse mapping of the above
 DATANAMES_TO_FRAME_NAMES = {}
@@ -66,7 +66,7 @@ FRAME_LABELS = {
     "WGS84": ["X", "Y", "Z"],
     "EEJ_QDLat": numpy.linspace(-20, 20, 81),
     "NE": ["N", "E"],
-    "AOB_Quality": ["Pa", "Sigma"],
+    #"AOB_Quality": ["Pa", "Sigma"], # FIXME - collides with the MIT and PPI Quality
 }
 FRAME_DESCRIPTIONS = {
     "NEC": "NEC frame - North, East, Centre (down)",
