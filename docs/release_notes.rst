@@ -4,6 +4,13 @@ Release notes
 Change log
 ----------
 
+Changes from 0.8.0 to 0.8.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed missing auxiliary "dDst"
+- Fixed fetching longer time series of hourly observatory products
+- Added new progress bar that tracks processing of chunks in long requests
+
 Changes from 0.7.2 to 0.8.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

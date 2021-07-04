@@ -234,7 +234,7 @@ NB: When using model names containing a hyphen (``-``) then extra single (``'``)
 
 ::
 
-  SyncStatus, Kp10, Kp, Dst, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F107, F10_INDEX,
+  SyncStatus, Kp10, Kp, Dst, dDst, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F107, F10_INDEX,
   OrbitDirection, QDOrbitDirection,
   OrbitSource, OrbitNumber, AscendingNodeTime,
   AscendingNodeLongitude, QDLat, QDLon, QDBasis, MLT, SunDeclination,
