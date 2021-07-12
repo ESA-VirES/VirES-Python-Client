@@ -63,6 +63,19 @@ SW_OPER_AEJxPBS_2F:GroundMagneticDisturbance AEJ_PBS:GroundMagneticDisturbance -
 SW_OPER_AOBxFAC_2F                           AOB_FAC                           Auroral oval boundaries derived from FACs
 ============================================ ================================= ==============================================================
 
+The PRISM (Plasmapause Related boundaries in the topside Ionosphere as derived from Swarm Measurements) products are provided as:
+
+====================== ================ ===================================================================================================
+Collection full name   Collection type  Description
+====================== ================ ===================================================================================================
+SW_OPER_MITx_LP_2F     MIT_LP           Minima of the Midlatitude Ionospheric Trough (MIT) - derived from Langmuir Probe (LP) measurements
+SW_OPER_MITx_LP_2F:ID  MIT_LP:ID        -> Boundaries of the MIT - derived from the LP
+SW_OPER_MITxTEC_2F     MIT_TEC          Minima of the MIT - derived from Total Electron Content (TEC)
+SW_OPER_MITxTEC_2F:ID  MIT_TEC:ID       -> Boundaries of the MIT - derived from TEC
+SW_OPER_PPIxFAC_2F     PPI_FAC          Midnight Plasmapause Index (PPI) 
+SW_OPER_PPIxFAC_2F:ID  PPI_FAC:ID       -> Boundaries of the Small-Scale Field Aligned Currents (SSFAC)
+====================== ================ ===================================================================================================
+
 The AUX_OBS collections contain ground magnetic observatory data from `INTERMAGNET <https://intermagnet.github.io/data_conditions.html>`_ and `WDC <http://www.wdc.bgs.ac.uk/>`_. Please note that these data are provided under different usage terms than the ESA data, and must be acknowledged accordingly.
 
 ======================== ================ ==============================================================
@@ -128,6 +141,19 @@ AEJ_PBS                           ``Latitude_QD,Longitude_QD,MLT_QD,J_DF_SemiQD,
 AEJ_PBS:GroundMagneticDisturbance ``B_NE``
 AOB_FAC                           ``Latitude_QD,Longitude_QD,MLT_QD,Boundary_Flag,Quality,Pair_Indicator``
 ================================= ================================================================================
+
+PRISM products:
+
+================ ================================================================================================================
+Collection type  Available measurement names
+================ ================================================================================================================
+MIT_LP           ``Counter,Latitude_QD,Longitude_QD,MLT_QD,L_value,SZA,Ne,Te,Depth,DR,Width,dL,PW_Gradient,EW_Gradient,Quality``
+MIT_LP:ID        ``Counter,Latitude_QD,Longitude_QD,MLT_QD,L_value,SZA,Ne,Te,Position_Quality,PointType``
+MIT_TEC          ``Counter,Latitude_QD,Longitude_QD,MLT_QD,L_value,SZA,TEC,Depth,DR,Width,dL,PW_Gradient,EW_Gradient,Quality``
+MIT_TEC:ID       ``Counter,Latitude_QD,Longitude_QD,MLT_QD,L_value,SZA,TEC,Position_Quality,PointType``
+PPI_FAC          ``Counter,Latitude_QD,Longitude_QD,MLT_QD,L_value,SZA,Sigma,PPI,dL,Quality``
+PPI_FAC:ID       ``Counter,Latitude_QD,Longitude_QD,MLT_QD,L_value,SZA,Position_Quality,PointType``
+================ ================================================================================================================
 
 AUX_OBS products:
 
