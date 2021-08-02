@@ -7,6 +7,7 @@ from io import StringIO
 from pandas import read_csv
 from tqdm import tqdm
 from textwrap import dedent
+from warnings import warn
 
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.time_util import parse_datetime
@@ -394,6 +395,12 @@ class SwarmRequest(ClientRequest):
         logging_level (str):
 
     """
+    MISSION_SPACECRAFTS = {
+        'Swarm': ['A', 'B', 'C'],
+        'GRACE': ['1', '2'],
+        'GRACE-FO': ['1', '2'],
+    }
+
     COLLECTIONS = {
         "MAG": ["SW_OPER_MAG{}_LR_1B".format(x) for x in "ABC"],
         "MAG_HR": ["SW_OPER_MAG{}_HR_1B".format(x) for x in "ABC"],
@@ -1128,14 +1135,17 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.filters = None
         return self
 
-    def get_times_for_orbits(self, spacecraft, start_orbit, end_orbit):
+    def get_times_for_orbits(self, start_orbit, end_orbit, mission="Swarm", spacecraft=None):
         """Translate a pair of orbit numbers to a time interval.
 
         Args:
-            spacecraft (str): one of ('A','B','C') or
-                                ("Alpha", "Bravo", "Charlie")
             start_orbit (int): a starting orbit number
             end_orbit (int): a later orbit number
+            spacecraft (str):
+                    Swarm: one of ('A','B','C') or ("Alpha", "Bravo", "Charlie")
+                    GRACE: one of ('1','2')
+                    GRACE-FO: one of ('1','2')
+            mission (str): one of ('Swarm', 'GRACE', 'GRACE-FO')
 
         Returns:
             tuple (datetime): (start_time, end_time) The start time of the
@@ -1143,12 +1153,61 @@ class SwarmRequest(ClientRequest):
             (Based on ascending nodes of the orbits)
 
         """
+        # check old function signature and print warning
+        if (
+            isinstance(start_orbit, str) and
+            isinstance(mission, int) and
+            spacecraft is None
+        ):
+            spacecraft, start_orbit, end_orbit = start_orbit, end_orbit, mission
+            mission = "Swarm"
+            warn(
+                "The order of SwarmRequest.get_times_for_orbits() method's "
+                "parameters has changed!  "
+                "The backward compatibility will be removed in the future.  "
+                "Please change your code to:  "
+                "request.get_times_for_orbits(start_orbit, end_orbit, "
+                "'Swarm', spacecraft)",
+                FutureWarning,
+            )
+
+        start_orbit = int(start_orbit)
+        end_orbit = int(end_orbit)
+
+        if mission not in self.MISSION_SPACECRAFTS:
+            raise ValueError(
+                f"Invalid mission {mission}!"
+                f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS)}"
+            )
+
         # Change to spacecraft = "A" etc. for this request
-        if spacecraft in ("Alpha", "Bravo", "Charlie"):
+        spacecraft = str(spacecraft)
+        if mission == "Swarm" and spacecraft in ("Alpha", "Bravo", "Charlie"):
             spacecraft = spacecraft[0]
+
+        if self.MISSION_SPACECRAFTS[mission]:
+            # missions with required spacecraft id
+            if not spacecraft:
+                raise ValueError(
+                    f"The {mission} spacecraft is required!"
+                    f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS[mission])}"
+                )
+            if spacecraft not in self.MISSION_SPACECRAFTS[mission]:
+                raise ValueError(
+                    f"Invalid {mission} spacecraft! "
+                    f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS[mission])}"
+                )
+
+        elif spacecraft: # mission without spacecraft id
+            raise ValueError(
+                f"No {mission} spacecraft shall be specified! "
+                "Set spacecraft to None."
+            )
+
         templatefile = TEMPLATE_FILES["times_from_orbits"]
         template = JINJA2_ENVIRONMENT.get_template(templatefile)
         request = template.render(
+            mission=mission,
             spacecraft=spacecraft,
             start_orbit=start_orbit,
             end_orbit=end_orbit
