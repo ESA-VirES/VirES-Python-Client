@@ -1,3 +1,5 @@
+# pylint: disable=missing-docstring, invalid-name,line-too-long
+
 import datetime
 import json
 from collections import OrderedDict
@@ -399,6 +401,7 @@ class SwarmRequest(ClientRequest):
         'Swarm': ['A', 'B', 'C'],
         'GRACE': ['1', '2'],
         'GRACE-FO': ['1', '2'],
+        'CryoSat-2': None,
     }
 
     COLLECTIONS = {
@@ -1145,7 +1148,8 @@ class SwarmRequest(ClientRequest):
                     Swarm: one of ('A','B','C') or ("Alpha", "Bravo", "Charlie")
                     GRACE: one of ('1','2')
                     GRACE-FO: one of ('1','2')
-            mission (str): one of ('Swarm', 'GRACE', 'GRACE-FO')
+                    CryoSat-2: None
+            mission (str): one of ('Swarm', 'GRACE', 'GRACE-FO', 'CryoSat-2')
 
         Returns:
             tuple (datetime): (start_time, end_time) The start time of the
@@ -1181,7 +1185,7 @@ class SwarmRequest(ClientRequest):
             )
 
         # Change to spacecraft = "A" etc. for this request
-        spacecraft = str(spacecraft)
+        spacecraft = str(spacecraft) if spacecraft is not None else None
         if mission == "Swarm" and spacecraft in ("Alpha", "Bravo", "Charlie"):
             spacecraft = spacecraft[0]
 
