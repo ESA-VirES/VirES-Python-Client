@@ -40,6 +40,8 @@ if os.name == "nt":
 
 CDF_EPOCH_1970 = 62167219200000.0
 
+ALLOWED_SPACECRFTS = ["A", "B", "C", "1", "2", "-"]
+
 # Frame names to use as xarray dimension names
 FRAME_NAMES = {
     "NEC": ["B_NEC", "B_OB", "B_CF", "B_SV", "sigma_OB", "sigma_CF", "sigma_SV"],
@@ -212,7 +214,7 @@ class FileReader(object):
                     self._cdftime_to_datetime(self.get_variable("Timestamp"))})
         # Add Spacecraft variable as Categorical to save memory
         ds["Spacecraft"] = (("Timestamp",), pandas.Categorical(
-            self.get_variable("Spacecraft"), categories=["A", "B", "C", "-"]))
+            self.get_variable("Spacecraft"), categories=ALLOWED_SPACECRFTS))
         datanames = set(self.variables)
         datanames.remove("Timestamp")
         datanames.remove("Spacecraft")
