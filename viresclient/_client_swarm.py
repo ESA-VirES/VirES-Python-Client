@@ -1060,45 +1060,43 @@ class SwarmRequest(ClientRequest):
 
         # Set up the variables that actually get passed to the WPS request
 
-        def _model_datavar_names(variable, residuals=False):
-            """Give the list of allowable variable names containing model evaluations"""
-            if variable not in model_variables:
-                raise ValueError(f"Expected one of {model_variables}; got '{variable}'")
-            affix = "_res_" if residuals else "_"
-            return [f"{variable}{affix}{model_name}" for model_name in model_ids]
+        # Requested variables, start with the measurements ...
+        variables = set(measurements)
 
-        # Identify which (if any) of ["F", "B_NEC", ...] are requested
-        model_variables_present = {
-            variable: model_variables[variable]
-            for variable in measurements if variable in model_variables
-        }
-        # Create the list of variable names to request
-        variables = set()
-        _model_variables_requested = set()
+        # model-related measurements
+        _requested_model_variables = [
+            variable for variable in measurements
+            if variable in model_variables
+        ]
 
-        for variable, model_variable in model_variables_present.items():
-            if not residuals:
-                # Include "F" / "B_NEC" as requested...
-                variables.add(variable)
-            # Include e.g. "F_IGRF" / "B_NEC_IGRF" / "B_NEC_res_IGRF" etc.
-            if not residuals or variable == model_variable:
-                _model_variables_requested.add(model_variable)
-                variables.update(_model_datavar_names(
-                    model_variable, residuals=residuals
-                ))
-                _no_model_variable = False
-        if models and not _model_variables_requested:
-            if residuals:
-                raise ValueError(
-                    f"""
-                    Residuals requested without one of {model_variables} set as measurements
-                    """
+        if residuals:
+            # Remove the measurements ...
+            variables.difference_update(_requested_model_variables)
+            # ... add their residuals instead.
+            variables.update(
+                f"{variable}_res_{model_id}"
+                for variable in _requested_model_variables
+                for model_id in model_ids
+            )
+
+        else:
+            # If no variable is requested fall back to B_NEC.
+            if not _requested_model_variables:
+                _requested_model_variables = ["B_NEC"]
+
+            # Add calculated model variables.
+            variables.update(
+                f"{variable}_{model_id}"
+                for variable in (
+                    model_variables[variable]
+                    for variable in _requested_model_variables
                 )
-            # If "F" / "B_NEC" have not been requested, include e.g. "B_NEC_IGRF" etc.
-            variables.update(_model_datavar_names("B_NEC"))
-        # Include all the non-model-related variables
-        variables.update(set(measurements) - set(model_variables_present))
+                for model_id in model_ids
+            )
+
+        # Finally, add the auxiliary variables.
         variables.update(auxiliaries)
+
         self._request_inputs.model_expression = model_expression_string
         self._request_inputs.variables = list(variables)
         self._request_inputs.sampling_step = sampling_step
