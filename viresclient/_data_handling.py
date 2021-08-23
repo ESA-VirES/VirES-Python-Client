@@ -50,7 +50,6 @@ FRAME_NAMES = {
     "WGS84": ["GPS_Position", "LEO_Position"],
     "EEJ_QDLat": ["EEJ"],
     "NE": ["J_NE", "J_CF_NE", "J_DF_NE", "B_NE"],
-    "AOB_Quality": ["Quality"],
 }
 # Reverse mapping of the above
 DATANAMES_TO_FRAME_NAMES = {}
@@ -66,14 +65,12 @@ FRAME_LABELS = {
     "WGS84": ["X", "Y", "Z"],
     "EEJ_QDLat": numpy.linspace(-20, 20, 81),
     "NE": ["N", "E"],
-    "AOB_Quality": ["Pa", "Sigma"],
 }
 FRAME_DESCRIPTIONS = {
     "NEC": "NEC frame - North, East, Centre (down)",
     "NE": "Horizontal NE frame - North, East",
     "VFM": "Vector Field Magnetometer instrument frame",
     "EEJ_QDLat": "Quasi-dipole latitude profile between -20 and 20 degrees from the EEF product",
-    "AEJ_Quality": "Boundary quality indicator (Pa, Sigma)",
 }
 
 

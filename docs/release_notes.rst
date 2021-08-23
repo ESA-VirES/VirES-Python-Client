@@ -4,8 +4,12 @@ Release notes
 Change log
 ----------
 
-Changes from 0.8.0 to 0.8.1
+Changes from 0.8.0 to 0.9.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added support for:
+
+  - PRISM products (``SW_OPER_MITx_LP_2F``, ``SW_OPER_MITxTEC_2F``, ``SW_OPER_PPIxFAC_2F``)
 
 - Fixed missing auxiliary "dDst"
 - Fixed fetching longer time series of hourly observatory products

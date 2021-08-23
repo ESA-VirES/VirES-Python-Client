@@ -482,6 +482,12 @@ class SwarmRequest(ClientRequest):
             "CO_OPER_VOBS_4M_2_:SecularVariation",
             *[f"CO_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
         ],
+        "MIT_LP": [f"SW_OPER_MIT{x}_LP_2F" for x in "ABC"],
+        "MIT_LP:ID": [f"SW_OPER_MIT{x}_LP_2F:ID" for x in "ABC"],
+        "MIT_TEC": [f"SW_OPER_MIT{x}TEC_2F" for x in "ABC"],
+        "MIT_TEC:ID": [f"SW_OPER_MIT{x}TEC_2F:ID" for x in "ABC"],
+        "PPI_FAC": [f"SW_OPER_PPI{x}FAC_2F" for x in "ABC"],
+        "PPI_FAC:ID": [f"SW_OPER_PPI{x}FAC_2F:ID" for x in "ABC"],
     }
 
     OBS_COLLECTIONS = [
@@ -534,6 +540,12 @@ class SwarmRequest(ClientRequest):
         "VOBS_CH_4M:SecularVariation": "P122D",
         "VOBS_CR_4M:SecularVariation": "P122D",
         "VOBS_CO_4M:SecularVariation": "P122D",
+        "MIT_LP": "PT20M",
+        "MIT_LP:ID": "PT20M",
+        "MIT_TEC": "PT20M",
+        "MIT_TEC:ID": "PT20M",
+        "PPI_FAC": "PT20M",
+        "PPI_FAC:ID": "PT20M",
     }
 
     PRODUCT_VARIABLES = {
@@ -612,6 +624,32 @@ class SwarmRequest(ClientRequest):
         "VOBS_CH_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
         "VOBS_CR_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
         "VOBS_CO_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "MIT_LP": [
+            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
+            "Ne", "Te", "Depth", "DR", "Width", "dL", "PW_Gradient", "EW_Gradient",
+            "Quality",
+        ],
+        "MIT_LP:ID": [
+            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
+            "Ne", "Te", "Position_Quality", "PointType",
+        ],
+        "MIT_TEC": [
+            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
+            "TEC", "Depth", "DR", "Width", "dL", "PW_Gradient", "EW_Gradient",
+            "Quality",
+        ],
+        "MIT_TEC:ID": [
+            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
+            "TEC", "Position_Quality", "PointType",
+        ],
+        "PPI_FAC": [
+            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
+            "Sigma", "PPI", "dL", "Quality",
+        ],
+        "PPI_FAC:ID": [
+            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
+            "Position_Quality", "PointType",
+        ],
     }
 
     AUXILIARY_VARIABLES = [
