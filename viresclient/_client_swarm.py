@@ -242,6 +242,8 @@ class SwarmWPSInputs(WPSInputs):
             sc = collection[11]
             sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie"}
             name = sc_to_name.get(sc, "NSC")
+        else:
+            name = collection
         return name
 
     def set_collections(self, collections):
@@ -498,6 +500,10 @@ class SwarmRequest(ClientRequest):
         "MIT_TEC:ID": [f"SW_OPER_MIT{x}TEC_2F:ID" for x in "ABC"],
         "PPI_FAC": [f"SW_OPER_PPI{x}FAC_2F" for x in "ABC"],
         "PPI_FAC:ID": [f"SW_OPER_PPI{x}FAC_2F:ID" for x in "ABC"],
+        # Multi-mission magnetic products
+        "MAG_CS": ["CS_OPER_MAG",],
+        "MAG_GRACE": ["GRACE_A_MAG", "GRACE_B_MAG"],
+        "MAG_GFO": ["GF1_OPER_FGM_ACAL_CORR", "GF2_OPER_FGM_ACAL_CORR"],
     }
 
     OBS_COLLECTIONS = [
@@ -660,6 +666,18 @@ class SwarmRequest(ClientRequest):
             "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
             "Position_Quality", "PointType",
         ],
+        "MAG_CS": [
+            "F", "B_NEC", "B_mod_NEC", "B_NEC1", "B_NEC2", "B_NEC3",
+            "B_FGM1", "B_FGM2", "B_FGM3", "q_NEC_CRF", "q_error",
+        ],
+        "MAG_GRACE": [
+            "F", "B_NEC", "B_NEC_raw", "B_FGM", "B_mod_NEC",
+            "q_NEC_CRF", "q_error",
+        ],
+        "MAG_GFO": [
+            "B_NEC", "B_FGM", "dB_MTQ_FGM", "dB_XI_FGM", "dB_NY_FGM", "dB_BT_FGM",
+            "dB_ST_FGM", "dB_SA_FGM", "dB_BAT_FGM", "q_NEC_FGM", "B_FLAG",
+        ]
     }
 
     AUXILIARY_VARIABLES = [
