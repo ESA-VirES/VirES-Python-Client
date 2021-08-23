@@ -38,6 +38,8 @@ from ._wps import time_util
 if os.name == "nt":
     import atexit
 
+from ._data import CONFIG_SWARM
+
 CDF_EPOCH_1970 = 62167219200000.0
 
 ALLOWED_SPACECRFTS = ["A", "B", "C", "1", "2", "-"]
@@ -50,7 +52,6 @@ FRAME_NAMES = {
     "WGS84": ["GPS_Position", "LEO_Position"],
     "EEJ_QDLat": ["EEJ"],
     "NE": ["J_NE", "J_CF_NE", "J_DF_NE", "B_NE"],
-    "AOB_Quality": ["Quality"],
 }
 # Reverse mapping of the above
 DATANAMES_TO_FRAME_NAMES = {}
@@ -66,14 +67,12 @@ FRAME_LABELS = {
     "WGS84": ["X", "Y", "Z"],
     "EEJ_QDLat": numpy.linspace(-20, 20, 81),
     "NE": ["N", "E"],
-    "AOB_Quality": ["Pa", "Sigma"],
 }
 FRAME_DESCRIPTIONS = {
     "NEC": "NEC frame - North, East, Centre (down)",
     "NE": "Horizontal NE frame - North, East",
     "VFM": "Vector Field Magnetometer instrument frame",
     "EEJ_QDLat": "Quasi-dipole latitude profile between -20 and 20 degrees from the EEF product",
-    "AEJ_Quality": "Boundary quality indicator (Pa, Sigma)",
 }
 
 
@@ -113,9 +112,13 @@ class FileReader(object):
     @staticmethod
     def _open_cdf(file):
         try:
-            return cdflib.CDF(file.name)
+            f = file.name
         except AttributeError:
-            return cdflib.CDF(file)
+            f = file
+        try:
+            return cdflib.cdfread.CDF(f, string_encoding="utf-8")
+        except TypeError:
+            return cdflib.cdfread.CDF(f)
 
     @staticmethod
     def _ensure_list(attribute):
@@ -135,10 +138,10 @@ class FileReader(object):
         return data
 
     def get_variable_units(self, var):
-        return self._varatts[var].get("UNITS", None)
+        return self._varatts[var].get("UNITS", "")
 
     def get_variable_description(self, var):
-        return self._varatts[var].get("DESCRIPTION", None)
+        return self._varatts[var].get("DESCRIPTION", "")
 
     def get_variable_numdims(self, var):
         return self._varinfo[var].get("Num_Dims")
@@ -262,54 +265,76 @@ class FileReader(object):
         # Currently only for GVO data, and without magnetic model values or auxiliaries
         # Inefficient as it is duplicating the data (ds -> ds2)
         if reshape:
-            if "SiteCode" not in ds.data_vars:
-                raise NotImplementedError(
-                    """
-                    Only available for GVO dataset where the "SiteCode"
-                    parameter has been requested
-                    """
-                )
-            if len(set(ds["SiteCode"].values)) != 300:
-                raise NotImplementedError(
-                    """
-                    Only available when all 300 GVO's have been requested
-                    """
-                )
-            ds = ds.drop("Spacecraft")
-            # TODO: extend to account for all data_vars
-            remaining_vars = set(ds.data_vars) - {"Latitude", "Longitude", "Radius", "SiteCode"}
-            # Extract unique coordinate values
-            t = ds["Timestamp"][0:-1:300]
-            lat = ds["Latitude"][0:300].values
-            lon = ds["Longitude"][0:300].values
-            rad = ds["Radius"][0:300].values
-            sitecodes = ds["SiteCode"][0:300].values
-            # Create new dataset based on reshaped variables
-            ds2 = xarray.Dataset(
-                coords={
-                    "Timestamp": t, "SiteCode": (("Site"), sitecodes),
-                    "Latitude": ("Site", lat), "Longitude": ("Site", lon), "Radius": ("Site", rad),
-                    "NEC": ["N", "E", "C"]
-                },
-            )
-            len_t = len(t)
-            for var in remaining_vars:
-                ds2[var] = (
-                    ("Timestamp", "Site", "NEC"),
-                    numpy.reshape(ds[var].values, (len_t, 300, 3))
-                )
-            ds = ds2
+            ds = self.reshape_dataset(ds)
         # Add metadata of each variable
         for var in list(ds.data_vars) + list(ds.coords):
             try:
                 ds[var].attrs["units"] = self.get_variable_units(var)
             except KeyError:
-                ds[var].attrs["units"] = None
+                ds[var].attrs["units"] = ""
             try:
                 ds[var].attrs["description"] = self.get_variable_description(var)
             except KeyError:
-                ds[var].attrs["description"] = FRAME_DESCRIPTIONS.get(var, None)
+                ds[var].attrs["description"] = FRAME_DESCRIPTIONS.get(var, "")
+        # Remove unused Timestamp unit (-)
+        # for xarray 0.17 compatibility when writing to netcdf
+        ds["Timestamp"].attrs.pop("units", None)
         return ds
+
+    @staticmethod
+    def reshape_dataset(ds):
+        if "SiteCode" in ds.data_vars:
+            codevar = "SiteCode"
+        elif "IAGA_code" in ds.data_vars:
+            codevar = "IAGA_code"
+        else:
+            raise NotImplementedError(
+                """
+                Only available for GVO dataset where the "SiteCode"
+                parameter has been requested, or OBS dataset with "IAGA_code"
+                """
+            )
+        # Create integer "Site" identifier based on SiteCode / IAGA_code
+        sites = dict(enumerate(sorted(set(ds[codevar].values))))
+        sites_inv = {v: k for k, v in sites.items()}
+        # Identify (V)OBS locations and mapping from integer "Site" identifier
+        pos_vars = ["Longitude", "Latitude", "Radius", codevar]
+        _ds_locs = next(iter(ds[pos_vars].groupby("Timestamp")))[1]
+        if len(sites) > 1:
+            _ds_locs = _ds_locs.drop(("Timestamp")).rename({"Timestamp": "Site"})
+        else:
+            _ds_locs = _ds_locs.drop(("Timestamp")).expand_dims("Site")
+        _ds_locs["Site"] = [sites_inv.get(code) for code in _ds_locs[codevar].values]
+        _ds_locs = _ds_locs.sortby("Site")
+        # Create dataset initialised with the (V)OBS positional info as coords
+        # and datavars (empty) reshaped to (Site, Timestamp, ...)
+        t = numpy.unique(ds["Timestamp"])
+        ds2 = xarray.Dataset(
+            coords={
+                "Timestamp": t,
+                codevar: (("Site"), _ds_locs[codevar]),
+                "Latitude": ("Site", _ds_locs["Latitude"]),
+                "Longitude": ("Site", _ds_locs["Longitude"]),
+                "Radius": ("Site", _ds_locs["Radius"]),
+                "NEC": ["N", "E", "C"]
+            },
+        )
+        # (Dropping unused Spacecraft var)
+        data_vars = set(ds.data_vars) - {"Latitude", "Longitude", "Radius", codevar, "Spacecraft"}
+        N_sites = len(_ds_locs[codevar])
+        for var in data_vars:
+            shape = [N_sites, len(t), *ds[var].shape[1:]]
+            ds2[var] = ("Site", *ds[var].dims), numpy.empty(shape, dtype=ds[var].dtype)
+            ds2[var][...] = None
+        # Loop through each (V)OBS site to insert the datavars into ds2
+        for k, _ds in dict(ds.groupby(codevar)).items():
+            site = sites_inv.get(k)
+            for var in data_vars:
+                ds2[var][site, ...] = _ds[var].values
+        # Revert to using only the "SiteCode"/"IAGA_code" identifier
+        ds2 = ds2.set_index({"Site": codevar})
+        ds2 = ds2.rename({"Site": codevar})
+        return ds2
 
 
 def make_pandas_DataFrame_from_csv(csv_filename):
@@ -381,7 +406,7 @@ class ReturnedDataFile(object):
     def open_cdf(self):
         """Returns the opened file as cdflib.CDF
         """
-        return cdflib.CDF(self._file.name)
+        return FileReader._open_cdf(self._file.name)
 
     def _write_new_data(self, data):
         """Replace the tempfile contents with 'data' (bytes)

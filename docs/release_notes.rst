@@ -1,13 +1,46 @@
 Release notes
 =============
 
+Change log
+----------
+
+Changes from 0.8.0 to 0.9.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added support for:
+
+  - PRISM products (``SW_OPER_MITx_LP_2F``, ``SW_OPER_MITxTEC_2F``, ``SW_OPER_PPIxFAC_2F``)
+
+- Fixed missing auxiliary "dDst"
+- Fixed fetching longer time series of hourly observatory products
+- Added new progress bar that tracks processing of chunks in long requests
+
+Changes from 0.7.2 to 0.8.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added support for:
+
+  - VOBS products (Virtual Observatories), e.g. collection ``SW_OPER_VOBS_1M_2_``
+  - AUX_OBSH products (hourly ground observatory data)
+
+- Added :py:meth:`viresclient.SwarmRequest.available_times` to query temporal availability of any collection
+- Added new ``reshape=True`` kwarg to :py:meth:`viresclient.ReturnedData.as_xarray` to enable optional reshaping of xarray datasets loaded from VOBS and AUX_OBS collections to higher-dimensional objects containing a new dimension (``IAGA_code`` for AUX_OBS and ``SiteCode`` for VOBS)
+- Added command line tool, ``viresclient clear_credentials``, to help delete the stored credentials
+- Changed tqdm progress bars to use ``tqdm.notebook`` when in Jupyter notebook (otherwise still uses plain tqdm)
+- Dropped ``"Timestamp"`` variable attribute ``"units"`` (i.e. ``ds["Timestamp"].attrs["units"]``) when loading as ``xarray.Dataset``, for compatibility with xarray 0.17 when saving as netcdf
+
+Changes from 0.7.1 to 0.7.2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Fix usage of cdflib v0.3.20
+
 Changes from 0.7.0 to 0.7.1
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Fix use of ``expand`` in ``.as_dataframe()`` for ``AUX_OBS``
 
 Changes from 0.6.2 to 0.7.0
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Added support for:
 
@@ -19,13 +52,13 @@ Changes from 0.6.2 to 0.7.0
 - Added :py:meth:`viresclient.SwarmRequest.available_observatories` to query the AUX_OBS collections to identify IAGA codes available within each collection
 
 Changes from 0.6.1 to 0.6.2
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Added automatic initialisation of access token when running on VRE
 - Added new composed model aliases (shortcuts)
 
 Changes from 0.6.0 to 0.6.1
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Fix to support the new EEFxTMS_2F baseline 02:
 
@@ -35,14 +68,14 @@ Changes from 0.6.0 to 0.6.1
   - Variable renamed: ``flag`` to ``Flag``
 
 Changes from 0.5.0 to 0.6.0
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Provides access to ``MAGx_HR`` collections (50Hz magnetic measurements)
 - Allows pandas v1.0+
 - Dataframe index name is now set to "Timestamp" (fixes regression in a previous version)
 
 Changes from 0.4.3 to 0.5.0
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - IGRF model series have changed name: ``IGRF-12`` is dropped in favour of ``IGRF`` which now provides the latest IGRF (currently IGRF-13)
 - ``request.available_collections("MAG")`` can now be called to filter by collection groups, *and now returns a dict instead of a list*
@@ -54,7 +87,7 @@ Changes from 0.4.3 to 0.5.0
   - (With xarray 0.14+, try ``xarray.set_options(display_style="html")`` for nicer output)
 
 Changes from 0.4.2 to 0.4.3
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - AMPS is now accessible as a regular model on the DISC server, see::
 
@@ -68,13 +101,13 @@ Changes from 0.4.2 to 0.4.3
 - Added ``request.list_jobs()`` to give info on previous two jobs on the server (failed/running/succeeded).
 
 Changes from 0.4.1 to 0.4.2
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Fixed orbit number queries (get_orbit_number)
 - Added model sources to model info
 
 Changes from 0.4.0 to 0.4.1
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Added low level data upload API and CLI
 - Added set_token convenience function for quick configuration
@@ -84,7 +117,7 @@ Changes from 0.4.0 to 0.4.1
   - Added ``MF7``, ``LCS-1``
 
 Changes from 0.3.0 to 0.4.0
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Fixed issues with running on Windows
 - Enforcing Python v3.5+ for installation
@@ -114,13 +147,13 @@ Changes from 0.3.0 to 0.4.0
   This expands columns which contain vectors (e.g. ``B_NEC``) into separate columns named like: ``B_NEC_N``, ``B_NEC_E``, ``B_NEC_C``. This is recommended so that numpy operations will work on the columns. The default is ``expand=False`` to preserve the older behaviour.
 
 Changes from v0.2.6 to 0.3.0
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^-
 
 - Service officially open to public through self-registration on https://vires.services
 - Token-based authentication added
 
 Changes from v0.2.5 to 0.2.6
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^-
 
 - New model composition behaviour is implemented, extending what is possible with the ``models`` kwarg in :meth:`viresclient.SwarmRequest.set_products` (with backwards compatibility). See demo in https://github.com/smithara/viresclient_examples/blob/master/model_residuals_and_cartopy.ipynb
 - New method :meth:`viresclient.SwarmRequest.get_model_info` to fetch model details from server.
@@ -131,7 +164,7 @@ Changes from v0.2.5 to 0.2.6
 - Updated dependency on cdflib to v0.3.9, and xarray to allow both v0.10.x and v0.11.x.
 
 Changes from v0.2.4 to 0.2.5
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^-
 
 - EFI collections have changed from ``SW_OPER_EFIx_PL_1B`` to ``SW_OPER_EFIx_LP_1B``, with different measurement variables
 - Added support for user-defined models by providing a .shc file path as the ``custom_model`` in :meth:`viresclient.SwarmRequest.set_products`. Model evaluations and residuals will then be returned, named as "Custom_Model", in the same way as other models behave.
@@ -139,12 +172,12 @@ Changes from v0.2.4 to 0.2.5
 - Minor bug fixes
 
 Changes from v0.2.1 to v0.2.4
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^--
 
 - Added models CHAOS-6-MMA-Primary and CHAOS-6-MMA-Secondary
 
 Changes from v0.2.0 to v0.2.1
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^--
 
  - Improved performance of pandas and xarray loading from cdf.
  - Added ``nrecords_limit`` option to :meth:`viresclient.SwarmRequest.get_between` to override the default maximum number of records in each request. Use this if a request is failing with a server error that the maximum allowable number of records has been exceeded - but this means that there is probably duplicate data on the server (old and new versions), so check the data that gets returned::
@@ -162,7 +195,7 @@ Changes from v0.2.0 to v0.2.1
  - Added ``tmpdir`` option to :meth:`viresclient.SwarmRequest.get_between` to override the default temporary file directory. The default is selected automatically according to https://docs.python.org/3/library/tempfile.html#tempfile.mkstemp (usually /tmp). This may not be suitable when fetching large amounts of data as some machines may have limited space available in /tmp or there may be a higher performance or preferred location.
 
 Changes from v0.1.0 to v0.2.0
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^--
 
  - Now use ``SwarmRequest`` instead of ``ClientRequest``.
  - kwarg ``subsample`` changed to ``sampling_step``.

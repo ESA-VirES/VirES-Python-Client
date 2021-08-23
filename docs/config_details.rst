@@ -50,6 +50,10 @@ The ``viresclient`` shell command can be used to set the server access configura
 
   $ viresclient set_default_server https://vires.services/ows
 
+Clear the configuration from the default location with::
+
+  $ viresclient clear_credentials
+
 See also: :doc:`cli`
 
 Configuration via Python

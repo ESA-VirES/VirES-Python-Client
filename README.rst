@@ -23,12 +23,12 @@
 
   pip install viresclient
 
-viresclient_ is a Python package which connects to a VirES_ server through the WPS_ interface and handles product requests and downloads. This enables easy access to ESA's `Swarm mission`_ data and models. This service is provided for ESA by EOX_. For enquiries or help, please email info@vires.services or `raise an issue on GitHub`_.
+viresclient_ is a Python package which connects to a VirES_ server through the WPS_ interface and handles product requests and downloads. This enables easy access to ESA's `Swarm mission`_ data and models. This service is provided for ESA by EOX_. For enquiries about the service and problems with accessing your account, please email info@vires.services. For help with usage, please email ashley.smith@ed.ac.uk or `raise an issue on GitHub`_.
 
 .. _viresclient: https://github.com/ESA-VirES/VirES-Python-Client
 .. _VirES: https://vires.services
 .. _WPS: http://www.opengeospatial.org/standards/wps
-.. _`Swarm mission`: https://earth.esa.int/web/guest/missions/esa-operational-eo-missions/swarm
+.. _`Swarm mission`: https://earth.esa.int/eogateway/missions/swarm
 .. _EOX: https://eox.at/category/vires/
 .. _`raise an issue on GitHub`: https://github.com/ESA-VirES/VirES-Python-Client/issues
 
@@ -91,9 +91,10 @@ Data and models are processed on demand on the server - a combination of measure
    RangeFilters:    []
 
 
-*viresclient* is installed on the `"Virtual Research Environment" (VRE)`_, which is a managed Jupyter-based system provided for ESA by EOX. The service is free and open to all.
+*viresclient* is installed on the `"Virtual Research Environment" (VRE)`_, which is a managed Jupyter-based system provided for ESA by EOX. The service is free and open to all. See `"Swarm Notebooks"`_ for how-to guides with Swarm data and guidance in using the VRE.
 
-.. _`"Virtual Research Environment" (VRE)`: https://vre.vires.services/
+.. _`"Virtual Research Environment" (VRE)`: https://vre.vires.services
+.. _`"Swarm Notebooks"`: https://swarm.magneticearth.org
 
 .. image:: https://github.com/ESA-VirES/Swarm-VRE/raw/master/docs/images/VRE_shortest_demo.gif
 
