@@ -1,3 +1,5 @@
+# pylint: disable=missing-docstring, invalid-name,line-too-long
+
 import datetime
 import json
 from collections import OrderedDict
@@ -7,6 +9,7 @@ from io import StringIO
 from pandas import read_csv
 from tqdm import tqdm
 from textwrap import dedent
+from warnings import warn
 
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.time_util import parse_datetime
@@ -234,11 +237,13 @@ class SwarmWPSInputs(WPSInputs):
             name = "AUX_OBS"
             if ":" in collection:
                 name = f"{name}:{collection[19:22]}"
-        else:
+        elif collection[:3] == "SW_":
             # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
             sc = collection[11]
             sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie"}
             name = sc_to_name.get(sc, "NSC")
+        else:
+            name = collection
         return name
 
     def set_collections(self, collections):
@@ -390,6 +395,13 @@ class SwarmRequest(ClientRequest):
         logging_level (str):
 
     """
+    MISSION_SPACECRAFTS = {
+        'Swarm': ['A', 'B', 'C'],
+        'GRACE': ['1', '2'],
+        'GRACE-FO': ['1', '2'],
+        'CryoSat-2': None,
+    }
+
     COLLECTIONS = {
         "MAG": ["SW_OPER_MAG{}_LR_1B".format(x) for x in "ABC"],
         "MAG_HR": ["SW_OPER_MAG{}_HR_1B".format(x) for x in "ABC"],
@@ -488,6 +500,10 @@ class SwarmRequest(ClientRequest):
         "MIT_TEC:ID": [f"SW_OPER_MIT{x}TEC_2F:ID" for x in "ABC"],
         "PPI_FAC": [f"SW_OPER_PPI{x}FAC_2F" for x in "ABC"],
         "PPI_FAC:ID": [f"SW_OPER_PPI{x}FAC_2F:ID" for x in "ABC"],
+        # Multi-mission magnetic products
+        "MAG_CS": ["CS_OPER_MAG",],
+        "MAG_GRACE": ["GRACE_A_MAG", "GRACE_B_MAG"],
+        "MAG_GFO": ["GF1_OPER_FGM_ACAL_CORR", "GF2_OPER_FGM_ACAL_CORR"],
     }
 
     OBS_COLLECTIONS = [
@@ -650,6 +666,18 @@ class SwarmRequest(ClientRequest):
             "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
             "Position_Quality", "PointType",
         ],
+        "MAG_CS": [
+            "F", "B_NEC", "B_mod_NEC", "B_NEC1", "B_NEC2", "B_NEC3",
+            "B_FGM1", "B_FGM2", "B_FGM3", "q_NEC_CRF", "q_error",
+        ],
+        "MAG_GRACE": [
+            "F", "B_NEC", "B_NEC_raw", "B_FGM", "B_mod_NEC",
+            "q_NEC_CRF", "q_error",
+        ],
+        "MAG_GFO": [
+            "B_NEC", "B_FGM", "dB_MTQ_FGM", "dB_XI_FGM", "dB_NY_FGM", "dB_BT_FGM",
+            "dB_ST_FGM", "dB_SA_FGM", "dB_BAT_FGM", "q_NEC_FGM", "B_FLAG",
+        ]
     }
 
     AUXILIARY_VARIABLES = [
@@ -663,7 +691,13 @@ class SwarmRequest(ClientRequest):
         "NGPLongitude", "DipoleTiltAngle", "dDst"
     ]
 
-    MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
+    MAGNETIC_MODEL_VARIABLES = {
+        "F": "F",
+        "B_NEC": "B_NEC",
+        "B_NEC1": "B_NEC",
+        "B_NEC2": "B_NEC",
+        "B_NEC3": "B_NEC",
+    }
 
     MAGNETIC_MODELS = [
         "IGRF", "IGRF12", "LCS-1", "MF7",
@@ -1057,7 +1091,7 @@ class SwarmRequest(ClientRequest):
             raise Exception("Must run .set_collection() first.")
         measurements = [] if measurements is None else measurements
         models = [] if models is None else models
-        model_variables = set(self._available["model_variables"])
+        model_variables = self._available["model_variables"]
         auxiliaries = [] if auxiliaries is None else auxiliaries
         # If inputs are strings (when providing only one parameter)
         #  put them in lists
@@ -1109,37 +1143,45 @@ class SwarmRequest(ClientRequest):
 
         # Set up the variables that actually get passed to the WPS request
 
-        def _model_datavar_names(variable, residuals=False):
-            """Give the list of allowable variable names containing model evaluations"""
-            if variable not in model_variables:
-                raise ValueError(f"Expected one of {model_variables}; got '{variable}'")
-            affix = "_res_" if residuals else "_"
-            return [f"{variable}{affix}{model_name}" for model_name in model_ids]
+        # Requested variables, start with the measurements ...
+        variables = set(measurements)
 
-        # Identify which (if any) of ["F", "B_NEC", ...] are requested
-        model_variables_present = set(measurements).intersection(set(model_variables))
-        # Create the list of variable names to request
-        variables = []
-        for variable in model_variables_present:
-            if not residuals:
-                # Include "F" / "B_NEC" as requested...
-                variables.append(variable)
-            # Include e.g. "F_IGRF" / "B_NEC_IGRF" / "B_NEC_res_IGRF" etc.
-            variables.extend(_model_datavar_names(variable, residuals=residuals))
-        if models and (len(model_variables_present) == 0):
-            if residuals:
-                raise ValueError(
-                    f"""
-                    Residuals requested without one of {model_variables} set as measurements
-                    """
+        # model-related measurements
+        _requested_model_variables = [
+            variable for variable in measurements
+            if variable in model_variables
+        ]
+
+        if residuals:
+            # Remove the measurements ...
+            variables.difference_update(_requested_model_variables)
+            # ... add their residuals instead.
+            variables.update(
+                f"{variable}_res_{model_id}"
+                for variable in _requested_model_variables
+                for model_id in model_ids
+            )
+
+        else:
+            # If no variable is requested fall back to B_NEC.
+            if not _requested_model_variables:
+                _requested_model_variables = ["B_NEC"]
+
+            # Add calculated model variables.
+            variables.update(
+                f"{variable}_{model_id}"
+                for variable in (
+                    model_variables[variable]
+                    for variable in _requested_model_variables
                 )
-            # If "F" / "B_NEC" have not been requested, include e.g. "B_NEC_IGRF" etc.
-            variables.extend(_model_datavar_names("B_NEC"))
-        # Include all the non-model-related variables
-        variables.extend(list(set(measurements) - model_variables_present))
-        variables.extend(auxiliaries)
+                for model_id in model_ids
+            )
+
+        # Finally, add the auxiliary variables.
+        variables.update(auxiliaries)
+
         self._request_inputs.model_expression = model_expression_string
-        self._request_inputs.variables = variables
+        self._request_inputs.variables = list(variables)
         self._request_inputs.sampling_step = sampling_step
         self._request_inputs.custom_shc = custom_shc
         return self
@@ -1177,14 +1219,18 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.filters = None
         return self
 
-    def get_times_for_orbits(self, spacecraft, start_orbit, end_orbit):
+    def get_times_for_orbits(self, start_orbit, end_orbit, mission="Swarm", spacecraft=None):
         """Translate a pair of orbit numbers to a time interval.
 
         Args:
-            spacecraft (str): one of ('A','B','C') or
-                                ("Alpha", "Bravo", "Charlie")
             start_orbit (int): a starting orbit number
             end_orbit (int): a later orbit number
+            spacecraft (str):
+                    Swarm: one of ('A','B','C') or ("Alpha", "Bravo", "Charlie")
+                    GRACE: one of ('1','2')
+                    GRACE-FO: one of ('1','2')
+                    CryoSat-2: None
+            mission (str): one of ('Swarm', 'GRACE', 'GRACE-FO', 'CryoSat-2')
 
         Returns:
             tuple (datetime): (start_time, end_time) The start time of the
@@ -1192,12 +1238,61 @@ class SwarmRequest(ClientRequest):
             (Based on ascending nodes of the orbits)
 
         """
+        # check old function signature and print warning
+        if (
+            isinstance(start_orbit, str) and
+            isinstance(mission, int) and
+            spacecraft is None
+        ):
+            spacecraft, start_orbit, end_orbit = start_orbit, end_orbit, mission
+            mission = "Swarm"
+            warn(
+                "The order of SwarmRequest.get_times_for_orbits() method's "
+                "parameters has changed!  "
+                "The backward compatibility will be removed in the future.  "
+                "Please change your code to:  "
+                "request.get_times_for_orbits(start_orbit, end_orbit, "
+                "'Swarm', spacecraft)",
+                FutureWarning,
+            )
+
+        start_orbit = int(start_orbit)
+        end_orbit = int(end_orbit)
+
+        if mission not in self.MISSION_SPACECRAFTS:
+            raise ValueError(
+                f"Invalid mission {mission}!"
+                f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS)}"
+            )
+
         # Change to spacecraft = "A" etc. for this request
-        if spacecraft in ("Alpha", "Bravo", "Charlie"):
+        spacecraft = str(spacecraft) if spacecraft is not None else None
+        if mission == "Swarm" and spacecraft in ("Alpha", "Bravo", "Charlie"):
             spacecraft = spacecraft[0]
+
+        if self.MISSION_SPACECRAFTS[mission]:
+            # missions with required spacecraft id
+            if not spacecraft:
+                raise ValueError(
+                    f"The {mission} spacecraft is required!"
+                    f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS[mission])}"
+                )
+            if spacecraft not in self.MISSION_SPACECRAFTS[mission]:
+                raise ValueError(
+                    f"Invalid {mission} spacecraft! "
+                    f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS[mission])}"
+                )
+
+        elif spacecraft: # mission without spacecraft id
+            raise ValueError(
+                f"No {mission} spacecraft shall be specified! "
+                "Set spacecraft to None."
+            )
+
         templatefile = TEMPLATE_FILES["times_from_orbits"]
         template = JINJA2_ENVIRONMENT.get_template(templatefile)
         request = template.render(
+            mission=mission,
             spacecraft=spacecraft,
             start_orbit=start_orbit,
             end_orbit=end_orbit
