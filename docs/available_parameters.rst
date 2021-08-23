@@ -94,6 +94,10 @@ The VOBS collections contain derived magnetic measurements from `Geomagnetic Vir
 Collection full name                 Collection type             Description
 ==================================== =========================== ==========================================================================
 SW_OPER_VOBS_1M_2\_                  VOBS_SW_1M                  Swarm (1-monthly cadence)
+OR_OPER_VOBS_1M_2\_                  VOBS_OR_1M                  Ørsted (1-monthly cadence)
+CH_OPER_VOBS_1M_2\_                  VOBS_CH_1M                  CHAMP (1-monthly)
+CR_OPER_VOBS_1M_2\_                  VOBS_CR_1M                  Cryosat-2 (1-monthly)
+CO_OPER_VOBS_1M_2\_                  VOBS_CO_1M                  Composite time series from Ørsted, CHAMP, Cryosat-2, & Swarm (1-monthly)
 SW_OPER_VOBS_4M_2\_                  VOBS_SW_4M                  Swarm (4-monthly)
 OR_OPER_VOBS_4M_2\_                  VOBS_OR_4M                  Ørsted (4-monthly)
 CH_OPER_VOBS_4M_2\_                  VOBS_CH_4M                  CHAMP (4-monthly)
@@ -183,11 +187,6 @@ VOBS products:
 Collection full name                 Available measurement names
 ==================================== ===========================================
 SW_OPER_VOBS_1M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
-SW_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
-OR_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
-CH_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
-CR_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
-CO_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
 SW_OPER_VOBS_1M_2\_:SecularVariation ``SiteCode,B_SV,sigma_SV``
 (ditto for the others)
 ==================================== ===========================================

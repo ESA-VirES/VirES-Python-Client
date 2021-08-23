@@ -446,10 +446,22 @@ class SwarmRequest(ClientRequest):
             "SW_OPER_VOBS_4M_2_",
             *[f"SW_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
         ],
-        # "VOBS_CH_1M": [
-        #     "CH_OPER_VOBS_1M_2_",
-        #     *[f"CH_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
-        # ],
+        "VOBS_CH_1M": [
+            "CH_OPER_VOBS_1M_2_",
+            *[f"CH_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CR_1M": [
+            "CR_OPER_VOBS_1M_2_",
+            *[f"CR_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_OR_1M": [
+            "OR_OPER_VOBS_1M_2_",
+            *[f"OR_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CO_1M": [
+            "CO_OPER_VOBS_1M_2_",
+            *[f"CO_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
         "VOBS_OR_4M": [
             "OR_OPER_VOBS_4M_2_",
             *[f"OR_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
@@ -474,10 +486,22 @@ class SwarmRequest(ClientRequest):
             "SW_OPER_VOBS_4M_2_:SecularVariation",
             *[f"SW_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
         ],
-        # "VOBS_CH_1M:SecularVariation": [
-        #     "CH_OPER_VOBS_1M_2_:SecularVariation",
-        #     *[f"CH_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
-        # ],
+        "VOBS_CH_1M:SecularVariation": [
+            "CH_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"CH_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CR_1M:SecularVariation": [
+            "CR_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"CR_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_OR_1M:SecularVariation": [
+            "OR_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"OR_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CO_1M:SecularVariation": [
+            "CO_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"CO_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
         "VOBS_OR_4M:SecularVariation": [
             "OR_OPER_VOBS_4M_2_:SecularVariation",
             *[f"OR_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
@@ -512,14 +536,20 @@ class SwarmRequest(ClientRequest):
         "SW_OPER_AUX_OBSS2_",
         "SW_OPER_VOBS_1M_2_",
         "SW_OPER_VOBS_4M_2_",
-        # "CH_OPER_VOBS_1M_2_",
+        "CH_OPER_VOBS_1M_2_",
+        "CR_OPER_VOBS_1M_2_",
+        "OR_OPER_VOBS_1M_2_"
+        "CO_OPER_VOBS_1M_2_",
         "OR_OPER_VOBS_4M_2_",
         "CH_OPER_VOBS_4M_2_",
         "CR_OPER_VOBS_4M_2_",
         "CO_OPER_VOBS_4M_2_",
         "SW_OPER_VOBS_1M_2_:SecularVariation",
         "SW_OPER_VOBS_4M_2_:SecularVariation",
-        # "CH_OPER_VOBS_1M_2_:SecularVariation",
+        "CH_OPER_VOBS_1M_2_:SecularVariation",
+        "CR_OPER_VOBS_1M_2_:SecularVariation",
+        "OR_OPER_VOBS_1M_2_:SecularVariation",
+        "CO_OPER_VOBS_1M_2_:SecularVariation",
         "OR_OPER_VOBS_4M_2_:SecularVariation",
         "CH_OPER_VOBS_4M_2_:SecularVariation",
         "CR_OPER_VOBS_4M_2_:SecularVariation",
@@ -543,14 +573,20 @@ class SwarmRequest(ClientRequest):
         "AUX_OBSM": "PT60S",
         "AUX_OBSS": "PT1S",
         "VOBS_SW_1M": "P31D",
-        # "VOBS_CH_1M": "P31D",
+        "VOBS_CH_1M": "P31D",
+        "VOBS_CR_1M": "P31D",
+        "VOBS_OR_1M": "P31D",
+        "VOBS_CO_1M": "P31D",
         "VOBS_OR_4M": "P122D",
         "VOBS_SW_4M": "P122D",
         "VOBS_CH_4M": "P122D",
         "VOBS_CR_4M": "P122D",
         "VOBS_CO_4M": "P122D",
         "VOBS_SW_1M:SecularVariation": "P31D",
-        # "VOBS_CH_1M:SecularVariation": "P31D",
+        "VOBS_CH_1M:SecularVariation": "P31D",
+        "VOBS_CR_1M:SecularVariation": "P31D",
+        "VOBS_OR_1M:SecularVariation": "P31D",
+        "VOBS_CO_1M:SecularVariation": "P31D",
         "VOBS_OR_4M:SecularVariation": "P122D",
         "VOBS_SW_4M:SecularVariation": "P122D",
         "VOBS_CH_4M:SecularVariation": "P122D",
@@ -627,14 +663,20 @@ class SwarmRequest(ClientRequest):
         "AUX_OBSM": ["B_NEC", "F", "IAGA_code", "Quality"],
         "AUX_OBSS": ["B_NEC", "F", "IAGA_code", "Quality"],
         "VOBS_SW_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
-        # "VOBS_CH_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CH_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CR_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_OR_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CO_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
         "VOBS_OR_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
         "VOBS_SW_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
         "VOBS_CH_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
         "VOBS_CR_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
         "VOBS_CO_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
         "VOBS_SW_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
-        # "VOBS_CH_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CH_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CR_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_OR_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CO_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
         "VOBS_OR_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
         "VOBS_SW_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
         "VOBS_CH_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
