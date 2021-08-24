@@ -1354,13 +1354,17 @@ class SwarmRequest(ClientRequest):
         end_time = parse_datetime(responsedict['end_time'])
         return start_time, end_time
 
-    def get_orbit_number(self, spacecraft, input_time):
+    def get_orbit_number(self, spacecraft, input_time, mission="Swarm"):
         """Translate a time to an orbit number.
 
         Args:
-            spacecraft (str): one of ('A','B','C') or
-                                ("Alpha", "Bravo", "Charlie")
+            spacecraft (str):
+                    Swarm: one of ('A','B','C') or ("Alpha", "Bravo", "Charlie")
+                    GRACE: one of ('1','2')
+                    GRACE-FO: one of ('1','2')
+                    CryoSat-2: None
             input_time (datetime): a point in time
+            mission (str): one of ('Swarm', 'GRACE', 'GRACE-FO', 'CryoSat-2')
 
         Returns:
             int: The current orbit number at the input_time
@@ -1376,11 +1380,26 @@ class SwarmRequest(ClientRequest):
         # Change to spacecraft = "A" etc. for this request
         if spacecraft in ("Alpha", "Bravo", "Charlie"):
             spacecraft = spacecraft[0]
-        if spacecraft not in "ABC":
-            raise ValueError("Invalid spacecraft ID")
-        collections = ["SW_OPER_MAG{}_LR_1B".format(spacecraft[0])]
+        if mission not in self.MISSION_SPACECRAFTS:
+            raise ValueError(
+                f"Invalid mission {mission}!"
+                f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS)}"
+            )
+        spacecraft = str(spacecraft)
+        if mission=="Swarm":
+            collection = f"SW_OPER_MOD{spacecraft}_SC_1B"
+        elif mission=="GRACE":
+            if spacecraft in "12":
+                spacecraft = "AB"[int(spacecraft)-1]
+            elif spacecraft not in "AB":
+                raise ValueError(f"Invalid spacecraft: {spacecraft}")
+            collection = f"GRACE_{spacecraft}_MAG"
+        elif mission=="GRACE-FO":
+            collection = f"GF{spacecraft}_OPER_FGM_ACAL_CORR"
+        elif mission=="CryoSat-2":
+            collection = "CS_OPER_MAG"
         request_inputs = SwarmWPSInputs(
-            collection_ids={spacecraft: collections},
+            collection_ids={collection: [collection]},
             begin_time=input_time,
             end_time=input_time+datetime.timedelta(seconds=1),
             variables=["OrbitNumber"],
