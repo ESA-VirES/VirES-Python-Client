@@ -732,7 +732,7 @@ class SwarmRequest(ClientRequest):
             "q_NEC_CRF", "q_error",
         ],
         "MAG_GFO": [
-            "B_NEC", "B_FGM", "dB_MTQ_FGM", "dB_XI_FGM", "dB_NY_FGM", "dB_BT_FGM",
+            "F", "B_NEC", "B_FGM", "dB_MTQ_FGM", "dB_XI_FGM", "dB_NY_FGM", "dB_BT_FGM",
             "dB_ST_FGM", "dB_SA_FGM", "dB_BAT_FGM", "q_NEC_FGM", "B_FLAG",
         ],
         "MOD_SC": [],
