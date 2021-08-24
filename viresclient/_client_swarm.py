@@ -528,6 +528,8 @@ class SwarmRequest(ClientRequest):
         "MAG_CS": ["CS_OPER_MAG",],
         "MAG_GRACE": ["GRACE_A_MAG", "GRACE_B_MAG"],
         "MAG_GFO": ["GF1_OPER_FGM_ACAL_CORR", "GF2_OPER_FGM_ACAL_CORR"],
+        # Swarm spacecraft positions
+        "MOD_SC": [f"SW_OPER_MOD{x}_SC_1B" for x in "ABC"]
     }
 
     OBS_COLLECTIONS = [
@@ -719,7 +721,8 @@ class SwarmRequest(ClientRequest):
         "MAG_GFO": [
             "B_NEC", "B_FGM", "dB_MTQ_FGM", "dB_XI_FGM", "dB_NY_FGM", "dB_BT_FGM",
             "dB_ST_FGM", "dB_SA_FGM", "dB_BAT_FGM", "q_NEC_FGM", "B_FLAG",
-        ]
+        ],
+        "MOD_SC": [],
     }
 
     AUXILIARY_VARIABLES = [

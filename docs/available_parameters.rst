@@ -46,6 +46,7 @@ SW_OPER_FACxTMS_2F       FAC              Field-aligned currents (single satelli
 SW_OPER_FAC_TMS_2F       FAC              Field-aligned currents (dual-satellite A-C)
 SW_OPER_EEFxTMS_2F       EEF              Equatorial electric field
 SW_OPER_IBIxTMS_2F       IBI              Ionospheric bubble index
+SW_OPER_MODx_SC_1B       MOD_SC           Spacecraft positions at 1Hz
 ======================== ================ ==============================================================
 
 The AEBS (auroral electrojets and boundaries) products are a bit more complicated:
