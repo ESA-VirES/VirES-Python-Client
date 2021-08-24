@@ -33,7 +33,7 @@ import logging
 from argparse import ArgumentParser
 from .common import Command
 from .configuration import (
-    SetTokenCommand, SetPasswordCommand, RemoveServerCommand,
+    SetTokenCommand, RemoveServerCommand,
     SetDefaultServerCommand, RemoveDefaultServerCommand,
     ShowConfigurationCommand, InitializeConfigurationCommand,
     ClearCredentialsCommand
@@ -47,7 +47,6 @@ from .upload import (
 COMMANDS = {
     # configuration commands
     "set_token": SetTokenCommand(),
-    "set_password": SetPasswordCommand(),
     "remove_server": RemoveServerCommand(),
     "set_default_server": SetDefaultServerCommand(),
     "remove_default_server": RemoveDefaultServerCommand(),
