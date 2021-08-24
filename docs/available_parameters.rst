@@ -46,6 +46,7 @@ SW_OPER_FACxTMS_2F       FAC              Field-aligned currents (single satelli
 SW_OPER_FAC_TMS_2F       FAC              Field-aligned currents (dual-satellite A-C)
 SW_OPER_EEFxTMS_2F       EEF              Equatorial electric field
 SW_OPER_IBIxTMS_2F       IBI              Ionospheric bubble index
+SW_OPER_MODx_SC_1B       MOD_SC           Spacecraft positions at 1Hz
 ======================== ================ ==============================================================
 
 The AEBS (auroral electrojets and boundaries) products are a bit more complicated:
@@ -62,6 +63,19 @@ SW_OPER_AEJxPBS_2F                           AEJ_PBS                           -
 SW_OPER_AEJxPBS_2F:GroundMagneticDisturbance AEJ_PBS:GroundMagneticDisturbance -> Location and strength of peak ground disturbance per pass
 SW_OPER_AOBxFAC_2F                           AOB_FAC                           Auroral oval boundaries derived from FACs
 ============================================ ================================= ==============================================================
+
+The PRISM (Plasmapause Related boundaries in the topside Ionosphere as derived from Swarm Measurements) products are provided as:
+
+====================== ================ ===================================================================================================
+Collection full name   Collection type  Description
+====================== ================ ===================================================================================================
+SW_OPER_MITx_LP_2F     MIT_LP           Minima of the Midlatitude Ionospheric Trough (MIT) - derived from Langmuir Probe (LP) measurements
+SW_OPER_MITx_LP_2F:ID  MIT_LP:ID        -> Boundaries of the MIT - derived from the LP
+SW_OPER_MITxTEC_2F     MIT_TEC          Minima of the MIT - derived from Total Electron Content (TEC)
+SW_OPER_MITxTEC_2F:ID  MIT_TEC:ID       -> Boundaries of the MIT - derived from TEC
+SW_OPER_PPIxFAC_2F     PPI_FAC          Midnight Plasmapause Index (PPI) 
+SW_OPER_PPIxFAC_2F:ID  PPI_FAC:ID       -> Boundaries of the Small-Scale Field Aligned Currents (SSFAC)
+====================== ================ ===================================================================================================
 
 The AUX_OBS collections contain ground magnetic observatory data from `INTERMAGNET <https://intermagnet.github.io/data_conditions.html>`_ and `WDC <http://www.wdc.bgs.ac.uk/>`_. Please note that these data are provided under different usage terms than the ESA data, and must be acknowledged accordingly.
 
@@ -81,6 +95,10 @@ The VOBS collections contain derived magnetic measurements from `Geomagnetic Vir
 Collection full name                 Collection type             Description
 ==================================== =========================== ==========================================================================
 SW_OPER_VOBS_1M_2\_                  VOBS_SW_1M                  Swarm (1-monthly cadence)
+OR_OPER_VOBS_1M_2\_                  VOBS_OR_1M                  Ørsted (1-monthly cadence)
+CH_OPER_VOBS_1M_2\_                  VOBS_CH_1M                  CHAMP (1-monthly)
+CR_OPER_VOBS_1M_2\_                  VOBS_CR_1M                  Cryosat-2 (1-monthly)
+CO_OPER_VOBS_1M_2\_                  VOBS_CO_1M                  Composite time series from Ørsted, CHAMP, Cryosat-2, & Swarm (1-monthly)
 SW_OPER_VOBS_4M_2\_                  VOBS_SW_4M                  Swarm (4-monthly)
 OR_OPER_VOBS_4M_2\_                  VOBS_OR_4M                  Ørsted (4-monthly)
 CH_OPER_VOBS_4M_2\_                  VOBS_CH_4M                  CHAMP (4-monthly)
@@ -91,6 +109,16 @@ SW_OPER_VOBS_1M_2\_:SecularVariation VOBS_SW_1M:SecularVariation Secular variati
 ==================================== =========================== ==========================================================================
 
 Each VOBS product (e.g. Swarm 1-monthly) is split into two collections (e.g. ``SW_OPER_VOBS_1M_2_`` (containing ``B_OB`` & ``B_CF``) and ``SW_OPER_VOBS_1M_2_:SecularVariation`` (containing ``B_SV``)) because of the different temporal sampling points (i.e. differing ``Timestamp``) of these measurements. Data can also be requested for a specific virtual observatory alone (distinguishable by the ``SiteCode`` variable) with special collection names like ``SW_OPER_VOBS_1M_2_:N65W051`` and ``SW_OPER_VOBS_1M_2_:SecularVariation:N65W051``.
+
+Calibrated magnetic data are also available from external missions: Cryosat-2, GRACE (A+B), GRACE-FO (1+2):
+
+=============================== ================ =========================================================================================================
+Collection full name            Collection type  Available measurement names
+=============================== ================ =========================================================================================================
+CS_OPER_MAG                     MAG_CS           ``F,B_NEC,B_mod_NEC,B_NEC1,B_NEC2,B_NEC3,B_FGM1,B_FGM2,B_FGM3,q_NEC_CRF,q_error``
+GRACE_x_MAG (x=A/B)             MAG_GRACE        ``F,B_NEC,B_NEC_raw,B_FGM,B_mod_NEC,q_NEC_CRF,q_error``
+GFx_OPER_FGM_ACAL_CORR (x=1/2)  MAG_GFO          ``B_NEC,B_FGM,dB_MTQ_FGM,dB_XI_FGM,dB_NY_FGM,dB_BT_FGM,dB_ST_FGM,dB_SA_FGM,dB_BAT_FGM,q_NEC_FGM,B_FLAG``
+=============================== ================ =========================================================================================================
 
 The ``measurements``, ``models``, and ``auxiliaries`` chosen will match the cadence of the ``collection`` chosen.
 
@@ -129,6 +157,19 @@ AEJ_PBS:GroundMagneticDisturbance ``B_NE``
 AOB_FAC                           ``Latitude_QD,Longitude_QD,MLT_QD,Boundary_Flag,Quality,Pair_Indicator``
 ================================= ================================================================================
 
+PRISM products:
+
+================ ================================================================================================================
+Collection type  Available measurement names
+================ ================================================================================================================
+MIT_LP           ``Counter,Latitude_QD,Longitude_QD,MLT_QD,L_value,SZA,Ne,Te,Depth,DR,Width,dL,PW_Gradient,EW_Gradient,Quality``
+MIT_LP:ID        ``Counter,Latitude_QD,Longitude_QD,MLT_QD,L_value,SZA,Ne,Te,Position_Quality,PointType``
+MIT_TEC          ``Counter,Latitude_QD,Longitude_QD,MLT_QD,L_value,SZA,TEC,Depth,DR,Width,dL,PW_Gradient,EW_Gradient,Quality``
+MIT_TEC:ID       ``Counter,Latitude_QD,Longitude_QD,MLT_QD,L_value,SZA,TEC,Position_Quality,PointType``
+PPI_FAC          ``Counter,Latitude_QD,Longitude_QD,MLT_QD,L_value,SZA,Sigma,PPI,dL,Quality``
+PPI_FAC:ID       ``Counter,Latitude_QD,Longitude_QD,MLT_QD,L_value,SZA,Position_Quality,PointType``
+================ ================================================================================================================
+
 AUX_OBS products:
 
 =============== =========================================
@@ -147,11 +188,6 @@ VOBS products:
 Collection full name                 Available measurement names
 ==================================== ===========================================
 SW_OPER_VOBS_1M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
-SW_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
-OR_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
-CH_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
-CR_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
-CO_OPER_VOBS_4M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
 SW_OPER_VOBS_1M_2\_:SecularVariation ``SiteCode,B_SV,sigma_SV``
 (ditto for the others)
 ==================================== ===========================================
@@ -234,7 +270,7 @@ NB: When using model names containing a hyphen (``-``) then extra single (``'``)
 
 ::
 
-  SyncStatus, Kp10, Kp, Dst, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F107, F10_INDEX,
+  SyncStatus, Kp10, Kp, Dst, dDst, IMF_BY_GSM, IMF_BZ_GSM, IMF_V, F107, F10_INDEX,
   OrbitDirection, QDOrbitDirection,
   OrbitSource, OrbitNumber, AscendingNodeTime,
   AscendingNodeLongitude, QDLat, QDLon, QDBasis, MLT, SunDeclination,

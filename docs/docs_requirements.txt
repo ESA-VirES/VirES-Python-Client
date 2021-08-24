@@ -1,7 +1,5 @@
 pygments>=2.4.1
-nbsphinx
-ipykernel
-
+sphinx_rtd_theme
 Jinja2
 pandas
 cdflib

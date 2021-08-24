@@ -4,6 +4,19 @@ Release notes
 Change log
 ----------
 
+Changes from 0.8.0 to 0.9.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added support for:
+
+  - PRISM products (``SW_OPER_MITx_LP_2F``, ``SW_OPER_MITxTEC_2F``, ``SW_OPER_PPIxFAC_2F``)
+  - Multi-mission magnetic products (``CS_OPER_MAG``, ``GRACE_x_MAG``, ``GFx_OPER_FGM_ACAL_CORR``)
+  - Swarm spacecraft positions (``SW_OPER_MODx_SC_1B``)
+
+- Fixed missing auxiliary "dDst"
+- Fixed fetching longer time series of hourly observatory products
+- Added new progress bar that tracks processing of chunks in long requests
+
 Changes from 0.7.2 to 0.8.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

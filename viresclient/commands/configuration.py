@@ -66,36 +66,6 @@ class SetTokenCommand(UrlConfigurationCommand):
         config.save()
 
 
-class SetPasswordCommand(UrlConfigurationCommand):
-    help = "Set username and password for the given server URL."
-
-    def add_arguments_to_parser(self, parser):
-        super().add_arguments_to_parser(parser)
-        parser.add_argument(
-            "username", action="store", nargs="?", type=str, help="username"
-        )
-        parser.add_argument(
-            "password", action="store", nargs="?", type=str, help="password"
-        )
-
-    def execute(self, config_path, server_url, username, password):
-        config = ClientConfig(path=config_path)
-
-        if username is None:
-            default_username = (
-                config.get_site_config(server_url).get("username") or getuser()
-            )
-            username = input(
-                "Enter username [%s]: " % default_username
-            ) or default_username
-
-        if password is None:
-            password = getpass("Enter password: ")
-
-        config.set_site_config(server_url, username=username, password=password)
-        config.save()
-
-
 class RemoveServerCommand(UrlConfigurationCommand):
     help = "Remove any stored configuration for the given server URL."
 

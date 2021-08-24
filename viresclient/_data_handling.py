@@ -42,6 +42,8 @@ from ._data import CONFIG_SWARM
 
 CDF_EPOCH_1970 = 62167219200000.0
 
+ALLOWED_SPACECRFTS = ["A", "B", "C", "1", "2", "-"]
+
 # Frame names to use as xarray dimension names
 FRAME_NAMES = {
     "NEC": ["B_NEC", "B_OB", "B_CF", "B_SV", "sigma_OB", "sigma_CF", "sigma_SV"],
@@ -50,7 +52,6 @@ FRAME_NAMES = {
     "WGS84": ["GPS_Position", "LEO_Position"],
     "EEJ_QDLat": ["EEJ"],
     "NE": ["J_NE", "J_CF_NE", "J_DF_NE", "B_NE"],
-    "AOB_Quality": ["Quality"],
 }
 # Reverse mapping of the above
 DATANAMES_TO_FRAME_NAMES = {}
@@ -66,14 +67,12 @@ FRAME_LABELS = {
     "WGS84": ["X", "Y", "Z"],
     "EEJ_QDLat": numpy.linspace(-20, 20, 81),
     "NE": ["N", "E"],
-    "AOB_Quality": ["Pa", "Sigma"],
 }
 FRAME_DESCRIPTIONS = {
     "NEC": "NEC frame - North, East, Centre (down)",
     "NE": "Horizontal NE frame - North, East",
     "VFM": "Vector Field Magnetometer instrument frame",
     "EEJ_QDLat": "Quasi-dipole latitude profile between -20 and 20 degrees from the EEF product",
-    "AEJ_Quality": "Boundary quality indicator (Pa, Sigma)",
 }
 
 
@@ -218,7 +217,7 @@ class FileReader(object):
                     self._cdftime_to_datetime(self.get_variable("Timestamp"))})
         # Add Spacecraft variable as Categorical to save memory
         ds["Spacecraft"] = (("Timestamp",), pandas.Categorical(
-            self.get_variable("Spacecraft"), categories=["A", "B", "C", "-"]))
+            self.get_variable("Spacecraft"), categories=ALLOWED_SPACECRFTS))
         datanames = set(self.variables)
         datanames.remove("Timestamp")
         datanames.remove("Spacecraft")
