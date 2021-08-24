@@ -48,7 +48,6 @@ release = version
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
-    'nbsphinx',
     'sphinx.ext.imgmath',
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.viewcode',
