@@ -166,7 +166,20 @@ COLLECTION_REFERENCES = {
     "AUX_OBSS": ("https://doi.org/10.5047/eps.2013.07.011",),
     "VOBS_SW_1M": ("https://earth.esa.int/eogateway/activities/gvo",),
     "AEJ_LPL": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
+    "AEJ_LPS": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
+    "AEJ_PBL": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
+    "AEJ_PBS": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
+    "AOB_FAC": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
+    "MIT_LP": ("https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",),
+    "MIT_TEC": ("https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",),
+    "PPI_FAC": ("https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",),
+    "MAG_CS": ("https://doi.org/10.1186/s40623-020-01171-9",),
+    "MAG_GRACE": ("https://doi.org/10.1186/s40623-021-01373-9",),
+    "MAG_GFO": ("https://doi.org/10.1186/s40623-021-01364-w",),
 }
+for mission in ("SW", "OR", "CH", "CR", "CO"):
+    for cadence in ("1M", "4M"):
+        COLLECTION_REFERENCES[f"VOBS_{mission}_{cadence}"] = ("https://earth.esa.int/eogateway/activities/gvo",)
 
 DATA_CITATIONS = {
     "AUX_OBSH": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/hour/README",
@@ -853,20 +866,12 @@ class SwarmRequest(ClientRequest):
         collections_short["AUX_OBSS"] = ["SW_OPER_AUX_OBSS2_"]
         collections_short["AUX_OBSM"] = ["SW_OPER_AUX_OBSM2_"]
         collections_short["AUX_OBSH"] = ["SW_OPER_AUX_OBSH2_"]
-        collections_short["VOBS_SW_1M"] = ["SW_OPER_VOBS_1M_2_"]
-        collections_short["VOBS_SW_4M"] = ["SW_OPER_VOBS_4M_2_"]
-        # collections_short["VOBS_CH_1M"] = ["CH_OPER_VOBS_1M_2_"]
-        collections_short["VOBS_OR_4M"] = ["OR_OPER_VOBS_4M_2_"]
-        collections_short["VOBS_CH_4M"] = ["CH_OPER_VOBS_4M_2_"]
-        collections_short["VOBS_CR_4M"] = ["CR_OPER_VOBS_4M_2_"]
-        collections_short["VOBS_CO_4M"] = ["CO_OPER_VOBS_4M_2_"]
-        collections_short["VOBS_SW_1M:SecularVariation"] = ["SW_OPER_VOBS_1M_2_:SecularVariation"]
-        collections_short["VOBS_SW_4M:SecularVariation"] = ["SW_OPER_VOBS_4M_2_:SecularVariation"]
-        # collections_short["VOBS_CH_1M:SecularVariation"] = ["CH_OPER_VOBS_1M_2_:SecularVariation"]
-        collections_short["VOBS_OR_4M:SecularVariation"] = ["OR_OPER_VOBS_4M_2_:SecularVariation"]
-        collections_short["VOBS_CH_4M:SecularVariation"] = ["CH_OPER_VOBS_4M_2_:SecularVariation"]
-        collections_short["VOBS_CR_4M:SecularVariation"] = ["CR_OPER_VOBS_4M_2_:SecularVariation"]
-        collections_short["VOBS_CO_4M:SecularVariation"] = ["CO_OPER_VOBS_4M_2_:SecularVariation"]
+        for mission in ("SW", "OR", "CH", "CR", "CO"):
+            for cadence in ("1M", "4M"):
+                collections_short[f"VOBS_{mission}_{cadence}"] = \
+                    [f"{mission}_OPER_VOBS_{cadence}_2_"]
+                collections_short[f"VOBS_{mission}_{cadence}:SecularVariation"] = \
+                    [f"{mission}_OPER_VOBS_{cadence}_2_:SecularVariation"]
 
         def _filter_collections(groupname):
             """ Reduce the full list to just one group, e.g. "MAG """
