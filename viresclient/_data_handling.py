@@ -216,11 +216,10 @@ class FileReader(object):
             coords={"Timestamp":
                     self._cdftime_to_datetime(self.get_variable("Timestamp"))})
         # Add Spacecraft variable as Categorical to save memory
-        ds["Spacecraft"] = (("Timestamp",), pandas.Categorical(
-            self.get_variable("Spacecraft"), categories=ALLOWED_SPACECRFTS))
-        datanames = set(self.variables)
-        datanames.remove("Timestamp")
-        datanames.remove("Spacecraft")
+        if "Spacecraft" in ds:
+            ds["Spacecraft"] = (("Timestamp",), pandas.Categorical(
+                self.get_variable("Spacecraft"), categories=ALLOWED_SPACECRFTS))
+        datanames = set(self.variables) - {"Timestamp", "Spacecraft"}
         # Loop through each variable available and append them to the Dataset,
         #  attaching the Timestamp coordinate to each.
         # Attach dimension names based on the name of the variable,
@@ -521,6 +520,7 @@ class ReturnedDataFile(object):
                 ds = f.as_xarray_dataset(reshape=reshape)
         elif self.filetype == 'nc':
             ds = xarray.open_dataset(self._file.name, group=group)
+        ds.attrs["Sources"] = self.sources
         return ds
 
     @property

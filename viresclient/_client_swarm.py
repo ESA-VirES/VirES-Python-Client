@@ -23,7 +23,8 @@ TEMPLATE_FILES = {
     'async': "vires_fetch_filtered_data_async.xml",
     'model_info': "vires_get_model_info.xml",
     'times_from_orbits': "vires_times_from_orbits.xml",
-    'get_observatories': 'vires_get_observatories.xml'
+    'get_observatories': 'vires_get_observatories.xml',
+    'get_conjunctions': 'vires_get_conjunctions.xml',
 }
 
 REFERENCES = {
@@ -413,6 +414,10 @@ class SwarmRequest(ClientRequest):
         'GRACE': ['1', '2'],
         'GRACE-FO': ['1', '2'],
         'CryoSat-2': None,
+    }
+
+    CONJUNCTION_MISISON_SPACECRAFT_PAIRS = {
+        (('Swarm', 'A'), ('Swarm', 'B')),
     }
 
     COLLECTIONS = {
@@ -1309,16 +1314,38 @@ class SwarmRequest(ClientRequest):
         start_orbit = int(start_orbit)
         end_orbit = int(end_orbit)
 
+        # Change to spacecraft = "A" etc. for this request
+        spacecraft = self._fix_spacecraft(mission, spacecraft)
+        self._check_mission_spacecraft(mission, spacecraft)
+
+        templatefile = TEMPLATE_FILES["times_from_orbits"]
+        template = JINJA2_ENVIRONMENT.get_template(templatefile)
+        request = template.render(
+            mission=mission,
+            spacecraft=spacecraft,
+            start_orbit=start_orbit,
+            end_orbit=end_orbit
+        ).encode('UTF-8')
+        response = self._get(
+            request, asynchronous=False, show_progress=False)
+        responsedict = json.loads(response.decode('UTF-8'))
+        start_time = parse_datetime(responsedict['start_time'])
+        end_time = parse_datetime(responsedict['end_time'])
+        return start_time, end_time
+
+    def _fix_spacecraft(self, mission, spacecraft):
+        # Change to spacecraft = "A" etc. for this request
+        spacecraft = str(spacecraft) if spacecraft is not None else None
+        if mission == "Swarm" and spacecraft in ("Alpha", "Bravo", "Charlie"):
+            spacecraft = spacecraft[0]
+        return spacecraft
+
+    def _check_mission_spacecraft(self, mission, spacecraft):
         if mission not in self.MISSION_SPACECRAFTS:
             raise ValueError(
                 f"Invalid mission {mission}!"
                 f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS)}"
             )
-
-        # Change to spacecraft = "A" etc. for this request
-        spacecraft = str(spacecraft) if spacecraft is not None else None
-        if mission == "Swarm" and spacecraft in ("Alpha", "Bravo", "Charlie"):
-            spacecraft = spacecraft[0]
 
         if self.MISSION_SPACECRAFTS[mission]:
             # missions with required spacecraft id
@@ -1339,20 +1366,6 @@ class SwarmRequest(ClientRequest):
                 "Set spacecraft to None."
             )
 
-        templatefile = TEMPLATE_FILES["times_from_orbits"]
-        template = JINJA2_ENVIRONMENT.get_template(templatefile)
-        request = template.render(
-            mission=mission,
-            spacecraft=spacecraft,
-            start_orbit=start_orbit,
-            end_orbit=end_orbit
-        ).encode('UTF-8')
-        response = self._get(
-            request, asynchronous=False, show_progress=False)
-        responsedict = json.loads(response.decode('UTF-8'))
-        start_time = parse_datetime(responsedict['start_time'])
-        end_time = parse_datetime(responsedict['end_time'])
-        return start_time, end_time
 
     def get_orbit_number(self, spacecraft, input_time, mission="Swarm"):
         """Translate a time to an orbit number.
@@ -1506,3 +1519,89 @@ class SwarmRequest(ClientRequest):
             print("WARNING: Model {} is deprecated. {}".format(
                 deprecated_model, DEPRECATED_MODELS[deprecated_model]
             ), file=sys.stdout)
+
+
+    def get_conjunctions(self, start_time=None, end_time=None, threshold=1.0,
+                         spacecraft1='A', spacecraft2='B',
+                         mission1='Swarm', mission2='Swarm'):
+        """ Get times of the spacecraft conjunctions. Currently available for
+        the following spacecraft pairs:
+          - Swarm-A/Swarm-B
+
+        Args:
+            start_time (datetime / ISO_8601 string): optional start time
+            end_time (datetime / ISO_8601 string): optional end time
+            threshold (float): optional maximum allowed angular separation
+                 in degrees; by default set to 1; allowed values are [0, 180]
+            spacecraft1: identifier of the first spacecraft, default to 'A'
+            spacecraft2: identifier of the second spacecraft, default to 'B'
+            mission1 (str): mission of the first spacecraft, defaults to 'Swarm'
+            mission2 (str): mission of the first spacecraft, defaults to 'Swarm'
+
+        Returns:
+            ReturnedData:
+        """
+        try:
+            start_time = parse_datetime(start_time) if start_time else None
+            end_time = parse_datetime(end_time) if end_time else None
+        except TypeError:
+            raise TypeError(
+                "start_time and end_time must be datetime objects or ISO-8601 "
+                "date/time strings"
+            ) from None
+
+        if not (0 <= threshold <= 180):
+            raise ValueError("Invalid threshold value!")
+
+        spacecraft1 = self._fix_spacecraft(mission1, spacecraft1)
+        spacecraft2 = self._fix_spacecraft(mission2, spacecraft2)
+
+        self._check_mission_spacecraft(mission1, spacecraft1)
+        self._check_mission_spacecraft(mission2, spacecraft2)
+
+        if (mission1, spacecraft1) == (mission2, spacecraft2):
+            raise ValueError(
+                "The first and second spacecraft must not be the same!"
+            )
+
+        spacecraft_pair = tuple(sorted([
+            (mission1, spacecraft1), (mission2, spacecraft2)
+        ]))
+
+        if spacecraft_pair not in self.CONJUNCTION_MISISON_SPACECRAFT_PAIRS:
+            raise ValueError(
+                "Conjunctions not available for the requested "
+                "spacecraft pair {spacecraft_pair}!"
+            )
+
+        templatefile = TEMPLATE_FILES["get_conjunctions"]
+        template = JINJA2_ENVIRONMENT.get_template(templatefile)
+        request = template.render(
+            begin_time=start_time,
+            end_time=end_time,
+            spacecraft1=spacecraft1,
+            spacecraft2=spacecraft2,
+            mission1=mission1,
+            mission2=mission2,
+            threshold=threshold,
+        ).encode('UTF-8')
+
+        show_progress = True
+        leave_progress_bar=True
+        response = ReturnedDataFile(filetype="cdf")
+
+        response_handler = self._response_handler(
+            retdatafile=response,
+            show_progress=show_progress,
+            leave_progress_bar=leave_progress_bar,
+        )
+
+        self._get(
+            request=request,
+            asynchronous=False,
+            show_progress=show_progress,
+            leave_progress_bar=leave_progress_bar,
+            response_handler=response_handler,
+        )
+
+        return response
