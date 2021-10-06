@@ -247,13 +247,13 @@ class ClientRequest(object):
     """Base class handling the requests to and downloads from the server.
     """
 
-    def __init__(self, url=None, username=None, password=None, token=None,
+    def __init__(self, url=None, token=None,
                  config=None, logging_level="NO_LOGGING", server_type=None):
 
         # Check and prompt for token if not already set, then store in config
         # Try to only do this if running in a notebook
         if IN_JUPYTER:
-            if not ((username and password) or token or config):
+            if not (token or config):
                 cc = ClientConfig()
                 # Use production url if none chosen
                 url = url or cc.default_url or "https://vires.services/ows"
@@ -275,7 +275,7 @@ class ClientRequest(object):
         set_stream_handler(self._logger, logging_level)
 
         self._wps_service = self._create_service_proxy_(
-            config, url, username, password, token
+            config, url, None, None, token
         )
         # Test if the token is working; re-enter if not
         if IN_JUPYTER:
@@ -292,7 +292,7 @@ class ClientRequest(object):
                         raise AuthenticationError(AUTH_ERROR_TEXT)
                     set_token(url)
                     self._wps_service = self._create_service_proxy_(
-                        config, url, username, password, token
+                        config, url, None, None, token
                     )
 
     def _create_service_proxy_(self, config, url, username, password, token):
