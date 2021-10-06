@@ -726,7 +726,7 @@ class SwarmRequest(ClientRequest):
             "B_FGM1", "B_FGM2", "B_FGM3", "q_NEC_CRF", "q_error",
         ],
         "MAG_GRACE": [
-            "F", "B_NEC", "B_NEC_raw", "B_FGM", "B_mod_NEC",
+            "F", "B_NEC", "B_NEC_raw", "B_FGM",
             "q_NEC_CRF", "q_error",
         ],
         "MAG_GFO": [
