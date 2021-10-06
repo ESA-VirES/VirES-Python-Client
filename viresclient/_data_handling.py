@@ -216,7 +216,7 @@ class FileReader(object):
             coords={"Timestamp":
                     self._cdftime_to_datetime(self.get_variable("Timestamp"))})
         # Add Spacecraft variable as Categorical to save memory
-        if "Spacecraft" in ds:
+        if "Spacecraft" in self.variables:
             ds["Spacecraft"] = (("Timestamp",), pandas.Categorical(
                 self.get_variable("Spacecraft"), categories=ALLOWED_SPACECRFTS))
         datanames = set(self.variables) - {"Timestamp", "Spacecraft"}
