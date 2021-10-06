@@ -312,10 +312,10 @@ class FileReader(object):
         ds2 = xarray.Dataset(
             coords={
                 "Timestamp": t,
-                codevar: (("Site"), _ds_locs[codevar]),
-                "Latitude": ("Site", _ds_locs["Latitude"]),
-                "Longitude": ("Site", _ds_locs["Longitude"]),
-                "Radius": ("Site", _ds_locs["Radius"]),
+                codevar: (("Site"), _ds_locs[codevar].data),
+                "Latitude": ("Site", _ds_locs["Latitude"].data),
+                "Longitude": ("Site", _ds_locs["Longitude"].data),
+                "Radius": ("Site", _ds_locs["Radius"].data),
                 "NEC": ["N", "E", "C"]
             },
         )
