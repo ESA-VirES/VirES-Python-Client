@@ -296,40 +296,45 @@ class FileReader(object):
         # Create integer "Site" identifier based on SiteCode / IAGA_code
         sites = dict(enumerate(sorted(set(ds[codevar].values))))
         sites_inv = {v: k for k, v in sites.items()}
-        # Identify (V)OBS locations and mapping from integer "Site" identifier
-        pos_vars = ["Longitude", "Latitude", "Radius", codevar]
-        _ds_locs = next(iter(ds[pos_vars].groupby("Timestamp")))[1]
-        if len(sites) > 1:
-            _ds_locs = _ds_locs.drop(("Timestamp")).rename({"Timestamp": "Site"})
+        if len(sites) == 0:
+            _ds_locs = ds
         else:
-            _ds_locs = _ds_locs.drop(("Timestamp")).expand_dims("Site")
-        _ds_locs["Site"] = [sites_inv.get(code) for code in _ds_locs[codevar].values]
-        _ds_locs = _ds_locs.sortby("Site")
+            # Identify (V)OBS locations and mapping from integer "Site" identifier
+            pos_vars = ["Longitude", "Latitude", "Radius", codevar]
+            _ds_locs = next(iter(ds[pos_vars].groupby("Timestamp")))[1]
+            if len(sites) > 1:
+                _ds_locs = _ds_locs.drop(("Timestamp")).rename({"Timestamp": "Site"})
+            else:
+                _ds_locs = _ds_locs.drop(("Timestamp")).expand_dims("Site")
+            _ds_locs["Site"] = [sites_inv.get(code) for code in _ds_locs[codevar].values]
+            _ds_locs = _ds_locs.sortby("Site")
         # Create dataset initialised with the (V)OBS positional info as coords
         # and datavars (empty) reshaped to (Site, Timestamp, ...)
         t = numpy.unique(ds["Timestamp"])
         ds2 = xarray.Dataset(
             coords={
                 "Timestamp": t,
-                codevar: (("Site"), _ds_locs[codevar]),
-                "Latitude": ("Site", _ds_locs["Latitude"]),
-                "Longitude": ("Site", _ds_locs["Longitude"]),
-                "Radius": ("Site", _ds_locs["Radius"]),
+                codevar: (("Site"), _ds_locs[codevar].data),
+                "Latitude": ("Site", _ds_locs["Latitude"].data),
+                "Longitude": ("Site", _ds_locs["Longitude"].data),
+                "Radius": ("Site", _ds_locs["Radius"].data),
                 "NEC": ["N", "E", "C"]
             },
         )
         # (Dropping unused Spacecraft var)
         data_vars = set(ds.data_vars) - {"Latitude", "Longitude", "Radius", codevar, "Spacecraft"}
         N_sites = len(_ds_locs[codevar])
+        # Create empty data variables to be infilled
         for var in data_vars:
             shape = [N_sites, len(t), *ds[var].shape[1:]]
             ds2[var] = ("Site", *ds[var].dims), numpy.empty(shape, dtype=ds[var].dtype)
             ds2[var][...] = None
-        # Loop through each (V)OBS site to insert the datavars into ds2
-        for k, _ds in dict(ds.groupby(codevar)).items():
-            site = sites_inv.get(k)
-            for var in data_vars:
-                ds2[var][site, ...] = _ds[var].values
+        # Loop through each (V)OBS site to infill the data
+        if N_sites != 0:
+            for k, _ds in dict(ds.groupby(codevar)).items():
+                site = sites_inv.get(k)
+                for var in data_vars:
+                    ds2[var][site, ...] = _ds[var].values
         # Revert to using only the "SiteCode"/"IAGA_code" identifier
         ds2 = ds2.set_index({"Site": codevar})
         ds2 = ds2.rename({"Site": codevar})

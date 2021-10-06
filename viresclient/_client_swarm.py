@@ -402,8 +402,6 @@ class SwarmRequest(ClientRequest):
 
     Args:
         url (str):
-        username (str):
-        password (str):
         token (str):
         config (str or ClientConfig):
         logging_level (str):
@@ -733,7 +731,7 @@ class SwarmRequest(ClientRequest):
             "B_FGM1", "B_FGM2", "B_FGM3", "q_NEC_CRF", "q_error",
         ],
         "MAG_GRACE": [
-            "F", "B_NEC", "B_NEC_raw", "B_FGM", "B_mod_NEC",
+            "F", "B_NEC", "B_NEC_raw", "B_FGM",
             "q_NEC_CRF", "q_error",
         ],
         "MAG_GFO": [
@@ -775,10 +773,10 @@ class SwarmRequest(ClientRequest):
         "MCO_SHA_2X", "CHAOS", "CHAOS-MMA", "MMA_SHA_2C", "MMA_SHA_2F", "MIO_SHA_2C", "MIO_SHA_2D", "SwarmCI",
     ]
 
-    def __init__(self, url=None, username=None, password=None, token=None,
+    def __init__(self, url=None, token=None,
                  config=None, logging_level="NO_LOGGING"):
         super().__init__(
-            url, username, password, token, config, logging_level,
+            url, token, config, logging_level,
             server_type="Swarm"
             )
 
