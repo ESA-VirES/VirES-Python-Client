@@ -1586,8 +1586,8 @@ class SwarmRequest(ClientRequest):
             threshold=threshold,
         ).encode('UTF-8')
 
-        show_progress = True
-        leave_progress_bar=True
+        show_progress = False
+        leave_progress_bar = False
         response = ReturnedDataFile(filetype="cdf")
 
         response_handler = self._response_handler(
