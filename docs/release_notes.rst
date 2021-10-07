@@ -4,6 +4,12 @@ Release notes
 Change log
 ----------
 
+Changes from 0.9.0 to 0.9.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added :py:meth:`viresclient.SwarmRequest.get_conjunctions` to fetch Swarm A/B conjunctions
+- Fixed compatibility with xarray v0.19 of ``reshape`` kwarg in :py:meth:`viresclient.ReturnedData.as_xarray`
+
 Changes from 0.8.0 to 0.9.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

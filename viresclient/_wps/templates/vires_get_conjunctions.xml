@@ -1,0 +1,66 @@
+<wps:Execute version="1.0.0" service="WPS" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1">
+  <ows:Identifier>vires:get_conjunctions</ows:Identifier>
+  <wps:DataInputs>
+    {% if mission1 -%}
+    <wps:Input>
+      <ows:Identifier>mission1</ows:Identifier>
+      <wps:Data>
+          <wps:LiteralData>{{ mission1 }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if spacecraft1 -%}
+    <wps:Input>
+      <ows:Identifier>spacecraft1</ows:Identifier>
+      <wps:Data>
+          <wps:LiteralData>{{ spacecraft1 }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if mission2 -%}
+    <wps:Input>
+      <ows:Identifier>mission2</ows:Identifier>
+      <wps:Data>
+          <wps:LiteralData>{{ mission2 }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if spacecraft2 -%}
+    <wps:Input>
+      <ows:Identifier>spacecraft2</ows:Identifier>
+      <wps:Data>
+          <wps:LiteralData>{{ spacecraft2 }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if begin_time -%}
+    <wps:Input>
+      <ows:Identifier>begin_time</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ begin_time|d2s }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if end_time -%}
+    <wps:Input>
+      <ows:Identifier>end_time</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ end_time|d2s }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if threshold is not none -%}
+    <wps:Input>
+      <ows:Identifier>angular_separation_threshold</ows:Identifier>
+      <wps:Data>
+          <wps:LiteralData>{{ threshold }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput mimeType="application/cdf">
+      <ows:Identifier>output</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>
