@@ -101,6 +101,14 @@
       </wps:Data>
     </wps:Input>
     {% endif -%}
+    {% if mca_fields -%}
+    <wps:Input>
+      <ows:Identifier>mca_fields</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ mca_fields }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
     {% if group_fields -%}
     <wps:Input>
       <ows:Identifier>group_fields</ows:Identifier>

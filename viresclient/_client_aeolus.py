@@ -20,12 +20,14 @@ class AeolusWPSInputs(WPSInputs):
         'filters',
         'aux_type',
         'observation_fields',
+        'measurement_fields',
         'mie_profile_fields',
         'rayleigh_profile_fields',
         'mie_wind_fields',
         'rayleigh_wind_fields',
         'ica_fields',
         'sca_fields',
+        'mca_fields',
         'bbox',
     ]
 
@@ -39,8 +41,10 @@ class AeolusWPSInputs(WPSInputs):
                  filters=None,
                  aux_type=None,
                  observation_fields=None,
+                 measurement_fields=None,
                  sca_fields=None,
                  ica_fields=None,
+                 mca_fields=None,
                  mie_profile_fields=None,
                  rayleigh_profile_fields=None,
                  mie_wind_fields=None,
@@ -58,7 +62,9 @@ class AeolusWPSInputs(WPSInputs):
         self.filters = filters
         self.aux_type = aux_type
         self.observation_fields = observation_fields
+        self.measurement_fields = measurement_fields
         self.ica_fields = ica_fields
+        self.mca_fields = mca_fields
         self.sca_fields = sca_fields
         self.mie_profile_fields = mie_profile_fields
         self.rayleigh_profile_fields = rayleigh_profile_fields
@@ -72,11 +78,13 @@ class AeolusWPSInputs(WPSInputs):
         self._filters = self.filters
         self._fields = self.fields
         self._observation_fields = self.observation_fields
+        self._measurement_fields = self.measurement_fields
         self._mie_profile_fields = self.mie_profile_fields
         self._rayleigh_profile_fields = self.rayleigh_profile_fields
         self._mie_wind_fields = self.mie_wind_fields
         self._rayleigh_wind_fields = self.rayleigh_wind_fields
         self._ica_fields = self.ica_fields
+        self._mca_fields = self.mca_fields
         self._sca_fields = self.sca_fields
         self._bbox = self.bbox
         return {key: self.__dict__['_{}'.format(key)] for key in self.NAMES}
@@ -225,14 +233,18 @@ class AeolusRequest(ClientRequest):
 
 
     def set_fields(self,
-                   observation_fields=None,
-                   ica_fields=None, sca_fields=None,
+                   observation_fields=None, measurement_fields=None,
+                   ica_fields=None, sca_fields=None, mca_fields=None,
                    rayleigh_wind_fields=None, mie_wind_fields=None,
                    fields=None):
         if observation_fields:
             self._request_inputs.observation_fields = ",".join(observation_fields)
+        if measurement_fields:
+            self._request_inputs.measurement_fields = ",".join(measurement_fields)
         if ica_fields:
             self._request_inputs.ica_fields = ",".join(ica_fields)
+        if mca_fields:
+            self._request_inputs.mca_fields = ",".join(mca_fields)
         if sca_fields:
             self._request_inputs.sca_fields = ",".join(sca_fields)
         if rayleigh_wind_fields:
