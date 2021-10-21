@@ -35,6 +35,10 @@ Show current configuration::
   $ viresclient show_configuration
   ...
 
+Remove stored configuration::
+
+  $ viresclient clear_credentials
+
 2. Data Upload
 --------------
 

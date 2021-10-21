@@ -1,12 +1,12 @@
-Installation and first usage
+Installation and First Usage
 ============================
 
 1. Installation
 ---------------
 
-.. note:: For VRE (Virtual Research Environment) users (it's free! - `read more <https://swarm-vre.readthedocs.io/>`_):
+.. note:: For VRE (Virtual Research Environment) users (it's free! - `read more <https://swarm.magneticearth.org>`_):
 
-  viresclient is already installed so skip this step. Log in at https://vre.vires.services/ and refer to documentation at https://swarm-vre.readthedocs.io/. The access token should be automatically configured so you can jump in with the notebook demos.
+  viresclient is already installed so skip this step. Log in at https://vre.vires.services and refer to `the introduction notebooks <https://swarm.magneticearth.org/notebooks/02a__intro-swarm-viresclient>`_.
 
 Python ≥ 3.6 is required. Testing is primarily on Linux, but macOS and Windows should also work.
 
@@ -24,7 +24,7 @@ Dependencies::
   pandas
   xarray
 
-pip will fetch these automatically - if you are using conda, it may be better to install these first using conda instead::
+pip will fetch these automatically - if you are using conda, it may be better to install these first using conda instead (where available)::
 
     conda install requests jinja2 pytables tqdm pandas xarray
     pip install viresclient
@@ -35,11 +35,11 @@ Recommended setup if starting without Python already
 1. Install Miniconda: https://docs.conda.io/en/latest/miniconda.html
 2. Create a new conda environment with some recommended packages::
 
-    conda create --name py37 scipy matplotlib pandas xarray cartopy jupyter jupyterlab flake8 dask h5py netCDF4 jinja2 pytables tqdm
+    conda create --name myenv scipy matplotlib pandas xarray cartopy jupyter jupyterlab flake8 dask h5py netCDF4 jinja2 pytables tqdm
 
   Activate the new environment (you do this each time you want to use it)::
 
-    conda activate py37
+    conda activate myenv
 
 3. Use pip to install viresclient::
 
@@ -59,7 +59,7 @@ Recommended setup if starting without Python already
 
   and follow the instructions.
 
-  A first usage guide is provided as a Jupyter notebook (`view <https://swarm-vre.readthedocs.io/en/latest/Swarm_notebooks/02a__Intro-Swarm-viresclient.html>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/Swarm-DISC/Swarm_notebooks/master/02a__Intro-Swarm-viresclient.ipynb>`_, or use git to get the whole example repository::
+  A first usage guide is provided as a Jupyter notebook (`view <https://swarm.magneticearth.org/notebooks/02a__intro-swarm-viresclient>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/Swarm-DISC/Swarm_notebooks/master/notebooks/02a__Intro-Swarm-viresclient.ipynb>`_, or use git to get the whole example repository::
 
     git clone https://github.com/Swarm-DISC/Swarm_notebooks.git
 

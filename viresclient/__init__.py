@@ -34,5 +34,7 @@ from ._data_handling import ReturnedData
 from ._data_handling import ReturnedDataFile
 from ._api.upload import DataUpload
 from ._api.token import TokenManager
+from . import _data
 
-__version__ = "0.7.2"
+
+__version__ = "0.9.1"

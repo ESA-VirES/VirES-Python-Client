@@ -1,11 +1,14 @@
-Welcome to VirES-Python-Client's documentation!
+Welcome to viresclient's documentation!
 ===============================================
+
+Get started `at the introduction <readme.html>`_
 
 .. toctree::
   :caption: Virtual Research Environment
 
-  --> [Launch VRE] JupyterLab <https://vre.vires.services/>
-  --> [VRE docs] Guides and Recipes <https://swarm-vre.readthedocs.io/en/latest/intro.html>
+  🔗 [Launch VRE / JupyterLab] <https://vre.vires.services>
+  🔗 How-To Guides [Swarm Notebooks] <https://swarm.magneticearth.org>
+  🔗 VirES Graphical Interface <https://vires.services>
 
 .. toctree::
   :maxdepth: 2
@@ -35,5 +38,6 @@ Welcome to VirES-Python-Client's documentation!
   :maxdepth: 2
   :caption: External Links
 
-  GitHub: viresclient <https://github.com/ESA-VirES/VirES-Python-Client/>
-  GitHub: Swarm-DISC <https://github.com/Swarm-DISC/>
+  🔗 GitHub: viresclient <https://github.com/ESA-VirES/VirES-Python-Client/>
+  🔗 GitHub: Swarm-DISC <https://github.com/Swarm-DISC/>
+  🔗 Magnetic Earth <https://magneticearth.org>

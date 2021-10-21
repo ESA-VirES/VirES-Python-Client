@@ -197,12 +197,11 @@ class AeolusRequest(ClientRequest):
         logging_level (str):
 
     """
-
-    def __init__(self, url=None, username=None, password=None, token=None,
-                 config=None, logging_level="NO_LOGGING", skip_token=False):
+    def __init__(self, url=None, token=None,
+                 config=None, logging_level="NO_LOGGING"):
         super().__init__(
-            url, username, password, token, config, logging_level,
-            skip_token, server_type="Aeolus"
+            url, token, config, logging_level,
+            server_type="Aeolus"
             )
         # self._available = self._set_available_data()
         self._request_inputs = AeolusWPSInputs()

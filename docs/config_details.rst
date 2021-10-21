@@ -1,6 +1,9 @@
 Configuration Details
 =====================
 
+.. note::
+  Be careful not to accidentally add your credentials to online repositories or containers. You can use the CLI command ``viresclient clear_credentials`` to remove them.
+
 While it is possible to enter the server URL and access credentials (see :doc:`access_token`) each time a new request object is created,
 
 .. code-block:: python
@@ -49,6 +52,10 @@ The ``viresclient`` shell command can be used to set the server access configura
   Enter access token: r-8-mlkP_RBx4mDv0di5Bzt3UZ52NGg-
 
   $ viresclient set_default_server https://vires.services/ows
+
+Clear the configuration from the default location with::
+
+  $ viresclient clear_credentials
 
 See also: :doc:`cli`
 
@@ -99,11 +106,3 @@ Using ``SwarmRequest()`` without the ``url`` parameter will use the default URL 
 
   # request to an alternative, non-default server
   request = SwarmRequest(url="https://staging.viresdisc.vires.services/ows")
-
-The older HTTP basic access authentication (i.e. username + password) is still available on the DICS staging server and these credentials can also be configured::
-
-  $ viresclient set_password https://staging.viresdisc.vires.services/openows
-  Enter username [jovyan]: <username>
-  Enter password: ***********
-
-However, this interface is deprecated and it will be removed in future and it is recommended to switch to the token-based authentication.

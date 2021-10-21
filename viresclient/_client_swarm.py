@@ -1,3 +1,5 @@
+# pylint: disable=missing-docstring, invalid-name,line-too-long
+
 import datetime
 import json
 from collections import OrderedDict
@@ -7,12 +9,13 @@ from io import StringIO
 from pandas import read_csv
 from tqdm import tqdm
 from textwrap import dedent
+from warnings import warn
 
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.time_util import parse_datetime
 from ._client import WPSInputs, ClientRequest, TEMPLATE_FILES
 from ._data_handling import ReturnedDataFile
-
+from ._data import CONFIG_SWARM
 
 TEMPLATE_FILES = {
     **TEMPLATE_FILES,
@@ -20,7 +23,8 @@ TEMPLATE_FILES = {
     'async': "vires_fetch_filtered_data_async.xml",
     'model_info': "vires_get_model_info.xml",
     'times_from_orbits': "vires_times_from_orbits.xml",
-    'get_observatories': 'vires_get_observatories.xml'
+    'get_observatories': 'vires_get_observatories.xml',
+    'get_conjunctions': 'vires_get_conjunctions.xml',
 }
 
 REFERENCES = {
@@ -33,7 +37,7 @@ REFERENCES = {
 
 MODEL_REFERENCES = {
     'IGRF':
-        (" International Geomagnetic Reference Field: the 13th generation, (waiting for publication) ",
+        (" International Geomagnetic Reference Field: the thirteenth generation, (https://doi.org/10.1186/s40623-020-01288-x) ",
          " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
     'IGRF12':
         (" International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
@@ -161,7 +165,22 @@ COLLECTION_REFERENCES = {
     "AUX_OBSH": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSM": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSS": ("https://doi.org/10.5047/eps.2013.07.011",),
+    "VOBS_SW_1M": ("https://earth.esa.int/eogateway/activities/gvo",),
+    "AEJ_LPL": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
+    "AEJ_LPS": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
+    "AEJ_PBL": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
+    "AEJ_PBS": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
+    "AOB_FAC": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
+    "MIT_LP": ("https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",),
+    "MIT_TEC": ("https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",),
+    "PPI_FAC": ("https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",),
+    "MAG_CS": ("https://doi.org/10.1186/s40623-020-01171-9",),
+    "MAG_GRACE": ("https://doi.org/10.1186/s40623-021-01373-9",),
+    "MAG_GFO": ("https://doi.org/10.1186/s40623-021-01364-w",),
 }
+for mission in ("SW", "OR", "CH", "CR", "CO"):
+    for cadence in ("1M", "4M"):
+        COLLECTION_REFERENCES[f"VOBS_{mission}_{cadence}"] = ("https://earth.esa.int/eogateway/activities/gvo",)
 
 DATA_CITATIONS = {
     "AUX_OBSH": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/hour/README",
@@ -169,7 +188,9 @@ DATA_CITATIONS = {
     "AUX_OBSS": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/second/README",
 }
 
-IAGA_CODES = ['AAA', 'AAE', 'ABG', 'ABK', 'AIA', 'ALE', 'AMS', 'API', 'AQU', 'ARS', 'ASC', 'ASP', 'BDV', 'BEL', 'BFE', 'BFO', 'BGY', 'BJN', 'BLC', 'BMT', 'BNG', 'BOU', 'BOX', 'BRD', 'BRW', 'BSL', 'CBB', 'CBI', 'CDP', 'CKI', 'CLF', 'CMO', 'CNB', 'CNH', 'COI', 'CPL', 'CSY', 'CTA', 'CTS', 'CYG', 'CZT', 'DED', 'DLR', 'DLT', 'DMC', 'DOB', 'DOU', 'DRV', 'DUR', 'EBR', 'ELT', 'ESA', 'ESK', 'EYR', 'FCC', 'FRD', 'FRN', 'FUQ', 'FUR', 'GAN', 'GCK', 'GDH', 'GLM', 'GLN', 'GNA', 'GNG', 'GUA', 'GUI', 'GZH', 'HAD', 'HBK', 'HER', 'HLP', 'HON', 'HRB', 'HRN', 'HUA', 'HYB', 'IPM', 'IQA', 'IRT', 'IZN', 'JAI', 'JCO', 'KAK', 'KDU', 'KEP', 'KHB', 'KIR', 'KIV', 'KMH', 'KNY', 'KNZ', 'KOU', 'KSH', 'LER', 'LIV', 'LMM', 'LNP', 'LON', 'LOV', 'LRM', 'LRV', 'LVV', 'LYC', 'LZH', 'MAB', 'MAW', 'MBC', 'MBO', 'MCQ', 'MEA', 'MGD', 'MID', 'MIZ', 'MMB', 'MZL', 'NAQ', 'NCK', 'NEW', 'NGK', 'NGP', 'NMP', 'NUR', 'NVS', 'ORC', 'OTT', 'PAF', 'PAG', 'PBQ', 'PEG', 'PET', 'PHU', 'PIL', 'PND', 'PPT', 'PST', 'QGZ', 'QIX', 'QSB', 'QZH', 'RES', 'SBA', 'SBL', 'SFS', 'SHE', 'SHL', 'SHU', 'SIL', 'SIT', 'SJG', 'SOD', 'SPG', 'SPT', 'STJ', 'SUA', 'TAM', 'TAN', 'TDC', 'TEO', 'THJ', 'THL', 'THY', 'TIR', 'TND', 'TRO', 'TRW', 'TSU', 'TUC', 'UPS', 'VAL', 'VIC', 'VNA', 'VOS', 'VSK', 'VSS', 'WHN', 'WIC', 'WIK', 'WNG', 'YAK', 'YKC']
+IAGA_CODES = CONFIG_SWARM.get("IAGA_CODES")
+
+VOBS_SITES = CONFIG_SWARM.get("VOBS_SITES")
 
 
 class SwarmWPSInputs(WPSInputs):
@@ -230,11 +251,13 @@ class SwarmWPSInputs(WPSInputs):
             name = "AUX_OBS"
             if ":" in collection:
                 name = f"{name}:{collection[19:22]}"
-        else:
+        elif collection[:3] == "SW_":
             # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
             sc = collection[11]
-            sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie", "_": "NSC"}
-            name = sc_to_name[sc]
+            sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie"}
+            name = sc_to_name.get(sc, "NSC")
+        else:
+            name = collection
         return name
 
     def set_collections(self, collections):
@@ -379,13 +402,22 @@ class SwarmRequest(ClientRequest):
 
     Args:
         url (str):
-        username (str):
-        password (str):
         token (str):
         config (str or ClientConfig):
         logging_level (str):
 
     """
+    MISSION_SPACECRAFTS = {
+        'Swarm': ['A', 'B', 'C'],
+        'GRACE': ['1', '2'],
+        'GRACE-FO': ['1', '2'],
+        'CryoSat-2': None,
+    }
+
+    CONJUNCTION_MISISON_SPACECRAFT_PAIRS = {
+        (('Swarm', 'A'), ('Swarm', 'B')),
+    }
+
     COLLECTIONS = {
         "MAG": ["SW_OPER_MAG{}_LR_1B".format(x) for x in "ABC"],
         "MAG_HR": ["SW_OPER_MAG{}_HR_1B".format(x) for x in "ABC"],
@@ -421,8 +453,126 @@ class SwarmRequest(ClientRequest):
         "AUX_OBSS": [
             "SW_OPER_AUX_OBSS2_",
             *[f"SW_OPER_AUX_OBSS2_:{code}" for code in IAGA_CODES]
-        ]
+        ],
+        "VOBS_SW_1M": [
+            "SW_OPER_VOBS_1M_2_",
+            *[f"SW_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_SW_4M": [
+            "SW_OPER_VOBS_4M_2_",
+            *[f"SW_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CH_1M": [
+            "CH_OPER_VOBS_1M_2_",
+            *[f"CH_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CR_1M": [
+            "CR_OPER_VOBS_1M_2_",
+            *[f"CR_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_OR_1M": [
+            "OR_OPER_VOBS_1M_2_",
+            *[f"OR_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CO_1M": [
+            "CO_OPER_VOBS_1M_2_",
+            *[f"CO_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_OR_4M": [
+            "OR_OPER_VOBS_4M_2_",
+            *[f"OR_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CH_4M": [
+            "CH_OPER_VOBS_4M_2_",
+            *[f"CH_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CR_4M": [
+            "CR_OPER_VOBS_4M_2_",
+            *[f"CR_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CO_4M": [
+            "CO_OPER_VOBS_4M_2_",
+            *[f"CO_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_SW_1M:SecularVariation": [
+            "SW_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"SW_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_SW_4M:SecularVariation": [
+            "SW_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"SW_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CH_1M:SecularVariation": [
+            "CH_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"CH_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CR_1M:SecularVariation": [
+            "CR_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"CR_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_OR_1M:SecularVariation": [
+            "OR_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"OR_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CO_1M:SecularVariation": [
+            "CO_OPER_VOBS_1M_2_:SecularVariation",
+            *[f"CO_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_OR_4M:SecularVariation": [
+            "OR_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"OR_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CH_4M:SecularVariation": [
+            "CH_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"CH_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CR_4M:SecularVariation": [
+            "CR_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"CR_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "VOBS_CO_4M:SecularVariation": [
+            "CO_OPER_VOBS_4M_2_:SecularVariation",
+            *[f"CO_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+        ],
+        "MIT_LP": [f"SW_OPER_MIT{x}_LP_2F" for x in "ABC"],
+        "MIT_LP:ID": [f"SW_OPER_MIT{x}_LP_2F:ID" for x in "ABC"],
+        "MIT_TEC": [f"SW_OPER_MIT{x}TEC_2F" for x in "ABC"],
+        "MIT_TEC:ID": [f"SW_OPER_MIT{x}TEC_2F:ID" for x in "ABC"],
+        "PPI_FAC": [f"SW_OPER_PPI{x}FAC_2F" for x in "ABC"],
+        "PPI_FAC:ID": [f"SW_OPER_PPI{x}FAC_2F:ID" for x in "ABC"],
+        # Multi-mission magnetic products
+        "MAG_CS": ["CS_OPER_MAG",],
+        "MAG_GRACE": ["GRACE_A_MAG", "GRACE_B_MAG"],
+        "MAG_GFO": ["GF1_OPER_FGM_ACAL_CORR", "GF2_OPER_FGM_ACAL_CORR"],
+        # Swarm spacecraft positions
+        "MOD_SC": [f"SW_OPER_MOD{x}_SC_1B" for x in "ABC"]
     }
+
+    OBS_COLLECTIONS = [
+        "SW_OPER_AUX_OBSH2_",
+        "SW_OPER_AUX_OBSM2_",
+        "SW_OPER_AUX_OBSS2_",
+        "SW_OPER_VOBS_1M_2_",
+        "SW_OPER_VOBS_4M_2_",
+        "CH_OPER_VOBS_1M_2_",
+        "CR_OPER_VOBS_1M_2_",
+        "OR_OPER_VOBS_1M_2_"
+        "CO_OPER_VOBS_1M_2_",
+        "OR_OPER_VOBS_4M_2_",
+        "CH_OPER_VOBS_4M_2_",
+        "CR_OPER_VOBS_4M_2_",
+        "CO_OPER_VOBS_4M_2_",
+        "SW_OPER_VOBS_1M_2_:SecularVariation",
+        "SW_OPER_VOBS_4M_2_:SecularVariation",
+        "CH_OPER_VOBS_1M_2_:SecularVariation",
+        "CR_OPER_VOBS_1M_2_:SecularVariation",
+        "OR_OPER_VOBS_1M_2_:SecularVariation",
+        "CO_OPER_VOBS_1M_2_:SecularVariation",
+        "OR_OPER_VOBS_4M_2_:SecularVariation",
+        "CH_OPER_VOBS_4M_2_:SecularVariation",
+        "CR_OPER_VOBS_4M_2_:SecularVariation",
+        "CO_OPER_VOBS_4M_2_:SecularVariation",
+    ]
 
     # These are not necessarily real sampling steps, but are good enough to use
     # for splitting long requests into chunks
@@ -439,7 +589,33 @@ class SwarmRequest(ClientRequest):
         "AEJ_LPS": "PT1S",
         "AUX_OBSH": "PT60M",
         "AUX_OBSM": "PT60S",
-        "AUX_OBSS": "PT1S"
+        "AUX_OBSS": "PT1S",
+        "VOBS_SW_1M": "P31D",
+        "VOBS_CH_1M": "P31D",
+        "VOBS_CR_1M": "P31D",
+        "VOBS_OR_1M": "P31D",
+        "VOBS_CO_1M": "P31D",
+        "VOBS_OR_4M": "P122D",
+        "VOBS_SW_4M": "P122D",
+        "VOBS_CH_4M": "P122D",
+        "VOBS_CR_4M": "P122D",
+        "VOBS_CO_4M": "P122D",
+        "VOBS_SW_1M:SecularVariation": "P31D",
+        "VOBS_CH_1M:SecularVariation": "P31D",
+        "VOBS_CR_1M:SecularVariation": "P31D",
+        "VOBS_OR_1M:SecularVariation": "P31D",
+        "VOBS_CO_1M:SecularVariation": "P31D",
+        "VOBS_OR_4M:SecularVariation": "P122D",
+        "VOBS_SW_4M:SecularVariation": "P122D",
+        "VOBS_CH_4M:SecularVariation": "P122D",
+        "VOBS_CR_4M:SecularVariation": "P122D",
+        "VOBS_CO_4M:SecularVariation": "P122D",
+        "MIT_LP": "PT20M",
+        "MIT_LP:ID": "PT20M",
+        "MIT_TEC": "PT20M",
+        "MIT_TEC:ID": "PT20M",
+        "PPI_FAC": "PT20M",
+        "PPI_FAC:ID": "PT20M",
     }
 
     PRODUCT_VARIABLES = {
@@ -501,9 +677,68 @@ class SwarmRequest(ClientRequest):
             "Latitude_QD", "Longitude_QD", "MLT_QD",
             "Boundary_Flag", "Quality", "Pair_Indicator"
             ],
-        "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "SensorIndex"],
+        "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "ObsIndex"],
         "AUX_OBSM": ["B_NEC", "F", "IAGA_code", "Quality"],
         "AUX_OBSS": ["B_NEC", "F", "IAGA_code", "Quality"],
+        "VOBS_SW_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CH_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CR_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_OR_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CO_1M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_OR_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_SW_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CH_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CR_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_CO_4M": ["SiteCode", "B_CF", "B_OB", "sigma_CF", "sigma_OB"],
+        "VOBS_SW_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CH_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CR_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_OR_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CO_1M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_OR_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_SW_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CH_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CR_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "VOBS_CO_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
+        "MIT_LP": [
+            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
+            "Ne", "Te", "Depth", "DR", "Width", "dL", "PW_Gradient", "EW_Gradient",
+            "Quality",
+        ],
+        "MIT_LP:ID": [
+            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
+            "Ne", "Te", "Position_Quality", "PointType",
+        ],
+        "MIT_TEC": [
+            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
+            "TEC", "Depth", "DR", "Width", "dL", "PW_Gradient", "EW_Gradient",
+            "Quality",
+        ],
+        "MIT_TEC:ID": [
+            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
+            "TEC", "Position_Quality", "PointType",
+        ],
+        "PPI_FAC": [
+            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
+            "Sigma", "PPI", "dL", "Quality",
+        ],
+        "PPI_FAC:ID": [
+            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
+            "Position_Quality", "PointType",
+        ],
+        "MAG_CS": [
+            "F", "B_NEC", "B_mod_NEC", "B_NEC1", "B_NEC2", "B_NEC3",
+            "B_FGM1", "B_FGM2", "B_FGM3", "q_NEC_CRF", "q_error",
+        ],
+        "MAG_GRACE": [
+            "F", "B_NEC", "B_NEC_raw", "B_FGM",
+            "q_NEC_CRF", "q_error",
+        ],
+        "MAG_GFO": [
+            "F", "B_NEC", "B_FGM", "dB_MTQ_FGM", "dB_XI_FGM", "dB_NY_FGM", "dB_BT_FGM",
+            "dB_ST_FGM", "dB_SA_FGM", "dB_BAT_FGM", "q_NEC_FGM", "B_FLAG",
+        ],
+        "MOD_SC": [],
     }
 
     AUXILIARY_VARIABLES = [
@@ -514,10 +749,16 @@ class SwarmRequest(ClientRequest):
         "QDLon", "QDBasis", "MLT", "SunDeclination", "SunHourAngle",
         "SunRightAscension", "SunAzimuthAngle", "SunZenithAngle",
         "SunLongitude", "SunVector", "DipoleAxisVector", "NGPLatitude",
-        "NGPLongitude", "DipoleTiltAngle",
+        "NGPLongitude", "DipoleTiltAngle", "dDst"
     ]
 
-    MAGNETIC_MODEL_VARIABLES = ["F", "B_NEC"]
+    MAGNETIC_MODEL_VARIABLES = {
+        "F": "F",
+        "B_NEC": "B_NEC",
+        "B_NEC1": "B_NEC",
+        "B_NEC2": "B_NEC",
+        "B_NEC3": "B_NEC",
+    }
 
     MAGNETIC_MODELS = [
         "IGRF", "IGRF12", "LCS-1", "MF7",
@@ -532,10 +773,10 @@ class SwarmRequest(ClientRequest):
         "MCO_SHA_2X", "CHAOS", "CHAOS-MMA", "MMA_SHA_2C", "MMA_SHA_2F", "MIO_SHA_2C", "MIO_SHA_2D", "SwarmCI",
     ]
 
-    def __init__(self, url=None, username=None, password=None, token=None,
+    def __init__(self, url=None, token=None,
                  config=None, logging_level="NO_LOGGING"):
         super().__init__(
-            url, username, password, token, config, logging_level,
+            url, token, config, logging_level,
             server_type="Swarm"
             )
 
@@ -622,11 +863,18 @@ class SwarmRequest(ClientRequest):
                 If False then return a dict of available collections.
 
         """
-        # Shorter form of the available collections
+        # Shorter form of the available collections,
+        # without all the individual SiteCodes
         collections_short = self._available["collections"].copy()
-        collections_short["AUX_OBSS"] = ['SW_OPER_AUX_OBSS2_']
-        collections_short["AUX_OBSM"] = ['SW_OPER_AUX_OBSM2_']
-        collections_short["AUX_OBSH"] = ['SW_OPER_AUX_OBSH2_']
+        collections_short["AUX_OBSS"] = ["SW_OPER_AUX_OBSS2_"]
+        collections_short["AUX_OBSM"] = ["SW_OPER_AUX_OBSM2_"]
+        collections_short["AUX_OBSH"] = ["SW_OPER_AUX_OBSH2_"]
+        for mission in ("SW", "OR", "CH", "CR", "CO"):
+            for cadence in ("1M", "4M"):
+                collections_short[f"VOBS_{mission}_{cadence}"] = \
+                    [f"{mission}_OPER_VOBS_{cadence}_2_"]
+                collections_short[f"VOBS_{mission}_{cadence}:SecularVariation"] = \
+                    [f"{mission}_OPER_VOBS_{cadence}_2_:SecularVariation"]
 
         def _filter_collections(groupname):
             """ Reduce the full list to just one group, e.g. "MAG """
@@ -757,7 +1005,7 @@ class SwarmRequest(ClientRequest):
 
     def available_observatories(
         self, collection, start_time=None, end_time=None,
-        details=False
+        details=False, verbose=True
     ):
         """Get list of available observatories from server.
 
@@ -781,10 +1029,11 @@ class SwarmRequest(ClientRequest):
             )
 
         Args:
-            collection (str): OBS collection name, e.g. "SW_OPER_AUX_OBSM2_"
+            collection (str): OBS collection name, e.g. "SW_OPER_AUX_OBSM2\\_"
             start_time (datetime / ISO_8601 string)
             end_time (datetime / ISO_8601 string)
             details (bool): returns DataFrame if True
+            verbose (bool): Notify with special data terms
 
         Returns:
             list or DataFrame: IAGA codes (and start/end times)
@@ -811,14 +1060,9 @@ class SwarmRequest(ClientRequest):
                 StringIO(str(csv_data, 'utf-8'))
             )
 
-        obs_collections = [
-            "SW_OPER_AUX_OBSH2_",
-            "SW_OPER_AUX_OBSM2_",
-            "SW_OPER_AUX_OBSS2_"
-        ]
-        if collection not in obs_collections:
+        if collection not in self.OBS_COLLECTIONS:
             raise ValueError(
-                f"Invalid collection: {collection}. Must be one of: {obs_collections}."
+                f"Invalid collection: {collection}. Must be one of: {self.OBS_COLLECTIONS}."
             )
         if start_time and end_time:
             start_time = parse_datetime(start_time)
@@ -826,13 +1070,16 @@ class SwarmRequest(ClientRequest):
         else:
             start_time, end_time = None, None
 
-        self._detect_AUX_OBS([collection])
+        if verbose:
+            self._detect_AUX_OBS([collection])
         response = _request_get_observatories(collection, start_time, end_time)
         df = _csv_to_df(response)
         if details:
             return df
         else:
-            return list(df["IAGACode"])
+            # note: "IAGACode" has been renamed to "site" in VirES 3.5
+            key = "IAGACode" if "IAGACode" in df.keys() else "site"
+            return list(df[key])
 
     def _detect_AUX_OBS(self, collections):
         # Identify collection types present
@@ -847,8 +1094,6 @@ class SwarmRequest(ClientRequest):
                 Accessing INTERMAGNET and/or WDC data
                 Check usage terms at {DATA_CITATIONS.get(aux_type)}
                 """)
-                if aux_type == "AUX_OBSH":
-                    output_text += "WARNING: AUX_OBSH is not yet public"
                 tqdm.write(output_text)
 
     def set_collection(self, *args, verbose=True):
@@ -899,7 +1144,7 @@ class SwarmRequest(ClientRequest):
             raise Exception("Must run .set_collection() first.")
         measurements = [] if measurements is None else measurements
         models = [] if models is None else models
-        model_variables = set(self._available["model_variables"])
+        model_variables = self._available["model_variables"]
         auxiliaries = [] if auxiliaries is None else auxiliaries
         # If inputs are strings (when providing only one parameter)
         #  put them in lists
@@ -948,27 +1193,48 @@ class SwarmRequest(ClientRequest):
                 raise OSError("Custom model .shc file not found")
         else:
             custom_shc = None
+
         # Set up the variables that actually get passed to the WPS request
-        variables = []
-        for variable in measurements:
-            if variable in model_variables:
-                if residuals:
-                    variables.extend(
-                        "%s_res_%s" % (variable, model_name)
-                        for model_name in model_ids
-                    )
-                else:
-                    variables.append(variable)
-                    variables.extend(
-                        "%s_%s" % (variable, model_name)
-                        for model_name in model_ids
-                    )
-            else:  # not a model variable
-                variables.append(variable)
-        variables.extend(auxiliaries)
-        # Set these in the SwarmWPSInputs object
+
+        # Requested variables, start with the measurements ...
+        variables = set(measurements)
+
+        # model-related measurements
+        _requested_model_variables = [
+            variable for variable in measurements
+            if variable in model_variables
+        ]
+
+        if residuals:
+            # Remove the measurements ...
+            variables.difference_update(_requested_model_variables)
+            # ... add their residuals instead.
+            variables.update(
+                f"{variable}_res_{model_id}"
+                for variable in _requested_model_variables
+                for model_id in model_ids
+            )
+
+        else:
+            # If no variable is requested fall back to B_NEC.
+            if not _requested_model_variables:
+                _requested_model_variables = ["B_NEC"]
+
+            # Add calculated model variables.
+            variables.update(
+                f"{variable}_{model_id}"
+                for variable in (
+                    model_variables[variable]
+                    for variable in _requested_model_variables
+                )
+                for model_id in model_ids
+            )
+
+        # Finally, add the auxiliary variables.
+        variables.update(auxiliaries)
+
         self._request_inputs.model_expression = model_expression_string
-        self._request_inputs.variables = variables
+        self._request_inputs.variables = list(variables)
         self._request_inputs.sampling_step = sampling_step
         self._request_inputs.custom_shc = custom_shc
         return self
@@ -1006,14 +1272,18 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.filters = None
         return self
 
-    def get_times_for_orbits(self, spacecraft, start_orbit, end_orbit):
+    def get_times_for_orbits(self, start_orbit, end_orbit, mission="Swarm", spacecraft=None):
         """Translate a pair of orbit numbers to a time interval.
 
         Args:
-            spacecraft (str): one of ('A','B','C') or
-                                ("Alpha", "Bravo", "Charlie")
             start_orbit (int): a starting orbit number
             end_orbit (int): a later orbit number
+            spacecraft (str):
+                    Swarm: one of ('A','B','C') or ("Alpha", "Bravo", "Charlie")
+                    GRACE: one of ('1','2')
+                    GRACE-FO: one of ('1','2')
+                    CryoSat-2: None
+            mission (str): one of ('Swarm', 'GRACE', 'GRACE-FO', 'CryoSat-2')
 
         Returns:
             tuple (datetime): (start_time, end_time) The start time of the
@@ -1021,12 +1291,35 @@ class SwarmRequest(ClientRequest):
             (Based on ascending nodes of the orbits)
 
         """
+        # check old function signature and print warning
+        if (
+            isinstance(start_orbit, str) and
+            isinstance(mission, int) and
+            spacecraft is None
+        ):
+            spacecraft, start_orbit, end_orbit = start_orbit, end_orbit, mission
+            mission = "Swarm"
+            warn(
+                "The order of SwarmRequest.get_times_for_orbits() method's "
+                "parameters has changed!  "
+                "The backward compatibility will be removed in the future.  "
+                "Please change your code to:  "
+                "request.get_times_for_orbits(start_orbit, end_orbit, "
+                "'Swarm', spacecraft)",
+                FutureWarning,
+            )
+
+        start_orbit = int(start_orbit)
+        end_orbit = int(end_orbit)
+
         # Change to spacecraft = "A" etc. for this request
-        if spacecraft in ("Alpha", "Bravo", "Charlie"):
-            spacecraft = spacecraft[0]
+        spacecraft = self._fix_spacecraft(mission, spacecraft)
+        self._check_mission_spacecraft(mission, spacecraft)
+
         templatefile = TEMPLATE_FILES["times_from_orbits"]
         template = JINJA2_ENVIRONMENT.get_template(templatefile)
         request = template.render(
+            mission=mission,
             spacecraft=spacecraft,
             start_orbit=start_orbit,
             end_orbit=end_orbit
@@ -1038,13 +1331,51 @@ class SwarmRequest(ClientRequest):
         end_time = parse_datetime(responsedict['end_time'])
         return start_time, end_time
 
-    def get_orbit_number(self, spacecraft, input_time):
+    def _fix_spacecraft(self, mission, spacecraft):
+        # Change to spacecraft = "A" etc. for this request
+        spacecraft = str(spacecraft) if spacecraft is not None else None
+        if mission == "Swarm" and spacecraft in ("Alpha", "Bravo", "Charlie"):
+            spacecraft = spacecraft[0]
+        return spacecraft
+
+    def _check_mission_spacecraft(self, mission, spacecraft):
+        if mission not in self.MISSION_SPACECRAFTS:
+            raise ValueError(
+                f"Invalid mission {mission}!"
+                f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS)}"
+            )
+
+        if self.MISSION_SPACECRAFTS[mission]:
+            # missions with required spacecraft id
+            if not spacecraft:
+                raise ValueError(
+                    f"The {mission} spacecraft is required!"
+                    f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS[mission])}"
+                )
+            if spacecraft not in self.MISSION_SPACECRAFTS[mission]:
+                raise ValueError(
+                    f"Invalid {mission} spacecraft! "
+                    f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS[mission])}"
+                )
+
+        elif spacecraft: # mission without spacecraft id
+            raise ValueError(
+                f"No {mission} spacecraft shall be specified! "
+                "Set spacecraft to None."
+            )
+
+
+    def get_orbit_number(self, spacecraft, input_time, mission="Swarm"):
         """Translate a time to an orbit number.
 
         Args:
-            spacecraft (str): one of ('A','B','C') or
-                                ("Alpha", "Bravo", "Charlie")
+            spacecraft (str):
+                    Swarm: one of ('A','B','C') or ("Alpha", "Bravo", "Charlie")
+                    GRACE: one of ('1','2')
+                    GRACE-FO: one of ('1','2')
+                    CryoSat-2: None
             input_time (datetime): a point in time
+            mission (str): one of ('Swarm', 'GRACE', 'GRACE-FO', 'CryoSat-2')
 
         Returns:
             int: The current orbit number at the input_time
@@ -1060,11 +1391,26 @@ class SwarmRequest(ClientRequest):
         # Change to spacecraft = "A" etc. for this request
         if spacecraft in ("Alpha", "Bravo", "Charlie"):
             spacecraft = spacecraft[0]
-        if spacecraft not in "ABC":
-            raise ValueError("Invalid spacecraft ID")
-        collections = ["SW_OPER_MAG{}_LR_1B".format(spacecraft[0])]
+        if mission not in self.MISSION_SPACECRAFTS:
+            raise ValueError(
+                f"Invalid mission {mission}!"
+                f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS)}"
+            )
+        spacecraft = str(spacecraft)
+        if mission=="Swarm":
+            collection = f"SW_OPER_MOD{spacecraft}_SC_1B"
+        elif mission=="GRACE":
+            if spacecraft in "12":
+                spacecraft = "AB"[int(spacecraft)-1]
+            elif spacecraft not in "AB":
+                raise ValueError(f"Invalid spacecraft: {spacecraft}")
+            collection = f"GRACE_{spacecraft}_MAG"
+        elif mission=="GRACE-FO":
+            collection = f"GF{spacecraft}_OPER_FGM_ACAL_CORR"
+        elif mission=="CryoSat-2":
+            collection = "CS_OPER_MAG"
         request_inputs = SwarmWPSInputs(
-            collection_ids={spacecraft: collections},
+            collection_ids={collection: [collection]},
             begin_time=input_time,
             end_time=input_time+datetime.timedelta(seconds=1),
             variables=["OrbitNumber"],
@@ -1171,3 +1517,89 @@ class SwarmRequest(ClientRequest):
             print("WARNING: Model {} is deprecated. {}".format(
                 deprecated_model, DEPRECATED_MODELS[deprecated_model]
             ), file=sys.stdout)
+
+
+    def get_conjunctions(self, start_time=None, end_time=None, threshold=1.0,
+                         spacecraft1='A', spacecraft2='B',
+                         mission1='Swarm', mission2='Swarm'):
+        """ Get times of the spacecraft conjunctions. Currently available for
+        the following spacecraft pairs:
+          - Swarm-A/Swarm-B
+
+        Args:
+            start_time (datetime / ISO_8601 string): optional start time
+            end_time (datetime / ISO_8601 string): optional end time
+            threshold (float): optional maximum allowed angular separation
+                 in degrees; by default set to 1; allowed values are [0, 180]
+            spacecraft1: identifier of the first spacecraft, default to 'A'
+            spacecraft2: identifier of the second spacecraft, default to 'B'
+            mission1 (str): mission of the first spacecraft, defaults to 'Swarm'
+            mission2 (str): mission of the first spacecraft, defaults to 'Swarm'
+
+        Returns:
+            ReturnedData:
+        """
+        try:
+            start_time = parse_datetime(start_time) if start_time else None
+            end_time = parse_datetime(end_time) if end_time else None
+        except TypeError:
+            raise TypeError(
+                "start_time and end_time must be datetime objects or ISO-8601 "
+                "date/time strings"
+            ) from None
+
+        if not (0 <= threshold <= 180):
+            raise ValueError("Invalid threshold value!")
+
+        spacecraft1 = self._fix_spacecraft(mission1, spacecraft1)
+        spacecraft2 = self._fix_spacecraft(mission2, spacecraft2)
+
+        self._check_mission_spacecraft(mission1, spacecraft1)
+        self._check_mission_spacecraft(mission2, spacecraft2)
+
+        if (mission1, spacecraft1) == (mission2, spacecraft2):
+            raise ValueError(
+                "The first and second spacecraft must not be the same!"
+            )
+
+        spacecraft_pair = tuple(sorted([
+            (mission1, spacecraft1), (mission2, spacecraft2)
+        ]))
+
+        if spacecraft_pair not in self.CONJUNCTION_MISISON_SPACECRAFT_PAIRS:
+            raise ValueError(
+                "Conjunctions not available for the requested "
+                "spacecraft pair {spacecraft_pair}!"
+            )
+
+        templatefile = TEMPLATE_FILES["get_conjunctions"]
+        template = JINJA2_ENVIRONMENT.get_template(templatefile)
+        request = template.render(
+            begin_time=start_time,
+            end_time=end_time,
+            spacecraft1=spacecraft1,
+            spacecraft2=spacecraft2,
+            mission1=mission1,
+            mission2=mission2,
+            threshold=threshold,
+        ).encode('UTF-8')
+
+        show_progress = False
+        leave_progress_bar = False
+        response = ReturnedDataFile(filetype="cdf")
+
+        response_handler = self._response_handler(
+            retdatafile=response,
+            show_progress=show_progress,
+            leave_progress_bar=leave_progress_bar,
+        )
+
+        self._get(
+            request=request,
+            asynchronous=False,
+            show_progress=show_progress,
+            leave_progress_bar=leave_progress_bar,
+            response_handler=response_handler,
+        )
+
+        return response

@@ -30,6 +30,7 @@
 
 import sys
 from getpass import getpass, getuser
+from os import remove
 from os.path import exists
 from viresclient import ClientConfig
 from .common import ConfigurationCommand, UrlConfigurationCommand
@@ -62,36 +63,6 @@ class SetTokenCommand(UrlConfigurationCommand):
             token = input("Enter access token: ")
         config = ClientConfig(path=config_path)
         config.set_site_config(server_url, token=token)
-        config.save()
-
-
-class SetPasswordCommand(UrlConfigurationCommand):
-    help = "Set username and password for the given server URL."
-
-    def add_arguments_to_parser(self, parser):
-        super().add_arguments_to_parser(parser)
-        parser.add_argument(
-            "username", action="store", nargs="?", type=str, help="username"
-        )
-        parser.add_argument(
-            "password", action="store", nargs="?", type=str, help="password"
-        )
-
-    def execute(self, config_path, server_url, username, password):
-        config = ClientConfig(path=config_path)
-
-        if username is None:
-            default_username = (
-                config.get_site_config(server_url).get("username") or getuser()
-            )
-            username = input(
-                "Enter username [%s]: " % default_username
-            ) or default_username
-
-        if password is None:
-            password = getpass("Enter password: ")
-
-        config.set_site_config(server_url, username=username, password=password)
         config.save()
 
 
@@ -133,3 +104,18 @@ class ShowConfigurationCommand(ConfigurationCommand):
                 "Configuration file %s does not exist!" % config.path
             )
         sys.stdout.write(str(config))
+
+
+class ClearCredentialsCommand(ConfigurationCommand):
+    """ Command to remove stored configuration. """
+    help = "Delete the default configuration file."
+
+    def execute(self, config_path):
+        config = ClientConfig(path=config_path)
+        if exists(config.path):
+            remove(config.path)
+            sys.stdout.write(f"Deleted configuration file: {config.path}\n")
+        else:
+            sys.stdout.write(
+                f"WARNING: No configuration file found (attempted to delete {config.path})\n"
+            )

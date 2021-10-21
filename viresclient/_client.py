@@ -35,9 +35,14 @@ import json
 try:
     from IPython import get_ipython
     IN_JUPYTER = 'zmqshell' in str(type(get_ipython()))
-except ImportError:
+except Exception:
     IN_JUPYTER = False
-from tqdm import tqdm
+if IN_JUPYTER:
+    from tqdm.notebook import tqdm
+else:
+    from tqdm import tqdm
+from io import StringIO
+from pandas import read_csv, to_datetime
 
 
 from ._wps.wps_vires import ViresWPS10Service
@@ -75,11 +80,12 @@ NRECORDS_LIMIT = 4320000  # = 50 days at 1Hz
 # Store the config file in home directory
 CONFIG_FILE_PATH = os.path.join(os.path.expanduser("~"), ".viresclient,ini")
 
-# Maximum selectable time interval ~25 years
-MAX_TIME_SELECTION = timedelta(days=25*365.25)
+# Maximum time-chunk size ~25 years
+MAX_CHUNK_DURATION = timedelta(days=25*365.25)
 
 TEMPLATE_FILES = {
-    'list_jobs': "vires_list_jobs.xml"
+    'list_jobs': "vires_list_jobs.xml",
+    'getTimeData': "vires_getTimeData.xml"
 }
 
 AUTH_ERROR_TEXT = """
@@ -135,13 +141,12 @@ class ProgressBar(object):
     """Custom tqdm status bar
     """
 
-    def __init__(self, bar_format):
+    def __init__(self, bar_format, total=100, leave=True):
         self.percentCompleted = 0
         self.lastpercent = 0
-
-        self.tqdm_pbar = tqdm(total=100, bar_format=bar_format)
-
-        # self.refresh_tqdm()
+        self.tqdm_pbar = tqdm(
+            total=total, bar_format=bar_format, leave=leave,
+        )
 
     def __enter__(self):
         return self
@@ -162,13 +167,30 @@ class ProgressBar(object):
             self.cleanup()
 
     def write(self, message):
-        """Command line output that doesn't interfere with the tqdm
-
-        This isn't working right in notebooks.
-        Could be fixed by using tqdm_notebook, but this doesn't work with
-        regular terminals and also messes up the bar_format at present.
-        """
+        """Command line output that doesn't interfere with the tqdm"""
         self.tqdm_pbar.write(message)
+
+
+class ProgressBarChunks(ProgressBar):
+    """A progress bar to track longer (chunked) requests"""
+
+    def __init__(self, nchunks):
+        l_bar = '{desc}'
+        bar = '{bar}'
+        r_bar = '|  [ Elapsed: {elapsed}, Remaining: {remaining}]  {postfix}'
+        bar_format = '{}{}{}'.format(l_bar, bar, r_bar)
+        super().__init__(bar_format, total=nchunks+1)
+
+    def update(self, i, n, size, final=False):
+        """Update the chunk iteration (i) and total file size"""
+        # Update {desc} set above
+        self.tqdm_pbar.set_description(f"Processing chunks [{i+1}/{n}]")
+        size = round(size/1e6, 3)
+        filesize_display = f"({size} MB)" if final else f"(> {size} MB)"
+        # Update {postfix} set above
+        self.tqdm_pbar.set_postfix_str(filesize_display)
+        # Update internal state of progress bar
+        self.tqdm_pbar.update(1)
 
 
 class ProgressBarProcessing(ProgressBar):
@@ -177,13 +199,13 @@ class ProgressBarProcessing(ProgressBar):
     Depends on ._wps.wps.WPSStatus
     """
 
-    def __init__(self, left_text=None):
-        left_text = str() if left_text is None else left_text
-        l_bar = left_text + 'Processing:  {percentage:3.0f}%|'
+    def __init__(self, extra_text=None, leave=True):
+        extra_text = str() if extra_text is None else extra_text
+        l_bar = 'Processing:  {percentage:3.0f}%|'
         bar = '{bar}'
         r_bar = '|  [ Elapsed: {elapsed}, Remaining: {remaining} {postfix}]'
-        bar_format = '{}{}{}'.format(l_bar, bar, r_bar)
-        super().__init__(bar_format)
+        bar_format = '{}{}{} {}'.format(l_bar, bar, r_bar, extra_text)
+        super().__init__(bar_format, leave=leave)
 
     def update(self, wpsstatus):
         """Updates the internal state based on the state of a WPSStatus object.
@@ -199,18 +221,18 @@ class ProgressBarDownloading(ProgressBar):
     given a file size in bytes and updated with the percent completion
     """
 
-    def __init__(self, size):
+    def __init__(self, size, leave=True):
         # Convert size to MB
         sizeMB = round(size/1e6, 3)
         # if sizeMB > 1:
         #     sizeMB = round(sizeMB,)
-        l_bar = '      Downloading: {percentage:3.0f}%|'
+        l_bar = 'Downloading: {percentage:3.0f}%|'
         bar = '{bar}'
         r_bar = '|  [ Elapsed: {{elapsed}}, '\
                 'Remaining: {{remaining}} {{postfix}}] '\
                 '({sizeMB}MB)'.format(sizeMB=sizeMB)
         bar_format = '{}{}{}'.format(l_bar, bar, r_bar)
-        super().__init__(bar_format)
+        super().__init__(bar_format, leave=leave)
 
     def update(self, percentCompleted):
         """Updates the internal state of the percentage completion.
@@ -225,15 +247,13 @@ class ClientRequest(object):
     """Base class handling the requests to and downloads from the server.
     """
 
-    def __init__(self, url=None, username=None, password=None, token=None,
-                 config=None, logging_level="NO_LOGGING", skip_token=False,
-                 server_type=None
-                 ):
+    def __init__(self, url=None, token=None,
+                 config=None, logging_level="NO_LOGGING", server_type=None):
 
         # Check and prompt for token if not already set, then store in config
         # Try to only do this if running in a notebook
-        if not skip_token and IN_JUPYTER:
-            if not ((username and password) or token or config):
+        if IN_JUPYTER:
+            if not (token or config):
                 cc = ClientConfig()
                 # Use production url if none chosen
                 url = url or cc.default_url or "https://vires.services/ows"
@@ -248,16 +268,17 @@ class ClientRequest(object):
         self._request = None
         self._templatefiles = {}
         self._supported_filetypes = ()
+        self._downloaded_chunk_sizes = []
 
         logging_level = get_log_level(logging_level)
         self._logger = getLogger()
         set_stream_handler(self._logger, logging_level)
 
         self._wps_service = self._create_service_proxy_(
-            config, url, username, password, token
+            config, url, None, None, token
         )
         # Test if the token is working; re-enter if not
-        if not skip_token and IN_JUPYTER:
+        if IN_JUPYTER:
             invalid_token = True
             attempts = 0
             while invalid_token:
@@ -271,7 +292,7 @@ class ClientRequest(object):
                         raise AuthenticationError(AUTH_ERROR_TEXT)
                     set_token(url)
                     self._wps_service = self._create_service_proxy_(
-                        config, url, username, password, token
+                        config, url, None, None, token
                     )
 
     def _create_service_proxy_(self, config, url, username, password, token):
@@ -323,8 +344,11 @@ class ClientRequest(object):
         else:
             return self._request_inputs.__str__()
 
-    @staticmethod
-    def _response_handler(retdatafile, show_progress=True):
+    # @staticmethod
+    def _response_handler(
+                self, retdatafile, show_progress=True,
+                leave_progress_bar=True
+    ):
         """Creates the response handler function for the WPS request
 
         Streams the remote file to the local (retdatafile),
@@ -356,7 +380,8 @@ class ClientRequest(object):
             file_obj is what is returned from urllib.urlopen()
             """
             size = int(file_obj.info()['Content-Length'])
-            with ProgressBarDownloading(size) as pbar:
+            self._downloaded_chunk_sizes.append(size)
+            with ProgressBarDownloading(size, leave=leave_progress_bar) as pbar:
                 with open(retdatafile._file.name, "wb") as out_file:
                     copyfileobj(
                         file_obj, out_file, callback=copy_progress(pbar),
@@ -364,6 +389,8 @@ class ClientRequest(object):
                         )
 
         def write_response_without_reporting(file_obj):
+            size = int(file_obj.info()['Content-Length'])
+            self._downloaded_chunk_sizes.append(size)
             with open(retdatafile._file.name, "wb") as out_file:
                 copyfileobj(file_obj, out_file)
 
@@ -394,9 +421,9 @@ class ClientRequest(object):
                 e.g. [(start1, end1), (start2, end2)]
         """
         # maximum chunk duration as a timedelta object
-        chunk_duration = timedelta(seconds=(
+        chunk_duration = min(timedelta(seconds=(
             nrecords_limit * parse_duration(sampling_step).total_seconds()
-        ))
+        )), MAX_CHUNK_DURATION)
 
         # calculate the chunk intervals ...
         request_intervals = []
@@ -412,7 +439,7 @@ class ClientRequest(object):
         return request_intervals
 
     def _get(self, request=None, asynchronous=None, response_handler=None,
-             message=None, show_progress=True):
+             message=None, show_progress=True, leave_progress_bar=True):
         """Make a request and handle response according to response_handler
 
         Args:
@@ -421,12 +448,15 @@ class ClientRequest(object):
                 False for synchronous
             response_handler: a function that handles the server response
             message (str): Message to be added to the progress bar
+            show_progress (bool): Display progress bars
+            leave_progress_bar (bool): Keep displaying after completion
         """
         try:
             if asynchronous:
                 if show_progress:
-                    with ProgressBarProcessing(message) as progressbar:
-                        # progressbar.write(message)
+                    with ProgressBarProcessing(
+                        message, leave=leave_progress_bar
+                    ) as progressbar:
                         return self._wps_service.retrieve_async(
                             request,
                             handler=response_handler,
@@ -453,6 +483,8 @@ class ClientRequest(object):
 
     def get_between(self, start_time=None, end_time=None,
                     filetype="cdf", asynchronous=True, show_progress=True,
+                    show_progress_chunks=True,
+                    leave_intermediate_progress_bars=True,
                     nrecords_limit=None, tmpdir=None):
         """Make the server request and download the data.
 
@@ -463,6 +495,10 @@ class ClientRequest(object):
             asynchronous (bool): True for asynchronous processing,
                 False for synchronous
             show_progress (bool): Set to False to remove progress bars
+            show_progress_chunks (bool): Set to False to remove progress bar
+                for chunks
+            leave_intermediate_progress_bars (bool): Set to False to clean up
+                the individual progress bars left when making chunked requests
             nrecords_limit (int): Override the default limit per request
                 (e.g. nrecords_limit=3456000)
             tmpdir (str): Override the default temporary file directory
@@ -481,9 +517,6 @@ class ClientRequest(object):
 
         if end_time < start_time:
             raise ValueError("Invalid time selection! end_time < start_time")
-
-        if (end_time - start_time) > MAX_TIME_SELECTION:
-            raise ValueError("Time selection is too long!")
 
         if asynchronous not in [True, False]:
             raise TypeError("asynchronous must be set to either True or False")
@@ -532,31 +565,51 @@ class ClientRequest(object):
         nchunks = len(intervals)
         # Recreate the ReturnedData with the right number of chunks
         retdatagroup = ReturnedData(filetype=filetype, N=nchunks, tmpdir=tmpdir)
-        for i, (start_time_i, end_time_i) in enumerate(intervals):
-            # message = "Getting chunk {}/{}\nFrom {} to {}".format(
-            #                     i+1, nchunks, start_time_i, end_time_i
-            # )
-            # tqdm.write(message)
+
+        def _get_chunk(i, start_time_i, end_time_i, leave_progress_bar=False):
+            """Process an individual chunk and update retdatagroup"""
             message = "[{}/{}] ".format(i+1, nchunks)
             # Finalise the WPSInputs object and (re-)generate the xml
             self._request_inputs.begin_time = start_time_i
             self._request_inputs.end_time = end_time_i
-            # self._request = wps_xml_request(templatefile, self._request_inputs)
             self._request = self._request_inputs.as_xml(templatefile)
             # Identify the individual ReturnedData object within the group
             retdatafile = retdatagroup.contents[i]
             # Make the request, as either asynchronous or synchronous
             # The response handler streams the data to the ReturnedData object
             response_handler = self._response_handler(
-                retdatafile, show_progress=show_progress
-                )
+                retdatafile, show_progress=show_progress,
+                leave_progress_bar=leave_progress_bar
+            )
             self._get(
                 request=self._request,
                 asynchronous=asynchronous,
                 response_handler=response_handler,
                 message=message,
-                show_progress=show_progress
-                )
+                show_progress=show_progress,
+                leave_progress_bar=leave_progress_bar
+            )
+
+        if nchunks > 1:
+            # Track the size of each chunk as they come in
+            self._downloaded_chunk_sizes = []
+            if show_progress_chunks:
+                with ProgressBarChunks(nchunks) as pbar:
+                    totalsize = 0
+                    # Get each chunk serially
+                    for i, (start_time_i, end_time_i) in enumerate(intervals):
+                        pbar.update(i, nchunks, totalsize)
+                        _get_chunk(
+                            i, start_time_i, end_time_i,
+                            leave_progress_bar=leave_intermediate_progress_bars
+                        )
+                        totalsize = sum(self._downloaded_chunk_sizes)
+                    pbar.update(i, nchunks, totalsize, final=True)
+            else:
+                for i, (start_time_i, end_time_i) in enumerate(intervals):
+                    _get_chunk(i, start_time_i, end_time_i)
+        else:
+            _get_chunk(0, start_time, end_time, leave_progress_bar=True)
 
         return retdatagroup
 
@@ -571,3 +624,34 @@ class ClientRequest(object):
         request = template.render().encode('UTF-8')
         response = self._get(request, asynchronous=False, show_progress=False)
         return json.loads(response.decode('UTF-8'))
+
+    def available_times(self, collection, start_time=None, end_time=None):
+        """Returns temporal availability for a given collection
+
+        Args:
+            (str): collection name
+            start_time (datetime / ISO_8601 string)
+            end_time (datetime / ISO_8601 string)
+
+        Returns:
+            DataFrame
+
+        """
+        template = JINJA2_ENVIRONMENT.get_template(
+            TEMPLATE_FILES["getTimeData"]
+        )
+        request = template.render(
+            collection_id=collection,
+            begin_time=start_time,
+            end_time=end_time
+        ).encode('UTF-8')
+        response = self._get(
+            request, asynchronous=False, show_progress=False
+        )
+        df = read_csv(
+            StringIO(str(response, 'utf-8'))
+        )
+        # Convert to datetime objects
+        df["starttime"] = to_datetime(df["starttime"])
+        df["endtime"] = to_datetime(df["endtime"])
+        return df

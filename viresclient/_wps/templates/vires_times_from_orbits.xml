@@ -2,12 +2,22 @@
 <wps:Execute xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" version="1.0.0" service="WPS">
   <ows:Identifier>vires:get_orbit_timerange</ows:Identifier>
   <wps:DataInputs>
+    {% if mission -%}
+    <wps:Input>
+      <ows:Identifier>mission</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ mission }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
+    {% if spacecraft -%}
     <wps:Input>
       <ows:Identifier>spacecraft</ows:Identifier>
       <wps:Data>
         <wps:LiteralData>{{ spacecraft }}</wps:LiteralData>
       </wps:Data>
     </wps:Input>
+    {% endif -%}
     <wps:Input>
       <ows:Identifier>start_orbit</ows:Identifier>
       <wps:Data>

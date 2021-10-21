@@ -137,7 +137,6 @@ class ClientConfig():
       cc.default_url = "https://foo.bar/ows"  # set default server
 
       # access to credentials configuration ...
-      cc.set_site_config("https://foo.bar/ows", username="...", password="...")
       cc.set_site_config("https://foo2.bar/ows", token="...")
 
       cc.save()    # save configuration
