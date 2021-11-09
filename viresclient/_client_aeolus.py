@@ -242,15 +242,13 @@ class AeolusRequest(ClientRequest):
         collection_dfs = []
         collection_names = []
         for c_name, collection in CONFIG_AEOLUS["collections"].items():
-            
-            collection_dfs.append(
-                pd.concat(
-                    [pd.DataFrame(ft).transpose() for _, ft in collection.items()],
-                    keys=collection.keys()
-                )
+            ft_df = pd.concat(
+                [pd.DataFrame(ft).transpose() for _, ft in collection.items()],
+                names=["field type"], keys=collection.keys()
             )
+            collection_dfs.append(ft_df)
             collection_names.append(c_name)
-        df = pd.concat(collection_dfs, keys=collection_names)
+        df = pd.concat(collection_dfs, names=["collection"], keys=collection_names)
         # TODO: Apply filters
         return df
 
