@@ -1,6 +1,9 @@
 import datetime, json
 
 from ._client import WPSInputs, ClientRequest
+from ._data import CONFIG_AEOLUS
+import pandas as pd
+# from pandas import DataFrame, json_normalize
 
 TEMPLATE_FILES = {
     'sync': "vires_aeolus_fetch_filtered_data.xml",
@@ -230,6 +233,26 @@ class AeolusRequest(ClientRequest):
         else:
             raise ValueError("Product not found")
 
+    def available_collections(self, collection=None, field_type=None, details=True):
+        return CONFIG_AEOLUS
+    
+    def print_available_collections(self, collection=None, field_type=None, details=True):
+        pd.set_option("max_rows", None)
+        pd.set_option('display.max_colwidth', None)
+        collection_dfs = []
+        collection_names = []
+        for c_name, collection in CONFIG_AEOLUS["collections"].items():
+            
+            collection_dfs.append(
+                pd.concat(
+                    [pd.DataFrame(ft).transpose() for _, ft in collection.items()],
+                    keys=collection.keys()
+                )
+            )
+            collection_names.append(c_name)
+        df = pd.concat(collection_dfs, keys=collection_names)
+        # TODO: Apply filters
+        return df
 
     def set_fields(self,
                    observation_fields=None, measurement_fields=None,
