@@ -233,23 +233,49 @@ class AeolusRequest(ClientRequest):
         else:
             raise ValueError("Product not found")
 
-    def available_collections(self, collection=None, field_type=None, details=True):
+    def available_collections(
+        self, collection=None, field_type=None, like=None, details=True):
         return CONFIG_AEOLUS
     
-    def print_available_collections(self, collection=None, field_type=None, details=True):
+    def print_available_collections(
+        self, collection=None, field_type=None, regex=None, details=True):
         pd.set_option("max_rows", None)
         pd.set_option('display.max_colwidth', None)
         collection_dfs = []
         collection_names = []
-        for c_name, collection in CONFIG_AEOLUS["collections"].items():
+        for c_name, collection_obj in CONFIG_AEOLUS["collections"].items():
+            field_dfs = []
+            for _, ft in collection_obj.items():
+                fdf = pd.DataFrame(ft).transpose()
+                if regex != None:
+                    fdf = fdf[fdf.index.str.contains(regex, regex=True)]
+                field_dfs.append(fdf)
             ft_df = pd.concat(
-                [pd.DataFrame(ft).transpose() for _, ft in collection.items()],
-                names=["field type"], keys=collection.keys()
+                field_dfs, names=["field type"], keys=collection_obj.keys()
             )
-            collection_dfs.append(ft_df)
-            collection_names.append(c_name)
+            if field_type != None:
+                try: 
+                    ft_df = ft_df.loc[field_type]
+                    collection_dfs.append(ft_df)
+                    collection_names.append(c_name)
+                except KeyError: 
+                    pass
+            else:
+                collection_dfs.append(ft_df)
+                collection_names.append(c_name)
+        if len(collection_dfs) == 0:
+            print("Passed field_type not found")
+            return
         df = pd.concat(collection_dfs, names=["collection"], keys=collection_names)
-        # TODO: Apply filters
+        df.fillna("-",inplace=True)
+        if collection != None:
+            try: 
+                df = df.loc[collection]
+            except KeyError: 
+                print("Passed collection not found")
+                return
+        if not details:
+            df = df.filter('')
         return df
 
     def set_fields(self,
