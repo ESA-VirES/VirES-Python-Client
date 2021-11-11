@@ -1,6 +1,9 @@
 import datetime, json
 
 from ._client import WPSInputs, ClientRequest
+from ._data import CONFIG_AEOLUS
+import pandas as pd
+# from pandas import DataFrame, json_normalize
 
 TEMPLATE_FILES = {
     'sync': "vires_aeolus_fetch_filtered_data.xml",
@@ -230,6 +233,50 @@ class AeolusRequest(ClientRequest):
         else:
             raise ValueError("Product not found")
 
+    def available_collections(
+        self, collection=None, field_type=None, like=None, details=True):
+        return CONFIG_AEOLUS
+    
+    def print_available_collections(
+        self, collection=None, field_type=None, regex=None, details=True):
+        pd.set_option("max_rows", None)
+        pd.set_option('display.max_colwidth', None)
+        collection_dfs = []
+        collection_names = []
+        for c_name, collection_obj in CONFIG_AEOLUS["collections"].items():
+            field_dfs = []
+            for _, ft in collection_obj.items():
+                fdf = pd.DataFrame(ft).transpose()
+                if regex != None:
+                    fdf = fdf[fdf.index.str.contains(regex, regex=True)]
+                field_dfs.append(fdf)
+            ft_df = pd.concat(
+                field_dfs, names=["field type"], keys=collection_obj.keys()
+            )
+            if field_type != None:
+                try: 
+                    ft_df = ft_df.loc[field_type]
+                    collection_dfs.append(ft_df)
+                    collection_names.append(c_name)
+                except KeyError: 
+                    pass
+            else:
+                collection_dfs.append(ft_df)
+                collection_names.append(c_name)
+        if len(collection_dfs) == 0:
+            print("Passed field_type not found")
+            return
+        df = pd.concat(collection_dfs, names=["collection"], keys=collection_names)
+        df.fillna("-",inplace=True)
+        if collection != None:
+            try: 
+                df = df.loc[collection]
+            except KeyError: 
+                print("Passed collection not found")
+                return
+        if not details:
+            df = df.filter('')
+        return df
 
     def set_fields(self,
                    observation_fields=None, measurement_fields=None,
