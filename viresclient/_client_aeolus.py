@@ -281,6 +281,7 @@ class AeolusRequest(ClientRequest):
     def set_fields(self,
                    observation_fields=None, measurement_fields=None,
                    ica_fields=None, sca_fields=None, mca_fields=None,
+                   mie_profile_fields=None, rayleigh_profile_fields=None,
                    rayleigh_wind_fields=None, mie_wind_fields=None,
                    fields=None):
         if observation_fields:
@@ -293,6 +294,10 @@ class AeolusRequest(ClientRequest):
             self._request_inputs.mca_fields = ",".join(mca_fields)
         if sca_fields:
             self._request_inputs.sca_fields = ",".join(sca_fields)
+        if mie_profile_fields:
+            self._request_inputs.mie_profile_fields = ",".join(mie_profile_fields)
+        if rayleigh_profile_fields:
+            self._request_inputs.rayleigh_profile_fields = ",".join(rayleigh_profile_fields)
         if rayleigh_wind_fields:
             self._request_inputs.rayleigh_wind_fields = ",".join(rayleigh_wind_fields)
         if mie_wind_fields:

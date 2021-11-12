@@ -37,4 +37,4 @@ from ._api.token import TokenManager
 from . import _data
 
 
-__version__ = "0.9.2"
+__version__ = "0.9.3"
