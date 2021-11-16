@@ -238,17 +238,20 @@ class AeolusRequest(ClientRequest):
         return CONFIG_AEOLUS
     
     def print_available_collections(
-        self, collection=None, field_type=None, regex=None, details=True):
+        self, collection=None, field_type=None, regex=None, details=True, path=False):
         pd.set_option("max_rows", None)
-        pd.set_option('display.max_colwidth', None)
+        pd.set_option("display.max_colwidth", None)
         collection_dfs = []
         collection_names = []
         for c_name, collection_obj in CONFIG_AEOLUS["collections"].items():
             field_dfs = []
             for _, ft in collection_obj.items():
                 fdf = pd.DataFrame(ft).transpose()
+                fdf.index.name = "identifier"
                 if regex != None:
                     fdf = fdf[fdf.index.str.contains(regex, regex=True)]
+                if path == False:
+                    del fdf['path']
                 field_dfs.append(fdf)
             ft_df = pd.concat(
                 field_dfs, names=["field type"], keys=collection_obj.keys()
