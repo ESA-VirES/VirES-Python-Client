@@ -40,6 +40,7 @@ if os.name == "nt":
     import atexit
 
 from ._data import CONFIG_SWARM
+from ._data import CONFIG_AEOLUS
 
 CDF_EPOCH_1970 = 62167219200000.0
 
@@ -535,6 +536,15 @@ class ReturnedDataFile(object):
                 ds = ds.merge(xarray.open_dataset(
                     self._file.name, group=group, engine='netcdf4'
                 ))
+            # Go through Aeolus parameters and check if unit information is available
+            # TODO: We are "flattening" the list of parameters, same parameter
+            # id in different collection types could select incorrect one
+            for parameter in ds:
+                for coll_obj in CONFIG_AEOLUS["collections"].values():
+                    for field_type in coll_obj.values():
+                        if parameter in field_type and field_type[parameter]['uom']:
+                            ds[parameter].attrs["units"] = field_type[parameter]['uom']
+            # TODO: Go through Swarm parameters
         return ds
 
     @property

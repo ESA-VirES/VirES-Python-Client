@@ -2,7 +2,7 @@
     "collections": {
         "ALD_U_N_1B": {
             "observation_fields": {
-                "time": {"uom": null, "description": "UTC Time at center of obs/meas.", "path": "['/geolocation', -1, 'observation_aocs/observation_centroid_time']"},
+                "time": {"uom": "seconds since 2000-01-01", "description": "UTC Time at center of obs/meas.", "path": "['/geolocation', -1, 'observation_aocs/observation_centroid_time']"},
                 "longitude_of_DEM_intersection": {"uom": "10⁻⁶DegE", "description": "Longitude of the intersection of DEM and the line-of-sight", "path": " ['/geolocation', -1, 'observation_geolocation/geolocation_of_dem_intersection/longitude_of_dem_intersection']"},
                 "latitude_of_DEM_intersection": {"uom": "10⁻⁶DegN", "description": "Latitude of the intersection of DEM and the line-of-sight", "path": "['/geolocation', -1, 'observation_geolocation/geolocation_of_dem_intersection/latitude_of_dem_intersection']"},
                 "altitude_of_DEM_intersection": {"uom": "m", "description": "Altitude of the intersection of DEM and the line-of-sight", "path": "['/geolocation', -1, 'observation_geolocation/geolocation_of_dem_intersection/altitude_of_dem_intersection']"},
@@ -91,7 +91,7 @@
                 "albedo_off_nadir": {"uom": null, "description": "Albedo off-nadir value", "path": "Computed parameter"}
             },
             "measurement_fields": {
-                "time": {"uom": null, "description": "UTC Time at center of obs/meas.", "path": "['/geolocation', -1, 'measurement_aocs', -1, 'measurement_centroid_time']"},
+                "time": {"uom": "seconds since 2000-01-01", "description": "UTC Time at center of obs/meas.", "path": "['/geolocation', -1, 'measurement_aocs', -1, 'measurement_centroid_time']"},
                 "longitude_of_DEM_intersection": {"uom": "10⁻⁶DegE", "description": "Longitude of the intersection of DEM and the line-of-sight", "path": "['/geolocation', -1, 'measurement_geolocation', -1, 'geolocation_of_dem_intersection/longitude_of_dem_intersection']"},
                 "latitude_of_DEM_intersection": {"uom": "10⁻⁶DegN", "description": "Latitude of the intersection of DEM and the line-of-sight", "path": "['/geolocation', -1, 'measurement_geolocation', -1, 'geolocation_of_dem_intersection/latitude_of_dem_intersection']"},
                 "altitude_of_DEM_intersection": {"uom": "m", "description": "Altitude of the intersection of DEM and the line-of-sight", "path": "['/geolocation', -1, 'measurement_geolocation', -1, 'geolocation_of_dem_intersection/altitude_of_dem_intersection']"},
@@ -134,8 +134,8 @@
         },
         "ALD_U_N_2A": {
             "observation_fields":{
-                "L1B_start_time_obs": {"uom": null, "description": "Start date and time of Observation (UTC)", "path": " ['/geolocation', -1, 'start_of_obs_time']"},
-                "L1B_centroid_time_obs": {"uom": null, "description": "Centroid date and time of Observation (UTC)", "path": "Computed parameter"},
+                "L1B_start_time_obs": {"uom": "seconds since 2000-01-01", "description": "Start date and time of Observation (UTC)", "path": " ['/geolocation', -1, 'start_of_obs_time']"},
+                "L1B_centroid_time_obs": {"uom": "seconds since 2000-01-01", "description": "Centroid date and time of Observation (UTC)", "path": "Computed parameter"},
                 "longitude_of_DEM_intersection_obs": {"uom": "degE", "description": "Parameter derived from Longitude of DEM intersection meas. - one value for each observation", "path": "Computed parameter"},
                 "latitude_of_DEM_intersection_obs": {"uom": "degN", "description": "Parameter derived from Latitude of DEM intersection meas. - one value for each observation", "path": "Computed parameter"},
                 "altitude_of_DEM_intersection_obs": {"uom": "m", "description": "Parameter derived from Altitude of DEM intersection meas. - one value for each observation", "path": "Computed parameter"},
@@ -149,7 +149,7 @@
                 "albedo_off_nadir": {"uom": null, "description": "Albedo off-nadir value", "path": "Computed parameter"}
             },
             "measurement_fields":{
-                "L1B_time_meas": {"uom": null, "description": "Measurement centroid time from L1B (UTC)", "path": "['/geolocation', -1, 'measurement_geolocation', -1, 'centroid_time']"},
+                "L1B_time_meas": {"uom": "seconds since 2000-01-01", "description": "Measurement centroid time from L1B (UTC)", "path": "['/geolocation', -1, 'measurement_geolocation', -1, 'centroid_time']"},
                 "longitude_of_DEM_intersection_meas": {"uom": "10⁻⁶degE", "description": "Longitude of the intersection of the DEM and the line-of-sight", "path": "['/geolocation', -1, 'measurement_geolocation', -1, 'longitude_of_dem_intersection']"},
                 "latitude_of_DEM_intersection_meas": {"uom": "10⁻⁶degN", "description": "Latitude of the intersection of the DEM and the line-of-sight", "path": "['/geolocation', -1, 'measurement_geolocation', -1, 'latitude_of_dem_intersection']"},
                 "altitude_of_DEM_intersection_meas": {"uom": "m", "description": "Altitude relative to the geoid of the intersection of the DEM and the line-of-sight", "path": "['/geolocation', -1, 'measurement_geolocation', -1, 'altitude_of_dem_intersection']"},
@@ -158,9 +158,9 @@
                 "albedo_off_nadir": {"uom": null, "description": "Albedo off-nadir value", "path": "Computed parameter"}
             },
             "group_fields":{
-                "group_start_time": {"uom": null, "description": "Start date and time of the group profile covered by the present DSR (UTC)", "path": "['/group_pcd', -1, 'starttime']"},
-                "group_end_time": {"uom": null, "description": "End date and time of the group profile covered by the present DSR (UTC)", "path": "Computed parameter"},
-                "group_centroid_time": {"uom": null, "description": "Centroid date and time of the group profile covered by the present DSR (UTC)", "path": "Computed parameter"},
+                "group_start_time": {"uom": "seconds since 2000-01-01", "description": "Start date and time of the group profile covered by the present DSR (UTC)", "path": "['/group_pcd', -1, 'starttime']"},
+                "group_end_time": {"uom": "seconds since 2000-01-01", "description": "End date and time of the group profile covered by the present DSR (UTC)", "path": "Computed parameter"},
+                "group_centroid_time": {"uom": "seconds since 2000-01-01", "description": "Centroid date and time of the group profile covered by the present DSR (UTC)", "path": "Computed parameter"},
                 "group_middle_bin_start_altitude": {"uom": "m", "description": "Altitude of the start point of the two middle bins", "path": "['/group_optical_properties', -1, 'group_geolocation_middle_bins/start_altitude']"},
                 "group_middle_bin_stop_altitude": {"uom": "m", "description": "Altitude of the stop point of the two middle bins", "path": "['/group_optical_properties', -1, 'group_geolocation_middle_bins/stop_altitude']"},
                 "group_start_obs": {"uom": null, "description": "BRC (obs.) of the first measurement of the group", "path": "['/group_pcd', -1, 'brc_start']"},
@@ -205,7 +205,7 @@
                 "SCA_middle_bin_backscatter_variance": {"uom": "m⁻²*sr⁻²", "description": "Variance of the backscatter coefficient retrieved by the SCA in this bin", "path": "['/sca_pcd', -1, 'profile_pcd_mid_bins', -1, 'backscatter_variance']"},
                 "SCA_middle_bin_LOD_variance": {"uom": null, "description": "Variance of the LOD retrieved by the SCA in this bin", "path": "['/sca_pcd', -1, 'profile_pcd_mid_bins', -1, 'lod_variance']"},
                 "SCA_middle_bin_BER_variance": {"uom": "sr⁻²", "description": "Variance of the backscatter-to-extinction ratio", "path": "['/sca_pcd', -1, 'profile_pcd_mid_bins', -1, 'ber_variance']"},
-                "SCA_time_obs": {"uom": null, "description": "Start date and time of the SCA profile covered by the present DSR (UTC)", "path": "['/sca_optical_properties', -1, 'starttime']"},
+                "SCA_time_obs": {"uom": "seconds since 2000-01-01", "description": "Start date and time of the SCA profile covered by the present DSR (UTC)", "path": "['/sca_optical_properties', -1, 'starttime']"},
                 "SCA_extinction": {"uom": "10⁻⁶*m⁻¹", "description": "Particle extinction of the height bin", "path": "['/sca_optical_properties', -1, 'sca_optical_properties', -1, 'extinction']"},
                 "SCA_backscatter": {"uom": "10⁻⁶*m⁻¹* sr⁻¹", "description": "Particle extinction of the height bin", "path": "['/sca_optical_properties', -1, 'sca_optical_properties', -1, 'backscatter']"},
                 "SCA_LOD": {"uom": null, "description": "Particle LOD of the height bin", "path": "['/sca_optical_properties', -1, 'sca_optical_properties', -1, 'lod']"},
@@ -217,7 +217,7 @@
                 "SCA_middle_bin_BER": {"uom": null, "description": "Backscatter-to-extinction ratio of the middle bin", "path": "['/sca_optical_properties', -1, 'sca_optical_properties_mid_bins', -1, 'ber']"}
             },
             "ica_fields":{
-                "ICA_time_obs": {"uom": null, "description": "Start date and time of the ICA profile covered by the present DSR (UTC)", "path": "['/ica_optical_properties', -1, 'starttime']"},
+                "ICA_time_obs": {"uom": "seconds since 2000-01-01", "description": "Start date and time of the ICA profile covered by the present DSR (UTC)", "path": "['/ica_optical_properties', -1, 'starttime']"},
                 "ICA_QC_flag": {"uom": null, "description": "ICA QC flag about processed data: 1 if the first matching bin is clear; 0 else", "path": "['/ica_pcd', -1, 'qc_flag']"},
                 "ICA_filling_case": {"uom": null, "description": "Filling case estimated by the algorithm (case 1-7)", "path": "['/ica_optical_properties', -1, 'ica_optical_properties', -1, 'case']"},
                 "ICA_extinction": {"uom": "10⁻⁶*m⁻¹", "description": "Particle extinction of the height bin", "path": "['/ica_optical_properties', -1, 'ica_optical_properties', -1, 'extinction']"},
@@ -225,7 +225,7 @@
                 "ICA_LOD": {"uom": null, "description": "Particle LOD of the height bin", "path": "['/ica_optical_properties', -1, 'ica_optical_properties', -1, 'lod']"}
             },
             "mca_fields":{
-                "MCA_time_obs": {"uom": null, "description": "Start date and time of the MCA profile covered by the present DSR (UTC)", "path": "['/mca_optical_properties', -1, 'starttime']"},
+                "MCA_time_obs": {"uom": "seconds since 2000-01-01", "description": "Start date and time of the MCA profile covered by the present DSR (UTC)", "path": "['/mca_optical_properties', -1, 'starttime']"},
                 "MCA_clim_BER": {"uom": "sr⁻¹", "description": "Particle backscatter‐to‐extinction ratio extracted from the climatology", "path": "['/mca_optical_properties', -1, 'mca_optical_properties', -1, 'climber']"},
                 "MCA_extinction": {"uom": "10⁻⁶*m⁻¹", "description": "Particle extinction of the bin", "path": "['/mca_optical_properties', -1, 'mca_optical_properties', -1, 'extinction']"},
                 "MCA_LOD": {"uom": null, "description": "Particle LOD of the bin", "path": "['/mca_optical_properties', -1, 'mca_optical_properties', -1, 'lod']"}
@@ -234,7 +234,7 @@
         "ALD_U_N_2B": {
             "mie_grouping_fields": {
                 "mie_grouping_id":{"uom": null, "description": "An unique id for this group in this L2B  file", "path": "['/mie_grouping', -1, 'grouping_result_id']"},
-                "mie_grouping_time":{"uom": null, "description": "Start date and time of group [UTC]", "path": "['/mie_grouping', -1, 'start_of_obs_datetime']"},
+                "mie_grouping_time":{"uom": "seconds since 2000-01-01", "description": "Start date and time of group [UTC]", "path": "['/mie_grouping', -1, 'start_of_obs_datetime']"},
                 "mie_grouping_start_obs":{"uom": null, "description": "L1B BRC (obs.) number for the measurement at which this group starts", "path": "['/mie_grouping', -1, 'which_l1b_brc1']"},
                 "mie_grouping_start_meas_obs":{"uom": null, "description": "L1B measurement number within the above mentioned L1B BRC (obs.) at which this group starts", "path": "['/mie_grouping', -1, 'which_l1b_meas_within_this_brc1']"},
                 "mie_grouping_end_obs":{"uom": null, "description": "L1B BRC (obs.) number for the measurement at which this group ends", "path": "['/mie_grouping', -1, 'which_l1b_brc2']"},
@@ -242,7 +242,7 @@
             },
             "rayleigh_grouping_fields": {
                 "rayleigh_grouping_id":{"uom": null, "description": "An unique id for this group in this L2B  file", "path": "['/rayleigh_grouping', -1, 'grouping_result_id']"},
-                "rayleigh_grouping_time":{"uom": null, "description": "Start date and time of group [UTC]", "path": "['/rayleigh_grouping', -1, 'start_of_obs_datetime']"},
+                "rayleigh_grouping_time":{"uom": "seconds since 2000-01-01", "description": "Start date and time of group [UTC]", "path": "['/rayleigh_grouping', -1, 'start_of_obs_datetime']"},
                 "rayleigh_grouping_start_obs":{"uom": null, "description": "L1B BRC (obs.) number for the measurement at which this group starts", "path": "['/rayleigh_grouping', -1, 'which_l1b_brc1']"},
                 "rayleigh_grouping_start_meas_obs":{"uom": null, "description": "L1B measurement number within the above mentioned L1B BRC (obs.) at which this group starts", "path": "['/rayleigh_grouping', -1, 'which_l1b_meas_within_this_brc1']"},
                 "rayleigh_grouping_end_obs":{"uom": null, "description": "L1B BRC (obs.) number for the measurement at which this group ends", "path": "['/rayleigh_grouping', -1, 'which_l1b_brc2']"},
@@ -255,9 +255,9 @@
                 "mie_profile_lon_of_DEM_intersection":{"uom": "degE", "description": "New parameter - Longitude of DEM intersection of the current profile", "path": "Computed parameter"},
                 "mie_profile_geoid_separation":{"uom": "m", "description": "New parameter - Height of geoid above WGS84 ellipsoid for each profile", "path": "Computed parameter"},
                 "mie_profile_alt_of_DEM_intersection":{"uom": "m", "description": "New parameter - Altitude of DEM intersection for each profile", "path": "Computed parameter"},
-                "mie_profile_datetime_start": {"uom": null, "description": "", "path": "['/mie_profile', -1, 'profile_datetime_start']"},
-                "mie_profile_datetime_average": {"uom": null, "description": "", "path": "['/mie_profile', -1, 'profile_datetime_average']"},
-                "mie_profile_datetime_stop": {"uom": null, "description": "", "path": "['/mie_profile', -1, 'profile_datetime_stop']"},
+                "mie_profile_datetime_start": {"uom": "seconds since 2000-01-01", "description": "", "path": "['/mie_profile', -1, 'profile_datetime_start']"},
+                "mie_profile_datetime_average": {"uom": "seconds since 2000-01-01", "description": "", "path": "['/mie_profile', -1, 'profile_datetime_average']"},
+                "mie_profile_datetime_stop": {"uom": "seconds since 2000-01-01", "description": "", "path": "['/mie_profile', -1, 'profile_datetime_stop']"},
                 "mie_profile_albedo_off_nadir": {"uom": null, "description": "", "path": "Computed parameter"},
                 "mie_aht_22": {"uom": "C", "description": "Average of Aht 22 M1 temperatures", "path": "Computed parameter combining ['/copied_brc_data', -1, 'm1_temperature/aht_22'], ['/mie_geolocation', -1, 'windresult_geolocation/which_cog_l1b_brc']"},
                 "mie_aht_23": {"uom": "C", "description": "Average of Aht 23 M1 temperatures", "path": "Computed parameter combining ['/copied_brc_data', -1, 'm1_temperature/aht_23'], ['/mie_geolocation', -1, 'windresult_geolocation/which_cog_l1b_brc']"},
@@ -282,9 +282,9 @@
                 "rayleigh_profile_lon_of_DEM_intersection":{"uom": "degE", "description": "New parameter - Longitude of DEM intersection of the current profile", "path": "Computed parameter"},
                 "rayleigh_profile_geoid_separation":{"uom": "m", "description": "New parameter - Height of geoid above WGS84 ellipsoid for each profile", "path": "Computed parameter"},
                 "rayleigh_profile_alt_of_DEM_intersection":{"uom": "m", "description": "New parameter -Altitude of DEM intersection of the current profile", "path": "Computed parameter"},
-                "rayleigh_profile_datetime_start":{"uom": null, "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_start']"},
-                "rayleigh_profile_datetime_average":{"uom": null, "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_average']"},
-                "rayleigh_profile_datetime_stop":{"uom": null, "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_stop']"},
+                "rayleigh_profile_datetime_start":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_start']"},
+                "rayleigh_profile_datetime_average":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_average']"},
+                "rayleigh_profile_datetime_stop":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_stop']"},
                 "rayleigh_profile_albedo_off_nadir":{"uom": null, "description":"", "path": "Computed parameter"},
                 "rayleigh_aht_22": {"uom": "C", "description": "Average of Aht 22 M1 temperatures", "path": "Computed parameter combining ['/copied_brc_data', -1, 'm1_temperature/aht_22'], ['/rayleigh_geolocation', -1, 'windresult_geolocation/which_cog_l1b_brc']"},
                 "rayleigh_aht_23": {"uom": "C", "description": "Average of Aht 23 M1 temperatures", "path": "Computed parameter combining ['/copied_brc_data', -1, 'm1_temperature/aht_23'], ['/rayleigh_geolocation', -1, 'windresult_geolocation/which_cog_l1b_brc']"},
@@ -305,9 +305,9 @@
             "mie_wind_fields": {
                 "mie_wind_result_id":{"uom": null, "description": "An unique id for this wind for this channel in this L2B  file", "path": "['/mie_geolocation', -1, 'wind_result_id']"},
                 "mie_wind_result_range_bin_number":{"uom": null, "description": "Stores the range bin number this wind result belongs to", "path": "['/mie_hloswind', -1, 'windresult/which_range_bin']"},
-                "mie_wind_result_start_time":{"uom": null, "description": "Start Date and time of the current accumulation [UTC]", "path": "['/mie_geolocation', -1, 'windresult_geolocation/datetime_start']"},
-                "mie_wind_result_COG_time":{"uom": null, "description": "CoG Date and time of the current accumulation [UTC]", "path": "['/mie_geolocation', -1, 'windresult_geolocation/datetime_cog']"},
-                "mie_wind_result_stop_time":{"uom": null, "description": "Stop Date and time of the current accumulation [UTC]", "path": "['/mie_geolocation', -1, 'windresult_geolocation/datetime_stop']"},
+                "mie_wind_result_start_time":{"uom": "seconds since 2000-01-01", "description": "Start Date and time of the current accumulation [UTC]", "path": "['/mie_geolocation', -1, 'windresult_geolocation/datetime_start']"},
+                "mie_wind_result_COG_time":{"uom": "seconds since 2000-01-01", "description": "CoG Date and time of the current accumulation [UTC]", "path": "['/mie_geolocation', -1, 'windresult_geolocation/datetime_cog']"},
+                "mie_wind_result_stop_time":{"uom": "seconds since 2000-01-01", "description": "Stop Date and time of the current accumulation [UTC]", "path": "['/mie_geolocation', -1, 'windresult_geolocation/datetime_stop']"},
                 "mie_wind_result_bottom_altitude":{"uom": "m", "description": "Bottom altitude for this accumulation", "path": "['/mie_geolocation', -1, 'windresult_geolocation/altitude_bottom']"},
                 "mie_wind_result_COG_altitude":{"uom": "m", "description": "Vertical COG altitude for this accumulation", "path": "['/mie_geolocation', -1, 'windresult_geolocation/altitude_vcog']"},
                 "mie_wind_result_top_altitude":{"uom": "m", "description": "Top altitude for this accumulation", "path": "['/mie_geolocation', -1, 'windresult_geolocation/altitude_top']"},
@@ -347,9 +347,9 @@
             "rayleigh_wind_fields": {
                 "rayleigh_wind_result_id":{"uom": null, "description": "An unique id for this wind for this channel in this L2B  file", "path": "['/rayleigh_geolocation', -1, 'wind_result_id']"},
                 "rayleigh_wind_result_range_bin_number":{"uom": null, "description": "Stores the range bin number this wind result belongs to", "path": "['/rayleigh_hloswind', -1, 'windresult/which_range_bin'], # TODO ?"},
-                "rayleigh_wind_result_start_time":{"uom": null, "description": "Start Date and time of the current accumulation [UTC]", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/datetime_start']"},
-                "rayleigh_wind_result_COG_time":{"uom": null, "description": "CoG Date and time of the current accumulation [UTC]", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/datetime_cog']"},
-                "rayleigh_wind_result_stop_time":{"uom": null, "description": "Stop Date and time of the current accumulation [UTC]", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/datetime_stop']"},
+                "rayleigh_wind_result_start_time":{"uom": "seconds since 2000-01-01", "description": "Start Date and time of the current accumulation [UTC]", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/datetime_start']"},
+                "rayleigh_wind_result_COG_time":{"uom": "seconds since 2000-01-01", "description": "CoG Date and time of the current accumulation [UTC]", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/datetime_cog']"},
+                "rayleigh_wind_result_stop_time":{"uom": "seconds since 2000-01-01", "description": "Stop Date and time of the current accumulation [UTC]", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/datetime_stop']"},
                 "rayleigh_wind_result_bottom_altitude":{"uom": "m", "description": "Bottom altitude for this accumulation", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/altitude_bottom']"},
                 "rayleigh_wind_result_COG_altitude":{"uom": "m", "description": "Vertical COG altitude for this accumulation", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/altitude_vcog']"},
                 "rayleigh_wind_result_top_altitude":{"uom": "m", "description": "Top altitude for this accumulation", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/altitude_top']"},
@@ -417,7 +417,7 @@
         "ALD_U_N_2C": {
             "mie_grouping_fields": {
                 "mie_grouping_id":{"uom": null, "description": "An unique id for this group in this L2B  file", "path": "['/mie_grouping', -1, 'grouping_result_id']"},
-                "mie_grouping_time":{"uom": null, "description": "Start date and time of group [UTC]", "path": "['/mie_grouping', -1, 'start_of_obs_datetime']"},
+                "mie_grouping_time":{"uom": "seconds since 2000-01-01", "description": "Start date and time of group [UTC]", "path": "['/mie_grouping', -1, 'start_of_obs_datetime']"},
                 "mie_grouping_start_obs":{"uom": null, "description": "L1B BRC (obs.) number for the measurement at which this group starts", "path": "['/mie_grouping', -1, 'which_l1b_brc1']"},
                 "mie_grouping_start_meas_obs":{"uom": null, "description": "L1B measurement number within the above mentioned L1B BRC (obs.) at which this group starts", "path": "['/mie_grouping', -1, 'which_l1b_meas_within_this_brc1']"},
                 "mie_grouping_end_obs":{"uom": null, "description": "L1B BRC (obs.) number for the measurement at which this group ends", "path": "['/mie_grouping', -1, 'which_l1b_brc2']"},
@@ -425,7 +425,7 @@
             },
             "rayleigh_grouping_fields": {
                 "rayleigh_grouping_id":{"uom": null, "description": "An unique id for this group in this L2B  file", "path": "['/rayleigh_grouping', -1, 'grouping_result_id']"},
-                "rayleigh_grouping_time":{"uom": null, "description": "Start date and time of group [UTC]", "path": "['/rayleigh_grouping', -1, 'start_of_obs_datetime']"},
+                "rayleigh_grouping_time":{"uom": "seconds since 2000-01-01", "description": "Start date and time of group [UTC]", "path": "['/rayleigh_grouping', -1, 'start_of_obs_datetime']"},
                 "rayleigh_grouping_start_obs":{"uom": null, "description": "L1B BRC (obs.) number for the measurement at which this group starts", "path": "['/rayleigh_grouping', -1, 'which_l1b_brc1']"},
                 "rayleigh_grouping_start_meas_obs":{"uom": null, "description": "L1B measurement number within the above mentioned L1B BRC (obs.) at which this group starts", "path": "['/rayleigh_grouping', -1, 'which_l1b_meas_within_this_brc1']"},
                 "rayleigh_grouping_end_obs":{"uom": null, "description": "L1B BRC (obs.) number for the measurement at which this group ends", "path": "['/rayleigh_grouping', -1, 'which_l1b_brc2']"},
@@ -438,9 +438,9 @@
                 "mie_profile_geoid_separation":{"uom": "m", "description": "New parameter - Height of geoid above WGS84 ellipsoid for each profile", "path": ""},
                 "mie_profile_alt_of_DEM_intersection":{"uom": "m", "description": "New parameter - Altitude of DEM intersection for each profile", "path": ""},
                 "rayleigh_wind_profile_observation_type":{"uom": null, "description": "Cloud or no-cloud profile  (0=undefined, 1=cloudy, 2=clear)", "path": "['/rayleigh_profile', -1, 'l2b_wind_profiles/obs_type']"},
-                "rayleigh_profile_datetime_start":{"uom": null, "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_start']"},
-                "rayleigh_profile_datetime_average":{"uom": null, "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_average']"},
-                "rayleigh_profile_datetime_stop":{"uom": null, "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_stop']"},
+                "rayleigh_profile_datetime_start":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_start']"},
+                "rayleigh_profile_datetime_average":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_average']"},
+                "rayleigh_profile_datetime_stop":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_stop']"},
                 "rayleigh_profile_albedo_off_nadir":{"uom": null, "description":"", "path": "Computed parameter"},
                 "mie_aht_22": {"uom": "C", "description": "Average of Aht 22 M1 temperatures", "path": "Computed parameter combining ['/copied_brc_data', -1, 'm1_temperature/aht_22'], ['/mie_geolocation', -1, 'windresult_geolocation/which_cog_l1b_brc']"},
                 "mie_aht_23": {"uom": "C", "description": "Average of Aht 23 M1 temperatures", "path": "Computed parameter combining ['/copied_brc_data', -1, 'm1_temperature/aht_23'], ['/mie_geolocation', -1, 'windresult_geolocation/which_cog_l1b_brc']"},
@@ -465,9 +465,9 @@
                 "rayleigh_profile_lon_of_DEM_intersection":{"uom": "degE", "description": "New parameter - Longitude of DEM intersection of the current profile", "path": "Computed parameter"},
                 "rayleigh_profile_geoid_separation":{"uom": "m", "description": "New parameter - Height of geoid above WGS84 ellipsoid for each profile", "path": "Computed parameter"},
                 "rayleigh_profile_alt_of_DEM_intersection":{"uom": "m", "description": "New parameter -Altitude of DEM intersection of the current profile", "path": "Computed parameter"},
-                "rayleigh_profile_datetime_start":{"uom": null, "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_start']"},
-                "rayleigh_profile_datetime_average":{"uom": null, "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_average']"},
-                "rayleigh_profile_datetime_stop":{"uom": null, "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_stop']"},
+                "rayleigh_profile_datetime_start":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_start']"},
+                "rayleigh_profile_datetime_average":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_average']"},
+                "rayleigh_profile_datetime_stop":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_stop']"},
                 "rayleigh_profile_albedo_off_nadir":{"uom": null, "description":"", "path": "Computed parameter"},
                 "rayleigh_aht_22": {"uom": "C", "description": "Average of Aht 22 M1 temperatures", "path": "Computed parameter combining ['/copied_brc_data', -1, 'm1_temperature/aht_22'], ['/rayleigh_geolocation', -1, 'windresult_geolocation/which_cog_l1b_brc']"},
                 "rayleigh_aht_23": {"uom": "C", "description": "Average of Aht 23 M1 temperatures", "path": "Computed parameter combining ['/copied_brc_data', -1, 'm1_temperature/aht_23'], ['/rayleigh_geolocation', -1, 'windresult_geolocation/which_cog_l1b_brc']"},
@@ -488,9 +488,9 @@
             "mie_wind_fields": {
                 "mie_wind_result_id":{"uom": null, "description": "An unique id for this wind for this channel in this L2B  file", "path": "['/mie_geolocation', -1, 'windresult_geolocation/arg_of_lat_of_dem_intersection']"},
                 "mie_wind_result_range_bin_number":{"uom": null, "description": "Stores the range bin number this wind result belongs to", "path": "['/mie_hloswind', -1, 'windresult/which_range_bin']"},
-                "mie_wind_result_start_time":{"uom": null, "description": "Start Date and time of the current accumulation [UTC]", "path": "['/mie_geolocation', -1, 'windresult_geolocation/datetime_start']"},
-                "mie_wind_result_COG_time":{"uom": null, "description": "CoG Date and time of the current accumulation [UTC]", "path": "['/mie_geolocation', -1, 'windresult_geolocation/datetime_cog']"},
-                "mie_wind_result_stop_time":{"uom": null, "description": "Stop Date and time of the current accumulation [UTC]", "path": "['/mie_geolocation', -1, 'windresult_geolocation/datetime_stop']"},
+                "mie_wind_result_start_time":{"uom": "seconds since 2000-01-01", "description": "Start Date and time of the current accumulation [UTC]", "path": "['/mie_geolocation', -1, 'windresult_geolocation/datetime_start']"},
+                "mie_wind_result_COG_time":{"uom": "seconds since 2000-01-01", "description": "CoG Date and time of the current accumulation [UTC]", "path": "['/mie_geolocation', -1, 'windresult_geolocation/datetime_cog']"},
+                "mie_wind_result_stop_time":{"uom": "seconds since 2000-01-01", "description": "Stop Date and time of the current accumulation [UTC]", "path": "['/mie_geolocation', -1, 'windresult_geolocation/datetime_stop']"},
                 "mie_wind_result_bottom_altitude":{"uom": "m", "description": "Bottom altitude for this accumulation", "path": "['/mie_geolocation', -1, 'windresult_geolocation/altitude_bottom']"},
                 "mie_wind_result_COG_altitude":{"uom": "m", "description": "Vertical COG altitude for this accumulation", "path": "['/mie_geolocation', -1, 'windresult_geolocation/altitude_vcog']"},
                 "mie_wind_result_top_altitude":{"uom": "m", "description": "Top altitude for this accumulation", "path": "['/mie_geolocation', -1, 'windresult_geolocation/altitude_top']"},
@@ -549,9 +549,9 @@
             "rayleigh_wind_fields": {
                 "rayleigh_wind_result_id":{"uom": null, "description": "An unique id for this wind for this channel in this L2B  file", "path": "['/rayleigh_geolocation', -1, 'wind_result_id']"},
                 "rayleigh_wind_result_range_bin_number":{"uom": null, "description": "Stores the range bin number this wind result belongs to", "path": "['/rayleigh_hloswind', -1, 'windresult/which_range_bin']"},
-                "rayleigh_wind_result_start_time":{"uom": null, "description": "Start Date and time of the current accumulation [UTC]", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/datetime_start']"},
-                "rayleigh_wind_result_COG_time":{"uom": null, "description": "CoG Date and time of the current accumulation [UTC]", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/datetime_cog']"},
-                "rayleigh_wind_result_stop_time":{"uom": null, "description": "Stop Date and time of the current accumulation [UTC]", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/datetime_stop']"},
+                "rayleigh_wind_result_start_time":{"uom": "seconds since 2000-01-01", "description": "Start Date and time of the current accumulation [UTC]", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/datetime_start']"},
+                "rayleigh_wind_result_COG_time":{"uom": "seconds since 2000-01-01", "description": "CoG Date and time of the current accumulation [UTC]", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/datetime_cog']"},
+                "rayleigh_wind_result_stop_time":{"uom": "seconds since 2000-01-01", "description": "Stop Date and time of the current accumulation [UTC]", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/datetime_stop']"},
                 "rayleigh_wind_result_bottom_altitude":{"uom": "m", "description": "Bottom altitude for this accumulation", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/altitude_bottom']"},
                 "rayleigh_wind_result_COG_altitude":{"uom": "m", "description": "Vertical COG altitude for this accumulation", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/altitude_vcog']"},
                 "rayleigh_wind_result_top_altitude":{"uom": "m", "description": "Top altitude for this accumulation", "path": "['/rayleigh_geolocation', -1, 'windresult_geolocation/altitude_top']"},
@@ -620,7 +620,7 @@
                 "rayleigh_measurement_weight":{"uom": null, "description": "Weight used for this L1B range bin while accumulating the signals used to produce the L2B wind result", "path": "['/meas_map', -1, 'rayleigh_map_of_l1b_meas_used', -1, 'weight']"},
                 "l1B_num_of_measurements_per_obs":{"uom": null, "description": "The index of the original L1B BRC from which this L2B measurement was taken - one value for each measurement", "path": "['/meas_product_confid_data', -1, 'l1b_meas_number']"},
                 "l1B_obs_number":{"uom": null, "description": "Number of measurements per BRC (obs.) - one value for each measurement", "path": "['/meas_product_confid_data', -1, 'l1b_brc_number']"},
-                "l1B_measurement_time":{"uom": null, "description": "Start of observation datetime", "path": "['/meas_product_confid_data', -1, 'start_of_obs_datetime']"},
+                "l1B_measurement_time":{"uom": "seconds since 2000-01-01", "description": "Start of observation datetime", "path": "['/meas_product_confid_data', -1, 'start_of_obs_datetime']"},
                 "optical_prop_algo_extinction":{"uom": "1/m", "description": "Aerosol extinction as determined by the iterative Optical Properties Algorithm", "path": "['/meas_product_confid_data', -1, 'opt_prop_result/extinction_iterative'] or ['/meas_product_confid_data', -1, 'opt_prop_result/opt_prop_meas_result', -1, 'extinction_iterative']"},
                 "optical_prop_algo_scattering_ratio":{"uom": null, "description": "Scattering ratio as determined by the iterative Optical Properties Algorithm", "path": "['/meas_product_confid_data', -1, 'opt_prop_result/scattering_ratio_iterative'] or ['/meas_product_confid_data', -1, 'opt_prop_result/opt_prop_meas_result', -1, 'scattering_ratio_iterative']"},
                 "optical_prop_crosstalk_detected":{"uom": null, "description": "Switch to indicate if cross talk was detected or not by the iterative Optical Properties Algorithm", "path": "['/meas_product_confid_data', -1, 'opt_prop_result/xtalk_detected'] or ['/meas_product_confid_data', -1, 'opt_prop_result/opt_prop_meas_result', -1, 'xtalk_detected']"}
@@ -638,7 +638,7 @@
             "fields": {
                 "lat_of_DEM_intersection": {"uom": "10⁻⁶DegN", "description": "Latitude of the intersection of DEM and the line-of-sight for each frequency step", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_MRC/List_of_Data_Set_Records/Data_Set_Record', -1, 'List_of_Frequency_Step_Geolocations/Frequency_Step_Geolocation', -1, 'Latitude_of_DEM_Intersection']"},
                 "lon_of_DEM_intersection": {"uom": "10⁻⁶DegE", "description": "Longitude of the intersection of DEM and the line-of-sight for each frequency step", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_MRC/List_of_Data_Set_Records/Data_Set_Record', -1, 'List_of_Frequency_Step_Geolocations/Frequency_Step_Geolocation', -1, 'Longitude_of_DEM_Intersection']"},
-                "time_freq_step": {"uom": null, "description": "Start time of the last observation with measurements contributing to this frequency step (UTC)", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_MRC/List_of_Data_Set_Records/Data_Set_Record', -1, 'List_of_Frequency_Step_Geolocations/Frequency_Step_Geolocation', -1, 'Start_of_Observation_Time_Last_BRC']"},
+                "time_freq_step": {"uom": "seconds since 2000-01-01", "description": "Start time of the last observation with measurements contributing to this frequency step (UTC)", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_MRC/List_of_Data_Set_Records/Data_Set_Record', -1, 'List_of_Frequency_Step_Geolocations/Frequency_Step_Geolocation', -1, 'Start_of_Observation_Time_Last_BRC']"},
                 "altitude": { "uom": "m", "description": "Values of altitude", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_MRC/List_of_Data_Set_Records/Data_Set_Record', -1, 'List_of_Frequency_Step_Geolocations/Frequency_Step_Geolocation', -1, 'Altitude', -1]"},
                 "satellite_range": { "uom": "m", "description": "Values of satellite range", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_MRC/List_of_Data_Set_Records/Data_Set_Record', -1, 'List_of_Frequency_Step_Geolocations/Frequency_Step_Geolocation', -1, 'Satellite_Range', -1]"},
                 "frequency_offset": {"uom": "GHz", "description": "Frequency offset for each frequency step", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_MRC/List_of_Data_Set_Records/Data_Set_Record', -1, 'List_of_Frequency_Step_Results/Frequency_Step_Result', -1, 'Frequency_Offset']"},
@@ -683,7 +683,7 @@
         },
         "AUX_ISR_1B": {
             "fields": {
-                "time": {"uom": null, "description":"Start of observation time of the first BRC (UTC)", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_ISR/List_of_Data_Set_Records/Data_Set_Record', -1, 'First_Start_of_Observation_Time']"},
+                "time": {"uom": "seconds since 2000-01-01", "description":"Start of observation time of the first BRC (UTC)", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_ISR/List_of_Data_Set_Records/Data_Set_Record', -1, 'First_Start_of_Observation_Time']"},
                 "freq_mie_USR_closest_to_rayleigh_filter_centre": {"uom": "GHz", "description":"Frequency offset of the Mie Channel USR (pixel = 8.5) closest to the Rayleigh filter centre", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_ISR/List_of_Data_Set_Records/Data_Set_Record', -1, 'Freq_Mie_USR_Closest_to_Rayleigh_Filter_Centre']"},
                 "frequency_rayleigh_filter_centre": {"uom": "GHz", "description":"Frequency offset of Rayleigh filter centre (crossing of A and B curves)", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_ISR/List_of_Data_Set_Records/Data_Set_Record', -1, 'Freq_Rayleigh_Filter_Centre']"},
                 "num_of_valid_mie_results": {"uom": null, "description":"Number of valid Mie ISR results", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_ISR/List_of_Data_Set_Records/Data_Set_Record', -1, 'List_of_ISR_Results/ISR_Result', -1, 'Data_Stat/Num_Mie_Used']"},
@@ -721,7 +721,7 @@
         },
         "AUX_ZWC_1B": {
             "fields": {
-                "time": {"uom": null, "description": "Start of observation time (UTC) for each frequency step", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_ZWC/List_of_Data_Set_Records/Data_Set_Record', -1, 'Start_of_Observation_Time']"},
+                "time": {"uom": "seconds since 2000-01-01", "description": "Start of observation time (UTC) for each frequency step", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_ZWC/List_of_Data_Set_Records/Data_Set_Record', -1, 'Start_of_Observation_Time']"},
                 "lat_of_DEM_intersection": {"uom": "10⁻⁶DegN", "description": "Latitude of the intersection of DEM and the line-of-sight for each frequency step", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_ZWC/List_of_Data_Set_Records/Data_Set_Record', -1, 'Observation_Info/Latitude_of_DEM_Intersection']"},
                 "lon_of_DEM_intersection": {"uom": "10⁻⁶DegE", "description": "Longitude of the intersection of DEM and the line-of-sight for each frequency step", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_ZWC/List_of_Data_Set_Records/Data_Set_Record', -1, 'Observation_Info/Longitude_of_DEM_Intersection']"},
                 "roll_angle": {"uom": "Deg", "description": "Instrument roll angle in ECEF frame at the centre of the observation", "path": "['/Earth_Explorer_File/Data_Block/Auxiliary_Calibration_ZWC/List_of_Data_Set_Records/Data_Set_Record', -1, 'Observation_Info/Roll_Angle']"},
@@ -759,8 +759,8 @@
         },
         "AUX_MET_12": {
             "fields": {
-                "time_off_nadir":{"uom": null, "description": "AMD datetime off nadir", "path": "['/geo_off_nadir', -1, 'amd_datetime']"},
-                "time_nadir":{"uom": null,"description": "AMD datetime nadir", "path": "['/geo_nadir', -1, 'amd_datetime']"},
+                "time_off_nadir":{"uom": "seconds since 2000-01-01", "description": "AMD datetime off nadir", "path": "['/geo_off_nadir', -1, 'amd_datetime']"},
+                "time_nadir":{"uom": "seconds since 2000-01-01","description": "AMD datetime nadir", "path": "['/geo_nadir', -1, 'amd_datetime']"},
                 "latitude_off_nadir":{"uom": "10⁻⁶ degN","description": "Latitude for each profile along the off-nadir track", "path": "['/geo_off_nadir', -1, 'amd_latitude']"},
                 "latitude_nadir":{"uom": "10⁻⁶ degN","description": "Latitude for each profile along the nadir track", "path": "['/geo_nadir', -1, 'amd_latitude']"},
                 "longitude_off_nadir":{"uom": "10⁻⁶ degN","description": "Longitude for each profile along the off-nadir track", "path": "['/geo_off_nadir', -1, 'amd_longitude']"},
