@@ -401,17 +401,6 @@
                 "optical_prop_algo_extinction":{"uom": "1/m", "description": "Aerosol extinction as determined by the iterative Optical Properties Algorithm", "path": "['/meas_product_confid_data', -1, 'opt_prop_result/opt_prop_meas_result', -1, 'extinction_iterative']"},
                 "optical_prop_algo_scattering_ratio":{"uom": null, "description": "Scattering ratio as determined by the iterative Optical Properties Algorithm", "path": "['/meas_product_confid_data', -1, 'opt_prop_result/opt_prop_meas_result', -1, 'scattering_ratio_iterative']"},
                 "optical_prop_crosstalk_detected":{"uom": null, "description": "Switch to indicate if cross talk was detected or not by the iterative Optical Properties Algorithm", "path": "['/meas_product_confid_data', -1, 'opt_prop_result/opt_prop_meas_result', -1, 'xtalk_detected']"}
-            },
-            "array_fields": {
-                "mie_measurement_map":{"uom": null, "description": "Reference to the L2B wind result to which this L1B range bin contributed", "path": "['/meas_map', -1, 'mie_map_of_l1b_meas_used', -1, 'which_l2b_wind_id']"},
-                "rayleigh_measurement_map":{"uom": null, "description": "Reference to the L2B wind result to which this L1B range bin contributed", "path": "['/meas_map', -1, 'rayleigh_map_of_l1b_meas_used', -1, 'which_l2b_wind_id']"},
-                "mie_wind_profile_wind_result_id":{"uom": null, "description": "A list of 24 wind id values referring to at most 24 individual wind results that are assigned to this profile", "path": "['/mie_profile', -1, 'l2b_wind_profiles/wind_result_id_number', -1]"},
-                "rayleigh_wind_profile_wind_result_id":{"uom": null, "description": "A list of 24 wind id values referring to at most 24 individual wind results that are assigned to this profile", "path": ""},
-                "mie_measurement_weight":{"uom": null, "description": "Weight used for this L1B range bin while accumulating the signals used to produce the L2B wind result", "path": "['/meas_map', -1, 'mie_map_of_l1b_meas_used', -1, 'weight']"},
-                "rayleigh_measurement_weight":{"uom": null, "description": "Weight used for this L1B range bin while accumulating the signals used to produce the L2B wind result", "path": "['/meas_map', -1, 'rayleigh_map_of_l1b_meas_used', -1, 'weight']"},
-                "optical_prop_algo_extinction":{"uom": "1/m", "description": "Aerosol extinction as determined by the iterative Optical Properties Algorithm", "path": "['/meas_product_confid_data', -1, 'opt_prop_result/opt_prop_meas_result', -1, 'extinction_iterative']"},
-                "optical_prop_algo_scattering_ratio":{"uom": null, "description": "Scattering ratio as determined by the iterative Optical Properties Algorithm", "path": "['/meas_product_confid_data', -1, 'opt_prop_result/opt_prop_meas_result', -1, 'scattering_ratio_iterative']"},
-                "optical_prop_crosstalk_detected":{"uom": null, "description": "Switch to indicate if cross talk was detected or not by the iterative Optical Properties Algorithm", "path": "['/meas_product_confid_data', -1, 'opt_prop_result/opt_prop_meas_result', -1, 'xtalk_detected']"}
             }
         },
         "ALD_U_N_2C": {
@@ -624,14 +613,6 @@
                 "optical_prop_algo_extinction":{"uom": "1/m", "description": "Aerosol extinction as determined by the iterative Optical Properties Algorithm", "path": "['/meas_product_confid_data', -1, 'opt_prop_result/extinction_iterative'] or ['/meas_product_confid_data', -1, 'opt_prop_result/opt_prop_meas_result', -1, 'extinction_iterative']"},
                 "optical_prop_algo_scattering_ratio":{"uom": null, "description": "Scattering ratio as determined by the iterative Optical Properties Algorithm", "path": "['/meas_product_confid_data', -1, 'opt_prop_result/scattering_ratio_iterative'] or ['/meas_product_confid_data', -1, 'opt_prop_result/opt_prop_meas_result', -1, 'scattering_ratio_iterative']"},
                 "optical_prop_crosstalk_detected":{"uom": null, "description": "Switch to indicate if cross talk was detected or not by the iterative Optical Properties Algorithm", "path": "['/meas_product_confid_data', -1, 'opt_prop_result/xtalk_detected'] or ['/meas_product_confid_data', -1, 'opt_prop_result/opt_prop_meas_result', -1, 'xtalk_detected']"}
-            },
-            "array_fields": {
-                "mie_measurement_map":{"uom": null, "description": "Reference to the L2B wind result to which this L1B range bin contributed", "path": "['/meas_map', -1, 'mie_map_of_l1b_meas_used', -1, 'which_l2b_wind_id']"},
-                "rayleigh_measurement_map":{"uom": null, "description": "Reference to the L2B wind result to which this L1B range bin contributed", "path": "['/meas_map', -1, 'rayleigh_map_of_l1b_meas_used', -1, 'which_l2b_wind_id']"},
-                "mie_wind_profile_wind_result_id":{"uom": null, "description": "A list of 24 wind id values referring to at most 24 individual wind results that are assigned to this profile", "path": "['/mie_profile', -1, 'l2b_wind_profiles/wind_result_id_number', -1]"},
-                "rayleigh_wind_profile_wind_result_id":{"uom": null, "description": "A list of 24 wind id values referring to at most 24 individual wind results that are assigned to this profile", "path": ""},
-                "mie_measurement_weight":{"uom": null, "description": "Weight used for this L1B range bin while accumulating the signals used to produce the L2B wind result", "path": "['/meas_map', -1, 'mie_map_of_l1b_meas_used', -1, 'weight']"},
-                "rayleigh_measurement_weight":{"uom": null, "description": "Weight used for this L1B range bin while accumulating the signals used to produce the L2B wind result", "path": "['/meas_map', -1, 'rayleigh_map_of_l1b_meas_used', -1, 'weight']"}
             }
         },
         "AUX_MRC_1B": {
