@@ -690,19 +690,30 @@ class ReturnedData(object):
             ds_part = data.as_xarray(reshape=reshape)
             if ds_part is None:
                 print("Warning: ",
-                      "Unable to create dataset from part {} of {}".format(
+                    "Unable to create dataset from part {} of {}".format(
                         i+1, len(self.contents)),
-                      "\n(This part is likely empty)")
+                    "\n(This part is likely empty)")
             else:
-                # Collect the non-empty Datasets
                 ds_list.append(ds_part)
-        if len(ds_list) == 1:
+        ds_list = [i for i in ds_list if i is not None]
+
+        if ds_list == []:
+            return None
+        elif len(ds_list) == 1:
             ds = ds_list[0]
         else:
-            ds_list = [i for i in ds_list if i is not None]
-            if ds_list == []:
+            dims = [d for d in list(ds_list[0].dims) if "array" not in d]
+            if dims == []:
                 return None
-            ds = xarray.concat(ds_list, dim="Timestamp")
+            elif len(dims) == 1:
+                ds = xarray.concat(ds_list, dim=dims[0])
+            else:
+                ds_list_per_dim = []
+                for d in dims:
+                    drop_dims = [dd for dd in dims if dd != d]
+                    ds_list_per_dim.append(xarray.concat([_ds.drop_dims(drop_dims) for _ds in ds_list], dim=d))
+                ds = xarray.merge(ds_list_per_dim)
+
         # # Test this other option:
         # ds = self.contents[0].as_xarray()
         # for d in self.contents[1:]:
