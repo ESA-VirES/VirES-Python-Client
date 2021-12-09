@@ -533,10 +533,17 @@ class ReturnedDataFile(object):
             # TODO: what happens with groups of different sizes and attributes
             nc = netCDF4.Dataset(self._file.name)
             ds = xarray.Dataset()
-            for group in nc.groups:
-                ds = ds.merge(xarray.open_dataset(
-                    self._file.name, group=group, engine='netcdf4'
-                ))
+
+            # some datasets do not have groups
+            if nc.groups:
+                for group in nc.groups:
+                    ds = ds.merge(xarray.open_dataset(
+                        self._file.name, group=group, engine='netcdf4'
+                    ))
+            else:
+                ds = xarray.open_dataset(
+                    self._file.name, engine='netcdf4'
+                )
             # Go through Aeolus parameters and check if unit information is available
             # TODO: We are "flattening" the list of parameters, same parameter
             # id in different collection types could select incorrect one
@@ -719,7 +726,6 @@ class ReturnedData(object):
                     drop_dims = [dd for dd in dims if dd != d]
                     ds_list_per_dim.append(xarray.concat([_ds.drop_dims(drop_dims) for _ds in ds_list], dim=d))
                 ds = xarray.merge(ds_list_per_dim)
-
         # # Test this other option:
         # ds = self.contents[0].as_xarray()
         # for d in self.contents[1:]:
@@ -731,8 +737,8 @@ class ReturnedData(object):
 
         # Set the original data sources and models used as metadata
         # only for cdf data types
+        ds.attrs["Sources"] = self.sources
         if self.filetype == "cdf":
-            ds.attrs["Sources"] = self.sources
             ds.attrs["MagneticModels"] = self.magnetic_models
             ds.attrs["RangeFilters"] = self.range_filters
         return ds
