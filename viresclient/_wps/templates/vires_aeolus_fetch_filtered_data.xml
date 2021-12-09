@@ -154,6 +154,14 @@
       </wps:Data>
     </wps:Input>
     {% endif -%}
+    {% if dsd_info -%}
+    <wps:Input>
+      <ows:Identifier>dsd_info</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>true</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
   </wps:DataInputs>
   <wps:ResponseForm>
     <wps:RawDataOutput mimeType="{{ response_type }}">

@@ -32,6 +32,7 @@ class AeolusWPSInputs(WPSInputs):
         'sca_fields',
         'mca_fields',
         'bbox',
+        'dsd_info'
     ]
 
     def __init__(self,
@@ -53,6 +54,7 @@ class AeolusWPSInputs(WPSInputs):
                  mie_wind_fields=None,
                  rayleigh_wind_fields=None,
                  bbox=None,
+                 dsd_info=False,
                  ):
         # Obligatory
         self.processId = None if processId is None else processId
@@ -74,6 +76,7 @@ class AeolusWPSInputs(WPSInputs):
         self.mie_wind_fields = mie_wind_fields
         self.rayleigh_wind_fields = rayleigh_wind_fields
         self.bbox = bbox
+        self.dsd_info = dsd_info
 
     @property
     def as_dict(self):
@@ -90,6 +93,7 @@ class AeolusWPSInputs(WPSInputs):
         self._mca_fields = self.mca_fields
         self._sca_fields = self.sca_fields
         self._bbox = self.bbox
+        self._dsd_info = self.dsd_info
         return {key: self.__dict__['_{}'.format(key)] for key in self.NAMES}
 
     @property
@@ -307,10 +311,11 @@ class AeolusRequest(ClientRequest):
             self._request_inputs.mie_wind_fields = ",".join(mie_wind_fields)
         if fields:
             self._request_inputs.fields = ",".join(fields)
-
-    def set_variables(self, aux_type=None, fields=None):
+    
+    def set_variables(self, aux_type=None, fields=None, dsd_info=False):
         self._request_inputs.aux_type = aux_type
         self._request_inputs.fields = fields
+        self._request_inputs.dsd_info = dsd_info
 
     def set_range_filter(self, parameter=None, minimum=None, maximum=None):
         """Set a filter to apply.

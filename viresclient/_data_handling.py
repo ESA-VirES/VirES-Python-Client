@@ -32,6 +32,7 @@ import tempfile
 import shutil
 import numpy
 import pandas
+import json
 import xarray
 import cdflib
 import netCDF4
@@ -549,8 +550,13 @@ class ReturnedDataFile(object):
 
     @property
     def sources(self):
-        with FileReader(self._file) as f:
-            sources = f.sources
+        if self.filetype == "nc":
+            nc = netCDF4.Dataset(self._file.name)
+            json_hist = json.loads(nc.history)
+            sources = iter(json_hist["inputFiles"])
+        else:
+            with FileReader(self._file) as f:
+                sources = f.sources
         return sources
 
     @property
