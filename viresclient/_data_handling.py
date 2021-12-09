@@ -504,6 +504,8 @@ class ReturnedDataFile(object):
             if expand:
                 raise NotImplementedError
             df = make_pandas_DataFrame_from_csv(self._file.name)
+        elif self.filetype == 'nc':
+            df = self.as_xarray().to_dataframe()
         elif self.filetype == 'cdf':
             with FileReader(self._file) as f:
                 df = f.as_pandas_dataframe(expand=expand)
