@@ -562,7 +562,11 @@ class ReturnedDataFile(object):
         if self.filetype == "nc":
             nc = netCDF4.Dataset(self._file.name)
             json_hist = json.loads(nc.history)
-            sources = iter(json_hist["inputFiles"])
+            sources = [elem for elem in zip(
+                json_hist["inputFiles"],
+                json_hist["baselines"],
+                json_hist["software_vers"],
+            )]
         else:
             with FileReader(self._file) as f:
                 sources = f.sources
