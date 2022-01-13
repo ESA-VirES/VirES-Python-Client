@@ -148,8 +148,8 @@
       <ows:Identifier>bbox</ows:Identifier>
       <wps:Data>
         <wps:BoundingBoxData crs="http://www.opengis.net/def/crs/EPSG/0/4326">
-          <ows:LowerCorner>{{ bbox_lower }}</ows:LowerCorner>
-          <ows:UpperCorner>{{ bbox_upper }}</ows:UpperCorner>
+          <ows:LowerCorner>{{ bbox.w }} {{ bbox.s }}</ows:LowerCorner>
+          <ows:UpperCorner>{{ bbox.e }} {{ bbox.n }}</ows:UpperCorner>
         </wps:BoundingBoxData>
       </wps:Data>
     </wps:Input>

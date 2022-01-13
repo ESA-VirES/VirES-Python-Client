@@ -285,6 +285,17 @@ class AeolusRequest(ClientRequest):
             df = df.filter('')
         return df
 
+    def set_bbox(self, bbox=None):
+        """Set a bounding box to apply as filter.
+        Note:
+            Dictionary argument has to contain n, e, s, w keys for
+            north, east, south and west values
+        Args:
+            bbox (dict)
+        """
+        if bbox:
+            self._request_inputs.bbox = bbox
+
     def set_fields(self,
                    observation_fields=None, measurement_fields=None,
                    ica_fields=None, sca_fields=None, mca_fields=None,
