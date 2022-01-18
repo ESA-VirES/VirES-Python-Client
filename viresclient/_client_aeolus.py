@@ -1,6 +1,7 @@
 import datetime, json
 
 from ._client import WPSInputs, ClientRequest
+from ._data_handling import ReturnedDataFile
 from ._data import CONFIG_AEOLUS
 import pandas as pd
 # from pandas import DataFrame, json_normalize
@@ -360,3 +361,10 @@ class AeolusRequest(ClientRequest):
         self._request_inputs.filters = None
         return self
 
+    def get_from_file(self, path=None, filetype='nc'):
+        if filetype != 'nc':
+            raise NotImplementedError(
+                "Currently only loading of netCDF files is supported")
+        df = ReturnedDataFile(filetype=filetype)
+        df._file.name = path
+        return df
