@@ -557,6 +557,43 @@ class ReturnedDataFile(object):
             # TODO: Go through Swarm parameters
         return ds
 
+    def as_xarray_dict(self):
+        """Convert the data to an xarray Dataset.
+
+        Note:
+            Only supports netCDF format
+
+        Returns:
+            dict of xarray.Dataset
+
+        """
+        if self.filetype == 'csv':
+            raise NotImplementedError("csv to xarray dict is not supported")
+        elif self.filetype == 'cdf':
+            raise NotImplementedError("cdf to xarray dict is not supported")
+        elif self.filetype == 'nc':
+            result_dict = {}
+            nc = netCDF4.Dataset(self._file.name)
+            # some datasets do not have groups
+            if nc.groups:
+                for group in nc.groups:
+                    ds = xarray.Dataset()
+                    ds = ds.merge(xarray.open_dataset(
+                        self._file.name, group=group, engine='netcdf4'
+                    ))
+                    for parameter in ds:
+                        for coll_obj in CONFIG_AEOLUS["collections"].values():
+                            for field_type in coll_obj.values():
+                                if parameter in field_type and field_type[parameter]['uom']:
+                                    ds[parameter].attrs["units"] = field_type[parameter]['uom']
+                    result_dict[group] = ds
+            else:
+                result_dict['group'] = xarray.open_dataset(
+                    self._file.name, engine='netcdf4'
+                )
+            
+        return result_dict
+
     @property
     def sources(self):
         if self.filetype == "nc":
@@ -598,6 +635,7 @@ class ReturnedData(object):
         data.range_filters
         data.magnetic_models
         data.as_xarray()
+        data.as_xarray_dict()
         data.as_dataframe(expand=True)
         data.to_file()
 
@@ -748,6 +786,46 @@ class ReturnedData(object):
             ds.attrs["MagneticModels"] = self.magnetic_models
             ds.attrs["RangeFilters"] = self.range_filters
         return ds
+
+    def as_xarray_dict(self):
+        """Convert the data to a dict containing an xarray per group.
+
+        Returns:
+            dict of xarray.Dataset
+
+        """
+        # ds_list is a list of xarray.Dataset objects
+        #  - they are created from each file in self.contents
+        # Some of them may be empty because of the time window they cover
+        #  and the filtering that has been applied.
+        ds_list = []
+        for i, data in enumerate(self.contents):
+            ds_part = data.as_xarray_dict()
+            if ds_part is None:
+                print("Warning: ",
+                    "Unable to create dataset from part {} of {}".format(
+                        i+1, len(self.contents)),
+                    "\n(This part is likely empty)")
+            else:
+                ds_list.append(ds_part)
+        ds_list = [i for i in ds_list if i is not None]
+        if ds_list == []:
+            return None
+        elif len(ds_list) == 1:
+            # add sources to all dict as_xarray
+            for xa_ds in ds_list[0].values():
+                xa_ds.attrs["Sources"] = self.sources
+            ds_dict = ds_list[0]
+        else:
+            ds_dict = {}
+            ds_list = [i for i in ds_list if i is not None]
+            if ds_list == []:
+                return None
+            for group in ds_list[0]:
+                group_list = [g[group] for g in ds_list if g is not None]
+                ds_dict[group] = xarray.merge(group_list)
+                ds_dict[group].attrs["Sources"] = self.sources
+        return ds_dict
 
     def to_files(self, paths, overwrite=False):
         """Saves the data to the specified files.
