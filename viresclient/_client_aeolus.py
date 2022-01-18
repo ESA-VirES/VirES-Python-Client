@@ -290,7 +290,7 @@ class AeolusRequest(ClientRequest):
         """Set a bounding box to apply as filter.
         Note:
             Dictionary argument has to contain n, e, s, w keys for
-            north, east, south and west values
+            north, east, south and west values as EPSG 4326 coordinates
         Args:
             bbox (dict)
         """
@@ -362,6 +362,16 @@ class AeolusRequest(ClientRequest):
         return self
 
     def get_from_file(self, path=None, filetype='nc'):
+        """Get VirES ReturnedData object from file path
+
+        Allows loading of locally saved netCDF file (e.g. using to_file method)
+        providing access to data manipulation methods such as as_xarray
+
+        Args:
+            path (str)
+            filetype (str)
+
+        """
         if filetype != 'nc':
             raise NotImplementedError(
                 "Currently only loading of netCDF files is supported")
