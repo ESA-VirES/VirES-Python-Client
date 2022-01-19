@@ -29,9 +29,12 @@ class AeolusWPSInputs(WPSInputs):
         'rayleigh_profile_fields',
         'mie_wind_fields',
         'rayleigh_wind_fields',
+        'mie_grouping_fields',
+        'rayleigh_grouping_fields',
         'ica_fields',
         'sca_fields',
         'mca_fields',
+        'group_fields',
         'bbox',
         'dsd_info'
     ]
@@ -50,10 +53,13 @@ class AeolusWPSInputs(WPSInputs):
                  sca_fields=None,
                  ica_fields=None,
                  mca_fields=None,
+                 group_fields=None,
                  mie_profile_fields=None,
                  rayleigh_profile_fields=None,
                  mie_wind_fields=None,
                  rayleigh_wind_fields=None,
+                 mie_grouping_fields=None,
+                 rayleigh_grouping_fields=None,
                  bbox=None,
                  dsd_info=False,
                  ):
@@ -71,11 +77,14 @@ class AeolusWPSInputs(WPSInputs):
         self.measurement_fields = measurement_fields
         self.ica_fields = ica_fields
         self.mca_fields = mca_fields
+        self.group_fields = group_fields
         self.sca_fields = sca_fields
         self.mie_profile_fields = mie_profile_fields
         self.rayleigh_profile_fields = rayleigh_profile_fields
         self.mie_wind_fields = mie_wind_fields
         self.rayleigh_wind_fields = rayleigh_wind_fields
+        self.rayleigh_grouping_fields = rayleigh_grouping_fields
+        self.mie_grouping_fields = mie_grouping_fields
         self.bbox = bbox
         self.dsd_info = dsd_info
 
@@ -90,8 +99,11 @@ class AeolusWPSInputs(WPSInputs):
         self._rayleigh_profile_fields = self.rayleigh_profile_fields
         self._mie_wind_fields = self.mie_wind_fields
         self._rayleigh_wind_fields = self.rayleigh_wind_fields
+        self._rayleigh_grouping_fields = self.rayleigh_grouping_fields
+        self._mie_grouping_fields = self.mie_grouping_fields
         self._ica_fields = self.ica_fields
         self._mca_fields = self.mca_fields
+        self._group_fields = self.group_fields
         self._sca_fields = self.sca_fields
         self._bbox = self.bbox
         self._dsd_info = self.dsd_info
@@ -302,7 +314,8 @@ class AeolusRequest(ClientRequest):
                    ica_fields=None, sca_fields=None, mca_fields=None,
                    mie_profile_fields=None, rayleigh_profile_fields=None,
                    rayleigh_wind_fields=None, mie_wind_fields=None,
-                   fields=None):
+                   rayleigh_grouping_fields=None, mie_grouping_fields=None,
+                   group_fields=None, fields=None):
         if observation_fields:
             self._request_inputs.observation_fields = ",".join(observation_fields)
         if measurement_fields:
@@ -319,8 +332,14 @@ class AeolusRequest(ClientRequest):
             self._request_inputs.rayleigh_profile_fields = ",".join(rayleigh_profile_fields)
         if rayleigh_wind_fields:
             self._request_inputs.rayleigh_wind_fields = ",".join(rayleigh_wind_fields)
+        if rayleigh_grouping_fields:
+            self._request_inputs.rayleigh_grouping_fields = ",".join(rayleigh_grouping_fields)
+        if mie_grouping_fields:
+            self._request_inputs.mie_grouping_fields = ",".join(mie_grouping_fields)
         if mie_wind_fields:
             self._request_inputs.mie_wind_fields = ",".join(mie_wind_fields)
+        if group_fields:
+            self._request_inputs.group_fields = ",".join(group_fields)
         if fields:
             self._request_inputs.fields = ",".join(fields)
     
