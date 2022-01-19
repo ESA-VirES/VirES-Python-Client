@@ -265,17 +265,17 @@
                 "mie_grouping_id":{"uom": null, "description": "An unique id for this group in this L2B  file", "path": "['/mie_grouping', -1, 'grouping_result_id']"},
                 "mie_grouping_time":{"uom": "seconds since 2000-01-01", "description": "Start date and time of group [UTC]", "path": "['/mie_grouping', -1, 'start_of_obs_datetime']"},
                 "mie_grouping_start_obs":{"uom": null, "description": "L1B BRC (obs.) number for the measurement at which this group starts", "path": "['/mie_grouping', -1, 'which_l1b_brc1']"},
-                "mie_grouping_start_meas_obs":{"uom": null, "description": "L1B measurement number within the above mentioned L1B BRC (obs.) at which this group starts", "path": "['/mie_grouping', -1, 'which_l1b_meas_within_this_brc1']"},
+                "mie_grouping_start_meas_per_obs":{"uom": null, "description": "L1B measurement number within the above mentioned L1B BRC (obs.) at which this group starts", "path": "['/mie_grouping', -1, 'which_l1b_meas_within_this_brc1']"},
                 "mie_grouping_end_obs":{"uom": null, "description": "L1B BRC (obs.) number for the measurement at which this group ends", "path": "['/mie_grouping', -1, 'which_l1b_brc2']"},
-                "mie_grouping_end_meas_obs":{"uom": null, "description": "L1B measurement number within the above mentioned L1B BRC (obs.) at which this group end", "path": "['/mie_grouping', -1, 'which_l1b_meas_within_this_brc2']"}
+                "mie_grouping_end_meas_per_obs":{"uom": null, "description": "L1B measurement number within the above mentioned L1B BRC (obs.) at which this group end", "path": "['/mie_grouping', -1, 'which_l1b_meas_within_this_brc2']"}
             },
             "rayleigh_grouping_fields": {
                 "rayleigh_grouping_id":{"uom": null, "description": "An unique id for this group in this L2B  file", "path": "['/rayleigh_grouping', -1, 'grouping_result_id']"},
                 "rayleigh_grouping_time":{"uom": "seconds since 2000-01-01", "description": "Start date and time of group [UTC]", "path": "['/rayleigh_grouping', -1, 'start_of_obs_datetime']"},
                 "rayleigh_grouping_start_obs":{"uom": null, "description": "L1B BRC (obs.) number for the measurement at which this group starts", "path": "['/rayleigh_grouping', -1, 'which_l1b_brc1']"},
-                "rayleigh_grouping_start_meas_obs":{"uom": null, "description": "L1B measurement number within the above mentioned L1B BRC (obs.) at which this group starts", "path": "['/rayleigh_grouping', -1, 'which_l1b_meas_within_this_brc1']"},
+                "rayleigh_grouping_start_meas_per_obs":{"uom": null, "description": "L1B measurement number within the above mentioned L1B BRC (obs.) at which this group starts", "path": "['/rayleigh_grouping', -1, 'which_l1b_meas_within_this_brc1']"},
                 "rayleigh_grouping_end_obs":{"uom": null, "description": "L1B BRC (obs.) number for the measurement at which this group ends", "path": "['/rayleigh_grouping', -1, 'which_l1b_brc2']"},
-                "rayleigh_grouping_end_meas_obs":{"uom": null, "description": "L1B measurement number within the above mentioned L1B BRC (obs.) at which this group ends", "path": "['/rayleigh_grouping', -1, 'which_l1b_meas_within_this_brc2']"}
+                "rayleigh_grouping_end_meas_per_obs":{"uom": null, "description": "L1B measurement number within the above mentioned L1B BRC (obs.) at which this group ends", "path": "['/rayleigh_grouping', -1, 'which_l1b_meas_within_this_brc2']"}
             },
             "mie_profile_fields": {
                 "mie_wind_profile_wind_result_id":{"uom": null, "description": "A list of 24 wind id values referring to at most 24 individual wind results that are assigned to this profile", "path": "['/mie_profile', -1, 'l2b_wind_profiles/wind_result_id_number', -1]"},
@@ -467,11 +467,11 @@
                 "mie_profile_lon_of_DEM_intersection":{"uom": "degrees_east", "description": "New parameter - Longitude of DEM intersection of the current profile", "path": ""},
                 "mie_profile_geoid_separation":{"uom": "m", "description": "New parameter - Height of geoid above WGS84 ellipsoid for each profile", "path": ""},
                 "mie_profile_alt_of_DEM_intersection":{"uom": "m", "description": "New parameter - Altitude of DEM intersection for each profile", "path": ""},
-                "rayleigh_wind_profile_observation_type":{"uom": null, "description": "Cloud or no-cloud profile  (0=undefined, 1=cloudy, 2=clear)", "path": "['/rayleigh_profile', -1, 'l2b_wind_profiles/obs_type']"},
-                "rayleigh_profile_datetime_start":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_start']"},
-                "rayleigh_profile_datetime_average":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_average']"},
-                "rayleigh_profile_datetime_stop":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_stop']"},
-                "rayleigh_profile_albedo_off_nadir":{"uom": null, "description":"", "path": "Computed parameter"}
+                "mie_wind_profile_observation_type":{"uom": null, "description": "Cloud or no-cloud profile  (0=undefined, 1=cloudy, 2=clear)", "path": "['/rayleigh_profile', -1, 'l2b_wind_profiles/obs_type']"},
+                "mie_profile_datetime_start":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_start']"},
+                "mie_profile_datetime_average":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_average']"},
+                "mie_profile_datetime_stop":{"uom": "seconds since 2000-01-01", "description":"", "path": "['/rayleigh_profile', -1, 'profile_datetime_stop']"},
+                "mie_profile_albedo_off_nadir":{"uom": null, "description":"", "path": "Computed parameter"}
             },
             "rayleigh_profile_fields": {
                 "rayleigh_wind_profile_wind_result_id":{"uom": null, "description": "A list of 24 wind id values referring to at most 24 individual wind results that are assigned to this profile", "path": ""},
