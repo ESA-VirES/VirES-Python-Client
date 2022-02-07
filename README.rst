@@ -10,12 +10,6 @@
     :target: https://requires.io/github/ESA-VirES/VirES-Python-Client/requirements/?branch=master
     :alt: Requirements Status
 
-.. image:: https://travis-ci.org/ESA-VirES/VirES-Python-Client.svg?branch=master
-    :target: https://travis-ci.org/ESA-VirES/VirES-Python-Client
-
-.. image:: https://coveralls.io/repos/github/ESA-VirES/VirES-Python-Client/badge.svg
-    :target: https://coveralls.io/github/ESA-VirES/VirES-Python-Client
-
 .. image:: https://zenodo.org/badge/138034133.svg
    :target: https://zenodo.org/badge/latestdoi/138034133
 
