@@ -32,13 +32,16 @@ import tempfile
 import shutil
 import numpy
 import pandas
+import json
 import xarray
 import cdflib
+import netCDF4
 from ._wps import time_util
 if os.name == "nt":
     import atexit
 
 from ._data import CONFIG_SWARM
+from ._data import CONFIG_AEOLUS
 
 CDF_EPOCH_1970 = 62167219200000.0
 
@@ -501,6 +504,8 @@ class ReturnedDataFile(object):
             if expand:
                 raise NotImplementedError
             df = make_pandas_DataFrame_from_csv(self._file.name)
+        elif self.filetype == 'nc':
+            df = self.as_xarray().to_dataframe()
         elif self.filetype == 'cdf':
             with FileReader(self._file) as f:
                 df = f.as_pandas_dataframe(expand=expand)
@@ -524,14 +529,84 @@ class ReturnedDataFile(object):
             with FileReader(self._file) as f:
                 ds = f.as_xarray_dataset(reshape=reshape)
         elif self.filetype == 'nc':
-            ds = xarray.open_dataset(self._file.name, group=group)
-        ds.attrs["Sources"] = self.sources
+            # xarrays open_dataset does not retrieve data in groups
+            # group needs to be specified while opening
+            # we iterate here over the available groups
+            # TODO: what happens with groups of different sizes and attributes
+            nc = netCDF4.Dataset(self._file.name)
+            ds = xarray.Dataset()
+
+            # some datasets do not have groups
+            if nc.groups:
+                for group in nc.groups:
+                    ds = ds.merge(xarray.open_dataset(
+                        self._file.name, group=group, engine='netcdf4'
+                    ))
+            else:
+                ds = xarray.open_dataset(
+                    self._file.name, engine='netcdf4'
+                )
+            # Go through Aeolus parameters and check if unit information is available
+            # TODO: We are "flattening" the list of parameters, same parameter
+            # id in different collection types could select incorrect one
+            for parameter in ds:
+                for coll_obj in CONFIG_AEOLUS["collections"].values():
+                    for field_type in coll_obj.values():
+                        if parameter in field_type and field_type[parameter]['uom']:
+                            ds[parameter].attrs["units"] = field_type[parameter]['uom']
+            # TODO: Go through Swarm parameters
         return ds
+
+    def as_xarray_dict(self):
+        """Convert the data to an xarray Dataset.
+
+        Note:
+            Only supports netCDF format
+
+        Returns:
+            dict of xarray.Dataset
+
+        """
+        if self.filetype == 'csv':
+            raise NotImplementedError("csv to xarray dict is not supported")
+        elif self.filetype == 'cdf':
+            raise NotImplementedError("cdf to xarray dict is not supported")
+        elif self.filetype == 'nc':
+            result_dict = {}
+            nc = netCDF4.Dataset(self._file.name)
+            # some datasets do not have groups
+            if nc.groups:
+                for group in nc.groups:
+                    ds = xarray.Dataset()
+                    ds = ds.merge(xarray.open_dataset(
+                        self._file.name, group=group, engine='netcdf4'
+                    ))
+                    for parameter in ds:
+                        for coll_obj in CONFIG_AEOLUS["collections"].values():
+                            for field_type in coll_obj.values():
+                                if parameter in field_type and field_type[parameter]['uom']:
+                                    ds[parameter].attrs["units"] = field_type[parameter]['uom']
+                    result_dict[group] = ds
+            else:
+                result_dict['group'] = xarray.open_dataset(
+                    self._file.name, engine='netcdf4'
+                )
+            
+        return result_dict
 
     @property
     def sources(self):
-        with FileReader(self._file) as f:
-            sources = f.sources
+        if self.filetype == "nc":
+            nc = netCDF4.Dataset(self._file.name)
+            json_hist = json.loads(nc.history)
+            sources = [elem for elem in zip(
+                json_hist["inputFiles"],
+                json_hist["baselines"],
+                json_hist["software_vers"],
+            )]
+        else:
+            with FileReader(self._file) as f:
+                sources = f.sources
         return sources
 
     @property
@@ -560,6 +635,7 @@ class ReturnedData(object):
         data.range_filters
         data.magnetic_models
         data.as_xarray()
+        data.as_xarray_dict()
         data.as_dataframe(expand=True)
         data.to_file()
 
@@ -671,19 +747,29 @@ class ReturnedData(object):
             ds_part = data.as_xarray(reshape=reshape)
             if ds_part is None:
                 print("Warning: ",
-                      "Unable to create dataset from part {} of {}".format(
+                    "Unable to create dataset from part {} of {}".format(
                         i+1, len(self.contents)),
-                      "\n(This part is likely empty)")
+                    "\n(This part is likely empty)")
             else:
-                # Collect the non-empty Datasets
                 ds_list.append(ds_part)
-        if len(ds_list) == 1:
+        ds_list = [i for i in ds_list if i is not None]
+
+        if ds_list == []:
+            return None
+        elif len(ds_list) == 1:
             ds = ds_list[0]
         else:
-            ds_list = [i for i in ds_list if i is not None]
-            if ds_list == []:
+            dims = [d for d in list(ds_list[0].dims) if "array" not in d]
+            if dims == []:
                 return None
-            ds = xarray.concat(ds_list, dim="Timestamp")
+            elif len(dims) == 1:
+                ds = xarray.concat(ds_list, dim=dims[0])
+            else:
+                ds_list_per_dim = []
+                for d in dims:
+                    drop_dims = [dd for dd in dims if dd != d]
+                    ds_list_per_dim.append(xarray.concat([_ds.drop_dims(drop_dims) for _ds in ds_list], dim=d))
+                ds = xarray.merge(ds_list_per_dim)
         # # Test this other option:
         # ds = self.contents[0].as_xarray()
         # for d in self.contents[1:]:
@@ -694,10 +780,52 @@ class ReturnedData(object):
         # concat is slow. Maybe try extracting numpy arrays and rebuilding ds
 
         # Set the original data sources and models used as metadata
+        # only for cdf data types
         ds.attrs["Sources"] = self.sources
-        ds.attrs["MagneticModels"] = self.magnetic_models
-        ds.attrs["RangeFilters"] = self.range_filters
+        if self.filetype == "cdf":
+            ds.attrs["MagneticModels"] = self.magnetic_models
+            ds.attrs["RangeFilters"] = self.range_filters
         return ds
+
+    def as_xarray_dict(self):
+        """Convert the data to a dict containing an xarray per group.
+
+        Returns:
+            dict of xarray.Dataset
+
+        """
+        # ds_list is a list of xarray.Dataset objects
+        #  - they are created from each file in self.contents
+        # Some of them may be empty because of the time window they cover
+        #  and the filtering that has been applied.
+        ds_list = []
+        for i, data in enumerate(self.contents):
+            ds_part = data.as_xarray_dict()
+            if ds_part is None:
+                print("Warning: ",
+                    "Unable to create dataset from part {} of {}".format(
+                        i+1, len(self.contents)),
+                    "\n(This part is likely empty)")
+            else:
+                ds_list.append(ds_part)
+        ds_list = [i for i in ds_list if i is not None]
+        if ds_list == []:
+            return None
+        elif len(ds_list) == 1:
+            # add sources to all dict as_xarray
+            for xa_ds in ds_list[0].values():
+                xa_ds.attrs["Sources"] = self.sources
+            ds_dict = ds_list[0]
+        else:
+            ds_dict = {}
+            ds_list = [i for i in ds_list if i is not None]
+            if ds_list == []:
+                return None
+            for group in ds_list[0]:
+                group_list = [g[group] for g in ds_list if g is not None]
+                ds_dict[group] = xarray.merge(group_list)
+                ds_dict[group].attrs["Sources"] = self.sources
+        return ds_dict
 
     def to_files(self, paths, overwrite=False):
         """Saves the data to the specified files.
