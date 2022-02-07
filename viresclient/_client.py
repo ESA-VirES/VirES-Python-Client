@@ -93,6 +93,11 @@ Invalid token? Set with viresclient.set_token().
 For more details, see:
 https://viresclient.readthedocs.io/en/latest/config_details.html"""
 
+PRODUCTION_URLS = {
+    "Swarm": "https://vires.services/ows",
+    "Aeolus": "https://aeolus.services/ows",
+}
+
 
 
 def get_log_level(level):
@@ -250,18 +255,20 @@ class ClientRequest(object):
     def __init__(self, url=None, token=None,
                  config=None, logging_level="NO_LOGGING", server_type=None):
 
+        self._server_type = server_type
+
         # Check and prompt for token if not already set, then store in config
         # Try to only do this if running in a notebook
         if IN_JUPYTER:
             if not (token or config):
                 cc = ClientConfig()
                 # Use production url if none chosen
-                url = url or cc.default_url or "https://vires.services/ows"
+                prod_url = PRODUCTION_URLS.get(self._server_type, None)
+                url = url or cc.default_url or prod_url
                 if not cc.get_site_config(url):
                     print("Access token not found.")
                     set_token(url)
 
-        self._server_type = server_type
         self._available = {}
         self._collection = None
         self._request_inputs = None
