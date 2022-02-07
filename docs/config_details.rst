@@ -1,8 +1,28 @@
 Configuration Details
 =====================
 
-.. note::
-  Be careful not to accidentally add your credentials to online repositories or containers. You can use the CLI command ``viresclient clear_credentials`` to remove them.
+.. attention::
+  Be careful not to accidentally add your credentials to online repositories or containers. You can use the CLI command ``viresclient clear_credentials`` to remove them from your environment. By default, this is just a file located at ``~/.viresclient.ini``, where ``~`` is your home directory which is dependent on the operating system.
+
+.. tip::
+
+  To get started quickly in Jupyter notebooks:
+
+  .. code-block:: python
+
+    from viresclient import SwarmRequest
+    r = SwarmRequest("https://vires.services/ows")
+
+  OR:
+
+  .. code-block:: python
+
+    from viresclient import AeolusRequest
+    r = AeolusRequest("https://aeolus.services/ows")
+
+  ... then follow automatic instructions to configure token if not already set
+
+NB: URL's on this page assume using *VirES for Swarm*. If using *Aeolus* instead, replace ``https://vires.services/ows`` with ``https://aeolus.services/ows``.
 
 While it is possible to enter the server URL and access credentials (see :doc:`access_token`) each time a new request object is created,
 
