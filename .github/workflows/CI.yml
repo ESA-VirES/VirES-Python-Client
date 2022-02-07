@@ -9,7 +9,17 @@ on:
 
 jobs:
   run-tests:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system:
+          - ubuntu-latest
+          - windows-latest
+          - macOS-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: excitedleigh/setup-nox@v2.0.0
-    - run: nox
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Nox
+        uses: excitedleigh/setup-nox@v2.0.0
+      - name: Run Nox
+        run: nox
