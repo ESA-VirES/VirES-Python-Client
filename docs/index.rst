@@ -4,11 +4,13 @@ Welcome to viresclient's documentation!
 Get started `at the introduction <readme.html>`_
 
 .. toctree::
-  :caption: Virtual Research Environment
+  :caption: Virtual Research Environments
 
-  🔗 [Launch VRE / JupyterLab] <https://vre.vires.services>
+  🔗 VirES for Swarm <https://vires.services>
   🔗 How-To Guides [Swarm Notebooks] <https://swarm.magneticearth.org>
-  🔗 VirES Graphical Interface <https://vires.services>
+  🔗 VirES for Aeolus <https://aeolus.services>
+  🔗 How-To Guides [Aeolus Notebooks] <https://notebooks.aeolus.services>
+  
 
 .. toctree::
   :maxdepth: 2
@@ -19,6 +21,7 @@ Get started `at the introduction <readme.html>`_
   config_details
   access_token
   available_parameters
+  available_parameters_aeolus
   notebook_intro
   release_notes
 

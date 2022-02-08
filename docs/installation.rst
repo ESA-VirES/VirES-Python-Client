@@ -1,12 +1,10 @@
 Installation and First Usage
 ============================
 
+.. note:: For VRE users (it's free! read more: `Swarm <https://swarm.magneticearth.org>`_, `Aeolus <https://notebooks.aeolus.services>`_), viresclient is already installed and configured so skip these steps
+
 1. Installation
 ---------------
-
-.. note:: For VRE (Virtual Research Environment) users (it's free! - `read more <https://swarm.magneticearth.org>`_):
-
-  viresclient is already installed so skip this step. Log in at https://vre.vires.services and refer to `the introduction notebooks <https://swarm.magneticearth.org/notebooks/02a__intro-swarm-viresclient>`_.
 
 Python ≥ 3.6 is required. Testing is primarily on Linux, but macOS and Windows should also work.
 
@@ -23,10 +21,11 @@ Dependencies::
   cdflib
   pandas
   xarray
+  netCDF4
 
 pip will fetch these automatically - if you are using conda, it may be better to install these first using conda instead (where available)::
 
-    conda install requests jinja2 pytables tqdm pandas xarray
+    conda install requests jinja2 pytables tqdm pandas xarray netcdf4
     pip install viresclient
 
 Recommended setup if starting without Python already
@@ -35,7 +34,7 @@ Recommended setup if starting without Python already
 1. Install Miniconda: https://docs.conda.io/en/latest/miniconda.html
 2. Create a new conda environment with some recommended packages::
 
-    conda create --name myenv scipy matplotlib pandas xarray cartopy jupyter jupyterlab flake8 dask h5py netCDF4 jinja2 pytables tqdm
+    conda create --name myenv scipy matplotlib pandas xarray cartopy jupyter jupyterlab flake8 dask h5py netCDF4 jinja2 pytables tqdm ipywidgets
 
   Activate the new environment (you do this each time you want to use it)::
 

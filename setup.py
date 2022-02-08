@@ -71,6 +71,7 @@ setup(
         'tqdm>=4.23.0, <5.0.0',
         'xarray>=0.11.0, <1.0.0',
         'requests>=2.0.0, <3.0.0',
+        'netCDF4>=1.5.3, <1.6.0',
     ],
     entry_points={
         'console_scripts': [

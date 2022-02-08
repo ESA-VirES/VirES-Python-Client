@@ -164,10 +164,8 @@
     {% endif -%}
   </wps:DataInputs>
   <wps:ResponseForm>
-    <wps:ResponseDocument lineage="true" storeExecuteResponse="true" status="true">
-      <wps:Output mimeType="{{ response_type }}">
-        <ows:Identifier>output</ows:Identifier>
-      </wps:Output>
-    </wps:ResponseDocument>
+    <wps:RawDataOutput mimeType="{{ response_type }}">
+      <ows:Identifier>output</ows:Identifier>
+    </wps:RawDataOutput>
   </wps:ResponseForm>
 </wps:Execute>

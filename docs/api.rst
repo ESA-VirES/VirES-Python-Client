@@ -8,6 +8,15 @@ SwarmRequest
     :inherited-members:
     :exclude-members: AUXILIARY_VARIABLES, COLLECTIONS, COLLECTION_SAMPLING_STEPS, MAGNETIC_MODELS, MAGNETIC_MODEL_VARIABLES, OBS_COLLECTIONS, PRODUCT_VARIABLES
 
+AeolusRequest
+=============
+
+.. autoclass:: viresclient.AeolusRequest
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :inherited-members:
+
 ReturnedData
 ============
 
