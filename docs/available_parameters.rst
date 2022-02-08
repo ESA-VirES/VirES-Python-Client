@@ -1,5 +1,5 @@
-Available parameters for Swarm data
-===================================
+Available parameters for Swarm
+==============================
 
 .. note::
 

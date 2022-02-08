@@ -4,6 +4,12 @@ Release notes
 Change log
 ----------
 
+Changes from 0.9.1 to 0.10.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added functionality to support VirES for Aeolus. See https://notebooks.aeolus.services
+- Added dependency: `netCDF4 <https://github.com/Unidata/netcdf4-python>`_
+
 Changes from 0.9.0 to 0.9.1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

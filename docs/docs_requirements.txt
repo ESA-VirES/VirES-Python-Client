@@ -6,3 +6,4 @@ cdflib
 tables
 tqdm
 xarray
+netcdf4

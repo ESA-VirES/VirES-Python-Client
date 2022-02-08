@@ -5,7 +5,7 @@ An access token is required to access the VirES server.
 The tokens are managed via the web user interface.
 
 Assuming you have an existing VirES account and you can access
-the VirES web client (`htts://vires.services <https://vires.services>`_),
+the VirES web client (https://vires.services or https://aeolus.services),
 you get to token manager via `Manage access tokens` item in your account menu
 (displaying your username)
 

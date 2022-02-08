@@ -10,12 +10,6 @@
     :target: https://requires.io/github/ESA-VirES/VirES-Python-Client/requirements/?branch=master
     :alt: Requirements Status
 
-.. image:: https://travis-ci.org/ESA-VirES/VirES-Python-Client.svg?branch=master
-    :target: https://travis-ci.org/ESA-VirES/VirES-Python-Client
-
-.. image:: https://coveralls.io/repos/github/ESA-VirES/VirES-Python-Client/badge.svg
-    :target: https://coveralls.io/github/ESA-VirES/VirES-Python-Client
-
 .. image:: https://zenodo.org/badge/138034133.svg
    :target: https://zenodo.org/badge/latestdoi/138034133
 
@@ -23,20 +17,24 @@
 
   pip install viresclient
 
-viresclient_ is a Python package which connects to a VirES_ server through the WPS_ interface and handles product requests and downloads. This enables easy access to ESA's `Swarm mission`_ data and models. This service is provided for ESA by EOX_. For enquiries about the service and problems with accessing your account, please email info@vires.services. For help with usage, please email ashley.smith@ed.ac.uk or `raise an issue on GitHub`_.
+viresclient_ is a Python package which connects to a VirES server, of which there are two: *VirES for Swarm* (https://vires.services) and *VirES for Aeolus* (https://aeolus.services), through the WPS_ interface. This package handles product requests and downloads, enabling easy access to data and models from ESA's Earth Explorer missions, Swarm_ and Aeolus_. This service is provided for ESA by EOX_. For enquiries about the service and problems with accessing your account, please email info@vires.services. For help with usage, please email ashley.smith@ed.ac.uk (for Swarm data) or `raise an issue on GitHub`_.
 
 .. _viresclient: https://github.com/ESA-VirES/VirES-Python-Client
-.. _VirES: https://vires.services
 .. _WPS: http://www.opengeospatial.org/standards/wps
-.. _`Swarm mission`: https://earth.esa.int/eogateway/missions/swarm
+.. _Swarm: https://earth.esa.int/eogateway/missions/swarm
+.. _Aeolus: https://earth.esa.int/eogateway/missions/aeolus
 .. _EOX: https://eox.at/category/vires/
 .. _`raise an issue on GitHub`: https://github.com/ESA-VirES/VirES-Python-Client/issues
 
-Data and models are processed on demand on the server - a combination of measurements from any time interval can be accessed. These are the same data that can be accessed by the `VirES GUI`_. *viresclient* handles the returned data to allow direct loading as a single pandas.DataFrame_, or xarray.Dataset_.
+For code recipes and more, see `Swarm Notebooks`_ & `Aeolus Notebooks`_. To start experimenting right away, *viresclient* is installed on the "Virtual Research Environment" (VRE), which is a managed Jupyter-based system provided for ESA by EOX. The service is free and open to all, accessible through your VirES account - check the notebooks to read more and get started.
+
+.. _`Swarm Notebooks`: https://swarm.magneticearth.org
+.. _`Aeolus Notebooks`: https://notebooks.aeolus.services
+
+Data and models are processed on demand on the VirES server - a combination of measurements from any time interval can be accessed. These are the same data that can be accessed by the VirES GUI. *viresclient* handles the returned data to allow direct loading as a single pandas.DataFrame_, or xarray.Dataset_.
 
 .. _pandas.DataFrame: https://pandas.pydata.org/pandas-docs/stable/dsintro.html#dataframe
 .. _xarray.Dataset: http://xarray.pydata.org/en/stable/data-structures.html#dataset
-.. _`VirES GUI`: https://vires.services
 
 .. code-block:: python
 
@@ -91,10 +89,7 @@ Data and models are processed on demand on the server - a combination of measure
    RangeFilters:    []
 
 
-*viresclient* is installed on the `"Virtual Research Environment" (VRE)`_, which is a managed Jupyter-based system provided for ESA by EOX. The service is free and open to all. See `"Swarm Notebooks"`_ for how-to guides with Swarm data and guidance in using the VRE.
 
-.. _`"Virtual Research Environment" (VRE)`: https://vre.vires.services
-.. _`"Swarm Notebooks"`: https://swarm.magneticearth.org
 
 .. image:: https://github.com/ESA-VirES/Swarm-VRE/raw/master/docs/images/VRE_shortest_demo.gif
 
@@ -105,3 +100,7 @@ How to acknowledge VirES
 You can reference *viresclient* directly using the DOI of our zenodo_ record. VirES uses data from a number of different sources so please also acknowledge these appropriately.
 
 .. _zenodo: https://doi.org/10.5281/zenodo.2554162
+
+    | "We use the Python package, viresclient [1], to access [...] from ESA's VirES for Swarm service [2]"  
+    | [1] https://doi.org/10.5281/zenodo.2554162  
+    | [2] https://vires.services

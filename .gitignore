@@ -32,3 +32,6 @@ MANIFEST
 
 # Sphinx documentation
 docs/_build/
+
+# nox
+.nox
