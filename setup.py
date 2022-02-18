@@ -64,7 +64,7 @@ setup(
     },
     python_requires='>=3.6',
     install_requires=[
-        'Jinja2>=2.10, <3.0.0',
+        'Jinja2>=2.10, <4.0.0',
         'pandas>=0.18, <2.0.0',
         'cdflib>=0.3.9, <=0.3.20',
         'tables>=3.4.4, <4.0.0',
