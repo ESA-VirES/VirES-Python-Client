@@ -4,6 +4,11 @@ Release notes
 Change log
 ----------
 
+Changes from 0.10.0 to 0.10.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Update Jinja2 dependency
+
 Changes from 0.9.1 to 0.10.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
