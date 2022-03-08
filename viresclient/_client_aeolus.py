@@ -256,7 +256,7 @@ class AeolusRequest(ClientRequest):
     
     def print_available_collections(
         self, collection=None, field_type=None, regex=None, details=True, path=False):
-        pd.set_option("max_rows", None)
+        pd.set_option("display.max_rows", None)
         pd.set_option("display.max_colwidth", None)
         collection_dfs = []
         collection_names = []
