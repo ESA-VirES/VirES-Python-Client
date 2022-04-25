@@ -15,7 +15,6 @@
 import os
 import sys
 import urllib.request
-sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
@@ -23,17 +22,6 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'viresclient'
 copyright = '2018, Ashley Smith'
 author = 'Ashley Smith'
-
-# The short X.Y version
-with open('../viresclient/__init__.py') as f:
-    for line in f:
-        if line.find("__version__") >= 0:
-            version = line.split("=")[1].strip()
-            version = version.strip('"')
-            version = version.strip("'")
-            continue
-# The full version, including alpha/beta/rc tags
-release = version
 
 
 # -- General configuration ---------------------------------------------------
@@ -50,6 +38,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.imgmath',
     'sphinx.ext.autosectionlabel',
+    "sphinx_copybutton",
     'sphinx.ext.viewcode',
 ]
 
@@ -86,9 +75,7 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-# html_theme = 'alabaster'
-html_theme = 'sphinx_rtd_theme'
-html_theme_path = ["_themes", ]
+html_theme = 'sphinx_book_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
