@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # vires API - token management API proxy
 #
 # Project: VirES-Python-Client
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2019 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,16 +25,18 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # pylint: disable=missing-docstring,arguments-differ
 
 import re
+
 import requests
+
 from .._wps.http_util import encode_token_auth
 
 
-class TokenManager():
-    """ VirES for Swarm token management API proxy.
+class TokenManager:
+    """VirES for Swarm token management API proxy.
 
     Example usage::
 
@@ -54,11 +56,12 @@ class TokenManager():
        'token': '...'}
 
     """
+
     RE_URL_BASE = re.compile(r"(/(ows)?)?$")
     PATH_TOKEN_API = "/accounts/api/tokens/"
 
     class Error(Exception):
-        """ Token manager error exception. """
+        """Token manager error exception."""
 
     def __init__(self, url, token):
         self.url = self.get_api_url(url)
@@ -66,25 +69,29 @@ class TokenManager():
         self.headers = encode_token_auth(token=token)
 
     def post(self, purpose=None, expires=None):
-        """ HTTP POST
+        """HTTP POST
         Create a new token.
         Accepted parameters:
           purpose   optional text label describing purpose of the token
           expires   optional token expiration as ISO timestamp or ISO duration
         """
-        response = requests.post(self.url, headers=self.headers, json={
-            "purpose": purpose,
-            "expires": expires,
-        })
+        response = requests.post(
+            self.url,
+            headers=self.headers,
+            json={
+                "purpose": purpose,
+                "expires": expires,
+            },
+        )
 
         if response.status_code != 200:
-            raise self.Error("%s %s: %s" % (
-                response.status_code, response.reason, response.text
-            ))
+            raise self.Error(
+                f"{response.status_code} {response.reason}: {response.text}"
+            )
 
         return response.json()
 
     @classmethod
     def get_api_url(cls, url):
-        """ Translate WPS URL path to the upload REST/API URL path. """
+        """Translate WPS URL path to the upload REST/API URL path."""
         return cls.RE_URL_BASE.sub(cls.PATH_TOKEN_API, url, count=1)

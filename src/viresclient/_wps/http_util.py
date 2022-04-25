@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # http utilities
 #
 # Author: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2018 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,31 +24,27 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 from base64 import standard_b64encode
 
 
 def encode_no_auth(**kwargs):
-    """ Dummy encoder.  """
+    """Dummy encoder."""
     return {}
 
 
 def encode_basic_auth(username, password, **kwargs):
-    """ Encode username and password as the basic HTTP access authentication
+    """Encode username and password as the basic HTTP access authentication
     header.
     """
     return {
-        b"Authorization": b"Basic " + standard_b64encode(
-            ("%s:%s" % (username, password)).encode("UTF-8")
-        )
+        b"Authorization": b"Basic "
+        + standard_b64encode((f"{username}:{password}").encode())
     }
 
 
 def encode_token_auth(token, **kwargs):
-    """ Encode token as the bearer authentication header.
-    """
+    """Encode token as the bearer authentication header."""
     # NOTE: Only ASCII characters are allowed in HTTP headers.
-    return {
-        b"Authorization": b"Bearer " + token.encode("ascii")
-    }
+    return {b"Authorization": b"Bearer " + token.encode("ascii")}

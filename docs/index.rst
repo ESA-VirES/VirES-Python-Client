@@ -10,7 +10,7 @@ Get started `at the introduction <readme.html>`_
   🔗 How-To Guides [Swarm Notebooks] <https://swarm.magneticearth.org>
   🔗 VirES for Aeolus <https://aeolus.services>
   🔗 How-To Guides [Aeolus Notebooks] <https://notebooks.aeolus.services>
-  
+
 
 .. toctree::
   :maxdepth: 2

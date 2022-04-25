@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # Handles the WPS requests to the VirES server
 #
 # Authors: Ashley Smith <ashley.smith@ed.ac.uk>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2018 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,38 +25,39 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
+import json
 import os
 from datetime import timedelta
-from logging import getLogger, DEBUG, INFO, WARNING, ERROR, CRITICAL
-import json
+from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING, getLogger
+
 # Identify whether code is running in Jupyter notebook or not
 try:
     from IPython import get_ipython
-    IN_JUPYTER = 'zmqshell' in str(type(get_ipython()))
+
+    IN_JUPYTER = "zmqshell" in str(type(get_ipython()))
 except Exception:
     IN_JUPYTER = False
 if IN_JUPYTER:
     from tqdm.notebook import tqdm
 else:
     from tqdm import tqdm
+
 from io import StringIO
+
 from pandas import read_csv, to_datetime
 
+from ._config import ClientConfig, set_token
+from ._data_handling import ReturnedData
 
-from ._wps.wps_vires import ViresWPS10Service
-from ._wps.time_util import parse_duration, parse_datetime
-from ._wps.http_util import (
-    encode_basic_auth, encode_token_auth, encode_no_auth,
-)
-from ._wps.log_util import set_stream_handler
 # from jinja2 import Environment, FileSystemLoader
 from ._wps.environment import JINJA2_ENVIRONMENT
-from ._wps.wps import WPSError, AuthenticationError
-
-from ._data_handling import ReturnedData
-from ._config import ClientConfig, set_token
+from ._wps.http_util import encode_basic_auth, encode_no_auth, encode_token_auth
+from ._wps.log_util import set_stream_handler
+from ._wps.time_util import parse_datetime, parse_duration
+from ._wps.wps import AuthenticationError, WPSError
+from ._wps.wps_vires import ViresWPS10Service
 
 # Logging levels
 LEVELS = {
@@ -71,7 +72,7 @@ LEVELS = {
 RESPONSE_TYPES = {
     "csv": "text/csv",
     "cdf": "application/x-cdf",
-    "nc": "application/netcdf"
+    "nc": "application/netcdf",
 }
 
 # Maximum number of records allowable in one WPS request
@@ -81,11 +82,11 @@ NRECORDS_LIMIT = 4320000  # = 50 days at 1Hz
 CONFIG_FILE_PATH = os.path.join(os.path.expanduser("~"), ".viresclient,ini")
 
 # Maximum time-chunk size ~25 years
-MAX_CHUNK_DURATION = timedelta(days=25*365.25)
+MAX_CHUNK_DURATION = timedelta(days=25 * 365.25)
 
 TEMPLATE_FILES = {
-    'list_jobs': "vires_list_jobs.xml",
-    'getTimeData': "vires_getTimeData.xml"
+    "list_jobs": "vires_list_jobs.xml",
+    "getTimeData": "vires_getTimeData.xml",
 }
 
 AUTH_ERROR_TEXT = """
@@ -99,17 +100,16 @@ PRODUCTION_URLS = {
 }
 
 
-
 def get_log_level(level):
-    """ Translate log-level string to an actual log level number accepted by
-    the python logging. """
+    """Translate log-level string to an actual log level number accepted by
+    the python logging."""
     if isinstance(level, str):
         level = LEVELS[level]
     return level
 
 
-class WPSInputs(object):
-    """ Base WPS inputs class holding the set of inputs to be passed
+class WPSInputs:
+    """Base WPS inputs class holding the set of inputs to be passed
     to the request template.
 
     Properties of this class are the set of valid inputs to a WPS request.
@@ -118,17 +118,17 @@ class WPSInputs(object):
     dictionary to be passed as kwargs to as_xml() which fills the xml
     template.
     """
-    NAMES = [] # to be overridden in the sub-classes
+
+    NAMES = []  # to be overridden in the sub-classes
 
     def __str__(self):
-        return "Request details:\n{}".format('\n'.join([
-            '{}: {}'.format(key, value)
-            for (key, value) in self.as_dict.items()
-            ]))
+        return "Request details:\n{}".format(
+            "\n".join([f"{key}: {value}" for (key, value) in self.as_dict.items()])
+        )
 
     @property
     def as_dict(self):
-        return {key: self.__dict__['_{}'.format(key)] for key in self.NAMES}
+        return {key: self.__dict__[f"_{key}"] for key in self.NAMES}
 
     def as_xml(self, templatefile):
         """Renders a WPS request template (xml) that can later be executed
@@ -138,19 +138,20 @@ class WPSInputs(object):
 
         """
         template = JINJA2_ENVIRONMENT.get_template(templatefile)
-        request = template.render(**self.as_dict).encode('UTF-8')
+        request = template.render(**self.as_dict).encode("UTF-8")
         return request
 
 
-class ProgressBar(object):
-    """Custom tqdm status bar
-    """
+class ProgressBar:
+    """Custom tqdm status bar"""
 
     def __init__(self, bar_format, total=100, leave=True):
         self.percentCompleted = 0
         self.lastpercent = 0
         self.tqdm_pbar = tqdm(
-            total=total, bar_format=bar_format, leave=leave,
+            total=total,
+            bar_format=bar_format,
+            leave=leave,
         )
 
     def __enter__(self):
@@ -163,11 +164,10 @@ class ProgressBar(object):
         self.tqdm_pbar.close()
 
     def refresh_tqdm(self):
-        """Updates the output of the progress bar.
-        """
+        """Updates the output of the progress bar."""
         if self.percentCompleted is None:
             return
-        self.tqdm_pbar.update(self.percentCompleted-self.lastpercent)
+        self.tqdm_pbar.update(self.percentCompleted - self.lastpercent)
         if self.percentCompleted == 100:
             self.cleanup()
 
@@ -180,17 +180,17 @@ class ProgressBarChunks(ProgressBar):
     """A progress bar to track longer (chunked) requests"""
 
     def __init__(self, nchunks):
-        l_bar = '{desc}'
-        bar = '{bar}'
-        r_bar = '|  [ Elapsed: {elapsed}, Remaining: {remaining}]  {postfix}'
-        bar_format = '{}{}{}'.format(l_bar, bar, r_bar)
-        super().__init__(bar_format, total=nchunks+1)
+        l_bar = "{desc}"
+        bar = "{bar}"
+        r_bar = "|  [ Elapsed: {elapsed}, Remaining: {remaining}]  {postfix}"
+        bar_format = f"{l_bar}{bar}{r_bar}"
+        super().__init__(bar_format, total=nchunks + 1)
 
     def update(self, i, n, size, final=False):
         """Update the chunk iteration (i) and total file size"""
         # Update {desc} set above
         self.tqdm_pbar.set_description(f"Processing chunks [{i+1}/{n}]")
-        size = round(size/1e6, 3)
+        size = round(size / 1e6, 3)
         filesize_display = f"({size} MB)" if final else f"(> {size} MB)"
         # Update {postfix} set above
         self.tqdm_pbar.set_postfix_str(filesize_display)
@@ -205,16 +205,15 @@ class ProgressBarProcessing(ProgressBar):
     """
 
     def __init__(self, extra_text=None, leave=True):
-        extra_text = str() if extra_text is None else extra_text
-        l_bar = 'Processing:  {percentage:3.0f}%|'
-        bar = '{bar}'
-        r_bar = '|  [ Elapsed: {elapsed}, Remaining: {remaining} {postfix}]'
-        bar_format = '{}{}{} {}'.format(l_bar, bar, r_bar, extra_text)
+        extra_text = "" if extra_text is None else extra_text
+        l_bar = "Processing:  {percentage:3.0f}%|"
+        bar = "{bar}"
+        r_bar = "|  [ Elapsed: {elapsed}, Remaining: {remaining} {postfix}]"
+        bar_format = f"{l_bar}{bar}{r_bar} {extra_text}"
         super().__init__(bar_format, leave=leave)
 
     def update(self, wpsstatus):
-        """Updates the internal state based on the state of a WPSStatus object.
-        """
+        """Updates the internal state based on the state of a WPSStatus object."""
         self.lastpercent = self.percentCompleted
         self.percentCompleted = wpsstatus.percentCompleted
         if self.lastpercent != self.percentCompleted:
@@ -228,32 +227,38 @@ class ProgressBarDownloading(ProgressBar):
 
     def __init__(self, size, leave=True):
         # Convert size to MB
-        sizeMB = round(size/1e6, 3)
+        sizeMB = round(size / 1e6, 3)
         # if sizeMB > 1:
         #     sizeMB = round(sizeMB,)
-        l_bar = 'Downloading: {percentage:3.0f}%|'
-        bar = '{bar}'
-        r_bar = '|  [ Elapsed: {{elapsed}}, '\
-                'Remaining: {{remaining}} {{postfix}}] '\
-                '({sizeMB}MB)'.format(sizeMB=sizeMB)
-        bar_format = '{}{}{}'.format(l_bar, bar, r_bar)
+        l_bar = "Downloading: {percentage:3.0f}%|"
+        bar = "{bar}"
+        r_bar = (
+            "|  [ Elapsed: {{elapsed}}, "
+            "Remaining: {{remaining}} {{postfix}}] "
+            "({sizeMB}MB)".format(sizeMB=sizeMB)
+        )
+        bar_format = f"{l_bar}{bar}{r_bar}"
         super().__init__(bar_format, leave=leave)
 
     def update(self, percentCompleted):
-        """Updates the internal state of the percentage completion.
-        """
+        """Updates the internal state of the percentage completion."""
         self.lastpercent = self.percentCompleted
         self.percentCompleted = percentCompleted
         if self.lastpercent != self.percentCompleted:
             self.refresh_tqdm()
 
 
-class ClientRequest(object):
-    """Base class handling the requests to and downloads from the server.
-    """
+class ClientRequest:
+    """Base class handling the requests to and downloads from the server."""
 
-    def __init__(self, url=None, token=None,
-                 config=None, logging_level="NO_LOGGING", server_type=None):
+    def __init__(
+        self,
+        url=None,
+        token=None,
+        config=None,
+        logging_level="NO_LOGGING",
+        server_type=None,
+    ):
 
         self._server_type = server_type
 
@@ -281,9 +286,7 @@ class ClientRequest(object):
         self._logger = getLogger()
         set_stream_handler(self._logger, logging_level)
 
-        self._wps_service = self._create_service_proxy_(
-            config, url, None, None, token
-        )
+        self._wps_service = self._create_service_proxy_(config, url, None, None, token)
         # Test if the token is working; re-enter if not
         if IN_JUPYTER:
             invalid_token = True
@@ -325,9 +328,9 @@ class ClientRequest(object):
             encode_headers = encode_basic_auth
         else:
             credentials = config.get_site_config(url)
-            if 'token' in credentials:
+            if "token" in credentials:
                 encode_headers = encode_token_auth
-            elif 'username' in credentials and 'password' in credentials:
+            elif "username" in credentials and "password" in credentials:
                 encode_headers = encode_basic_auth
             else:
                 encode_headers = encode_no_auth
@@ -353,8 +356,7 @@ class ClientRequest(object):
 
     # @staticmethod
     def _response_handler(
-                self, retdatafile, show_progress=True,
-                leave_progress_bar=True
+        self, retdatafile, show_progress=True, leave_progress_bar=True
     ):
         """Creates the response handler function for the WPS request
 
@@ -362,7 +364,7 @@ class ClientRequest(object):
         with a download progress bar
         """
 
-        def copyfileobj(fsrc, fdst, callback=None, total=None, length=16*1024):
+        def copyfileobj(fsrc, fdst, callback=None, total=None, length=16 * 1024):
             """Copying with progress reporting
             https://stackoverflow.com/a/29967714
             """
@@ -378,7 +380,8 @@ class ClientRequest(object):
 
         def copy_progress(pbar):
             def _copy_progress(copied, total):
-                return pbar.update(100*copied/total)
+                return pbar.update(100 * copied / total)
+
             return _copy_progress
 
         def write_response(file_obj):
@@ -386,17 +389,16 @@ class ClientRequest(object):
             https://stackoverflow.com/a/7244263
             file_obj is what is returned from urllib.urlopen()
             """
-            size = int(file_obj.info()['Content-Length'])
+            size = int(file_obj.info()["Content-Length"])
             self._downloaded_chunk_sizes.append(size)
             with ProgressBarDownloading(size, leave=leave_progress_bar) as pbar:
                 with open(retdatafile._file.name, "wb") as out_file:
                     copyfileobj(
-                        file_obj, out_file, callback=copy_progress(pbar),
-                        total=size
-                        )
+                        file_obj, out_file, callback=copy_progress(pbar), total=size
+                    )
 
         def write_response_without_reporting(file_obj):
-            size = int(file_obj.info()['Content-Length'])
+            size = int(file_obj.info()["Content-Length"])
             self._downloaded_chunk_sizes.append(size)
             with open(retdatafile._file.name, "wb") as out_file:
                 copyfileobj(file_obj, out_file)
@@ -428,9 +430,12 @@ class ClientRequest(object):
                 e.g. [(start1, end1), (start2, end2)]
         """
         # maximum chunk duration as a timedelta object
-        chunk_duration = min(timedelta(seconds=(
-            nrecords_limit * parse_duration(sampling_step).total_seconds()
-        )), MAX_CHUNK_DURATION)
+        chunk_duration = min(
+            timedelta(
+                seconds=(nrecords_limit * parse_duration(sampling_step).total_seconds())
+            ),
+            MAX_CHUNK_DURATION,
+        )
 
         # calculate the chunk intervals ...
         request_intervals = []
@@ -445,8 +450,15 @@ class ClientRequest(object):
 
         return request_intervals
 
-    def _get(self, request=None, asynchronous=None, response_handler=None,
-             message=None, show_progress=True, leave_progress_bar=True):
+    def _get(
+        self,
+        request=None,
+        asynchronous=None,
+        response_handler=None,
+        message=None,
+        show_progress=True,
+        leave_progress_bar=True,
+    ):
         """Make a request and handle response according to response_handler
 
         Args:
@@ -467,32 +479,35 @@ class ClientRequest(object):
                         return self._wps_service.retrieve_async(
                             request,
                             handler=response_handler,
-                            status_handler=progressbar.update
+                            status_handler=progressbar.update,
                         )
                 else:
                     return self._wps_service.retrieve_async(
-                        request,
-                        handler=response_handler
+                        request, handler=response_handler
                     )
             else:
-                return self._wps_service.retrieve(
-                    request,
-                    handler=response_handler
-                )
+                return self._wps_service.retrieve(request, handler=response_handler)
         except WPSError:
             raise RuntimeError(
                 "Server error. Or perhaps the request is invalid? "
                 "Check the output of: print(request) and "
                 "print(request._request.decode())"
-                )
+            )
         except AuthenticationError:
             raise AuthenticationError(AUTH_ERROR_TEXT)
 
-    def get_between(self, start_time=None, end_time=None,
-                    filetype="cdf", asynchronous=True, show_progress=True,
-                    show_progress_chunks=True,
-                    leave_intermediate_progress_bars=True,
-                    nrecords_limit=None, tmpdir=None):
+    def get_between(
+        self,
+        start_time=None,
+        end_time=None,
+        filetype="cdf",
+        asynchronous=True,
+        show_progress=True,
+        show_progress_chunks=True,
+        leave_intermediate_progress_bars=True,
+        nrecords_limit=None,
+        tmpdir=None,
+    ):
         """Make the server request and download the data.
 
         Args:
@@ -532,17 +547,15 @@ class ClientRequest(object):
         retdatagroup = ReturnedData(filetype=filetype)
 
         if retdatagroup.filetype not in self._supported_filetypes:
-            raise TypeError(
-                "filetype: {} not supported by server".format(filetype)
-                )
+            raise TypeError(f"filetype: {filetype} not supported by server")
         self._request_inputs.response_type = RESPONSE_TYPES[retdatagroup.filetype]
 
         if asynchronous:
             # asynchronous WPS request
-            templatefile = self._templatefiles['async']
+            templatefile = self._templatefiles["async"]
         else:
             # synchronous WPS request
-            templatefile = self._templatefiles['sync']
+            templatefile = self._templatefiles["sync"]
 
         # Set the "sampling step" to use to split the request if it's too long
         # (Due to the the server limit of NRECORDS_LIMIT)
@@ -558,24 +571,26 @@ class ClientRequest(object):
         if sampling_step_estimate is None:
             # Identify a default sampling step if possible
             try:
-                collection_key = self._available[
-                    "collections_to_keys"][self._collection_list[0]]
-                sampling_step_estimate = self._available[
-                    "collection_sampling_steps"][collection_key]
+                collection_key = self._available["collections_to_keys"][
+                    self._collection_list[0]
+                ]
+                sampling_step_estimate = self._available["collection_sampling_steps"][
+                    collection_key
+                ]
             except Exception:
                 sampling_step_estimate = "PT1S"
         nrecords_limit = NRECORDS_LIMIT if nrecords_limit is None else nrecords_limit
         # Split the request into several intervals
         intervals = self._chunkify_request(
             start_time, end_time, sampling_step_estimate, nrecords_limit
-            )
+        )
         nchunks = len(intervals)
         # Recreate the ReturnedData with the right number of chunks
         retdatagroup = ReturnedData(filetype=filetype, N=nchunks, tmpdir=tmpdir)
 
         def _get_chunk(i, start_time_i, end_time_i, leave_progress_bar=False):
             """Process an individual chunk and update retdatagroup"""
-            message = "[{}/{}] ".format(i+1, nchunks)
+            message = f"[{i + 1}/{nchunks}] "
             # Finalise the WPSInputs object and (re-)generate the xml
             self._request_inputs.begin_time = start_time_i
             self._request_inputs.end_time = end_time_i
@@ -585,8 +600,9 @@ class ClientRequest(object):
             # Make the request, as either asynchronous or synchronous
             # The response handler streams the data to the ReturnedData object
             response_handler = self._response_handler(
-                retdatafile, show_progress=show_progress,
-                leave_progress_bar=leave_progress_bar
+                retdatafile,
+                show_progress=show_progress,
+                leave_progress_bar=leave_progress_bar,
             )
             self._get(
                 request=self._request,
@@ -594,7 +610,7 @@ class ClientRequest(object):
                 response_handler=response_handler,
                 message=message,
                 show_progress=show_progress,
-                leave_progress_bar=leave_progress_bar
+                leave_progress_bar=leave_progress_bar,
             )
 
         if nchunks > 1:
@@ -607,8 +623,10 @@ class ClientRequest(object):
                     for i, (start_time_i, end_time_i) in enumerate(intervals):
                         pbar.update(i, nchunks, totalsize)
                         _get_chunk(
-                            i, start_time_i, end_time_i,
-                            leave_progress_bar=leave_intermediate_progress_bars
+                            i,
+                            start_time_i,
+                            end_time_i,
+                            leave_progress_bar=leave_intermediate_progress_bars,
                         )
                         totalsize = sum(self._downloaded_chunk_sizes)
                     pbar.update(i, nchunks, totalsize, final=True)
@@ -621,16 +639,16 @@ class ClientRequest(object):
         return retdatagroup
 
     def list_jobs(self):
-        """ Return job information from the server.
+        """Return job information from the server.
 
         Returns:
             dict
         """
-        templatefile = TEMPLATE_FILES['list_jobs']
+        templatefile = TEMPLATE_FILES["list_jobs"]
         template = JINJA2_ENVIRONMENT.get_template(templatefile)
-        request = template.render().encode('UTF-8')
+        request = template.render().encode("UTF-8")
         response = self._get(request, asynchronous=False, show_progress=False)
-        return json.loads(response.decode('UTF-8'))
+        return json.loads(response.decode("UTF-8"))
 
     def available_times(self, collection, start_time=None, end_time=None):
         """Returns temporal availability for a given collection
@@ -644,20 +662,12 @@ class ClientRequest(object):
             DataFrame
 
         """
-        template = JINJA2_ENVIRONMENT.get_template(
-            TEMPLATE_FILES["getTimeData"]
-        )
+        template = JINJA2_ENVIRONMENT.get_template(TEMPLATE_FILES["getTimeData"])
         request = template.render(
-            collection_id=collection,
-            begin_time=start_time,
-            end_time=end_time
-        ).encode('UTF-8')
-        response = self._get(
-            request, asynchronous=False, show_progress=False
-        )
-        df = read_csv(
-            StringIO(str(response, 'utf-8'))
-        )
+            collection_id=collection, begin_time=start_time, end_time=end_time
+        ).encode("UTF-8")
+        response = self._get(request, asynchronous=False, show_progress=False)
+        df = read_csv(StringIO(str(response, "utf-8")))
         # Convert to datetime objects
         df["starttime"] = to_datetime(df["starttime"])
         df["endtime"] = to_datetime(df["endtime"])

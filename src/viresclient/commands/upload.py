@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # viresclient CLI - data upload commands
 #
 # Project: VirES-Python-Client
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2019 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,20 +25,21 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # pylint: disable=missing-docstring,arguments-differ
 
 from os.path import exists
+
 from viresclient import ClientConfig
-from .common import ConfigurationCommand
+
 from .._api.upload import DataUpload
+from .common import ConfigurationCommand
 
-
-JSON_OPTS = {'sort_keys': False, 'indent': 2, 'separators': (',', ': ')}
+JSON_OPTS = {"sort_keys": False, "indent": 2, "separators": (",", ": ")}
 
 
 class DataUploadCommand(ConfigurationCommand):
-    """ Base data upload command. """
+    """Base data upload command."""
 
     def add_arguments_to_parser(self, parser):
         super().add_arguments_to_parser(parser)
@@ -47,19 +48,18 @@ class DataUploadCommand(ConfigurationCommand):
         )
 
     def get_data_upload_instance(self, config_path, server_url):
-        """ Get instance of the DataUpload class. """
+        """Get instance of the DataUpload class."""
         config = ClientConfig(path=config_path)
         server_url = server_url or config.default_url
 
         if not server_url:
             raise self.Error(
-                "No default URL is configured. "
-                "Enter server URL as a CLI argument!"
+                "No default URL is configured. " "Enter server URL as a CLI argument!"
             )
 
         api_url = DataUpload.get_api_url(server_url)
         ows_url = DataUpload.get_ows_url(server_url)
-        access_token = config.get_site_config(ows_url).get('token')
+        access_token = config.get_site_config(ows_url).get("token")
 
         if not access_token:
             raise self.Error("No access token configured for %s!" % ows_url)
@@ -72,9 +72,7 @@ class UploadDataFileCommand(DataUploadCommand):
 
     def add_arguments_to_parser(self, parser):
         super().add_arguments_to_parser(parser)
-        parser.add_argument(
-            "filename", action="store", type=str, help="uploaded file"
-        )
+        parser.add_argument("filename", action="store", type=str, help="uploaded file")
 
     def execute(self, config_path, server_url, filename):
 
@@ -84,7 +82,7 @@ class UploadDataFileCommand(DataUploadCommand):
         api_proxy = self.get_data_upload_instance(config_path, server_url)
 
         item = api_proxy.post(filename)
-        print("%s[%s] uploaded" % (item['identifier'], item['filename']))
+        print("{}[{}] uploaded".format(item["identifier"], item["filename"]))
 
 
 class RemoveUploadsCommand(DataUploadCommand):
@@ -93,8 +91,8 @@ class RemoveUploadsCommand(DataUploadCommand):
     def execute(self, config_path, server_url):
         api_proxy = self.get_data_upload_instance(config_path, server_url)
         for item in api_proxy.get():
-            api_proxy.delete(item['identifier'])
-            print("%s[%s] removed" % (item['identifier'], item['filename']))
+            api_proxy.delete(item["identifier"])
+            print("{}[{}] removed".format(item["identifier"], item["filename"]))
 
 
 class SetConstantParameters(DataUploadCommand):
@@ -103,13 +101,12 @@ class SetConstantParameters(DataUploadCommand):
     def add_arguments_to_parser(self, parser):
         super().add_arguments_to_parser(parser)
         parser.add_argument(
-            "-p", "--parameter", action="append", type=str,
-            help="key=value parameter"
+            "-p", "--parameter", action="append", type=str, help="key=value parameter"
         )
 
     def execute(self, config_path, server_url, parameter):
         if not parameter:
-            return # nothing to be done
+            return  # nothing to be done
 
         new_parameters = dict(self._parse_parameter(item) for item in parameter)
 
@@ -117,14 +114,14 @@ class SetConstantParameters(DataUploadCommand):
         for item in api_proxy.get():
             if item.get("constant_fields") is not None:
                 parmeters = {
-                    field: data['value']
+                    field: data["value"]
                     for field, data in item["constant_fields"].items()
                 }
                 parmeters.update(new_parameters)
                 api_proxy.set_constant_parameters(
-                    item['identifier'], parmeters, replace=True
+                    item["identifier"], parmeters, replace=True
                 )
-                print("%s: parameters updated" % (item['identifier']))
+                print("%s: parameters updated" % (item["identifier"]))
 
             else:
                 raise self.Error(
@@ -140,9 +137,8 @@ class SetConstantParameters(DataUploadCommand):
                 raise ValueError
             return name, float(value)
         except ValueError:
-            raise cls.Error(
-                "Invalid parameter specification '%s' !" % raw_parameter
-            )
+            raise cls.Error("Invalid parameter specification '%s' !" % raw_parameter)
+
 
 class RemoveConstantParameters(DataUploadCommand):
     help = """ Remove constant parameters. """
@@ -151,10 +147,8 @@ class RemoveConstantParameters(DataUploadCommand):
         api_proxy = self.get_data_upload_instance(config_path, server_url)
         for item in api_proxy.get():
             if item.get("constant_fields"):
-                api_proxy.set_constant_parameters(
-                    item['identifier'], {}, replace=True
-                )
-                print("%s: parameters removed" % (item['identifier']))
+                api_proxy.set_constant_parameters(item["identifier"], {}, replace=True)
+                print("%s: parameters removed" % (item["identifier"]))
 
 
 class ShowUploadsCommand(DataUploadCommand):
@@ -167,15 +161,15 @@ class ShowUploadsCommand(DataUploadCommand):
 
     @staticmethod
     def print_info(info):
-        print(info['identifier'])
-        print("  filename:     ", info['filename'])
-        print("  is valid:     ", info.get('is_valid', True))
-        print("  data start:   ", info['start'])
-        print("  data end:     ", info['end'])
-        print("  uploaded on:  ", info['created'])
-        print("  content type: ", info['content_type'])
-        print("  size:         ", info['size'])
-        print("  MD5 checksum: ", info['checksum'])
+        print(info["identifier"])
+        print("  filename:     ", info["filename"])
+        print("  is valid:     ", info.get("is_valid", True))
+        print("  data start:   ", info["start"])
+        print("  data end:     ", info["end"])
+        print("  uploaded on:  ", info["created"])
+        print("  content type: ", info["content_type"])
+        print("  size:         ", info["size"])
+        print("  MD5 checksum: ", info["checksum"])
 
         missing_fields = info.get("missing_fields", {})
         if missing_fields:
@@ -187,8 +181,8 @@ class ShowUploadsCommand(DataUploadCommand):
         if constant_fields:
             print("  constant fields:")
             for field, data in sorted(constant_fields.items()):
-                print("    %s=%s" % (field, data['value']))
+                print("    {}={}".format(field, data["value"]))
 
         print("  fields:")
-        for field in sorted(info.get('fields') or info.get('info') or []):
+        for field in sorted(info.get("fields") or info.get("info") or []):
             print("    %s" % field)

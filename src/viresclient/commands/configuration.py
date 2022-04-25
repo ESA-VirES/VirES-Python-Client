@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # viresclient CLI - configuration management commands
 #
 # Project: VirES-Python-Client
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2019 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,14 +25,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # pylint: disable=missing-docstring,arguments-differ
 
 import sys
-from getpass import getpass, getuser
 from os import remove
 from os.path import exists
+
 from viresclient import ClientConfig
+
 from .common import ConfigurationCommand, UrlConfigurationCommand
 
 
@@ -94,20 +95,20 @@ class RemoveDefaultServerCommand(ConfigurationCommand):
 
 
 class ShowConfigurationCommand(ConfigurationCommand):
-    """ Command dumping configuration to a standard output. """
+    """Command dumping configuration to a standard output."""
+
     help = "Print the configuration to standard output."
 
     def execute(self, config_path):
         config = ClientConfig(path=config_path)
         if not exists(config.path):
-            raise self.Error(
-                "Configuration file %s does not exist!" % config.path
-            )
+            raise self.Error("Configuration file %s does not exist!" % config.path)
         sys.stdout.write(str(config))
 
 
 class ClearCredentialsCommand(ConfigurationCommand):
-    """ Command to remove stored configuration. """
+    """Command to remove stored configuration."""
+
     help = "Delete the default configuration file."
 
     def execute(self, config_path):

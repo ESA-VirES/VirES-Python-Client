@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # Handles the WPS requests to the VirES server
 #
 # Authors: Ashley Smith <ashley.smith@ed.ac.uk>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2018 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,16 +25,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-from ._config import ClientConfig, set_token
-from ._client_swarm import SwarmRequest
-from ._client_aeolus import AeolusRequest
-from ._data_handling import ReturnedData
-from ._data_handling import ReturnedDataFile
-from ._api.upload import DataUpload
-from ._api.token import TokenManager
 from . import _data
+from ._api.token import TokenManager
+from ._api.upload import DataUpload
+from ._client_aeolus import AeolusRequest
+from ._client_swarm import SwarmRequest
+from ._config import ClientConfig, set_token
+from ._data_handling import ReturnedData, ReturnedDataFile
 
- 
 __version__ = "0.11.0-alpha"

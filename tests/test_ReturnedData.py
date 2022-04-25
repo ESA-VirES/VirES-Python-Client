@@ -1,10 +1,11 @@
-import pytest
 import os
+
 import pandas
+import pytest
 
-from viresclient._data_handling import ReturnedDataFile, ReturnedData
+from viresclient._data_handling import ReturnedData, ReturnedDataFile
 
-SUPPORTED_FILETYPES = ('csv', 'cdf', 'nc')
+SUPPORTED_FILETYPES = ("csv", "cdf", "nc")
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
@@ -21,7 +22,7 @@ TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 TEST_FILES = {
     "cdf": os.path.join(TEST_DATA_DIR, "test_data_01.cdf"),
     "csv": os.path.join(TEST_DATA_DIR, "test_data_01.csv"),
-    "json_from_cdf": os.path.join(TEST_DATA_DIR, "test_data_01_from_cdf.json")
+    "json_from_cdf": os.path.join(TEST_DATA_DIR, "test_data_01_from_cdf.json"),
 }
 
 
@@ -40,7 +41,7 @@ def test_ReturnedDataFile_setup():
     # The following should raise a TypeError:
     #  filetype must be csv/cdf/nc
     with pytest.raises(TypeError):
-        retdata = ReturnedDataFile(filetype='xyz')
+        retdata = ReturnedDataFile(filetype="xyz")
     with pytest.raises(TypeError):
         retdata = ReturnedDataFile(filetype=1)
 
@@ -60,7 +61,7 @@ def test_ReturnedData_setup():
     # The following should raise a TypeError:
     #  filetype must be csv/cdf/nc
     with pytest.raises(TypeError):
-        retdata = ReturnedData(filetype='xyz')
+        retdata = ReturnedData(filetype="xyz")
     with pytest.raises(TypeError):
         retdata = ReturnedData(filetype=1)
 
@@ -75,25 +76,19 @@ def test_ReturnedDataFile_saving(tmpfile):
 
         # Check that file name and extension checking is enforced
         retdata = ReturnedDataFile(filetype=filetype)
-        retdata._write_new_data(b'testtext')
+        retdata._write_new_data(b"testtext")
         with pytest.raises(TypeError):
             retdata.to_file(1)
         with pytest.raises(TypeError):
-            retdata.to_file(
-                str(tmpfile("testfile.xyz"))
-                )
+            retdata.to_file(str(tmpfile("testfile.xyz")))
 
         # Check that not overwriting and overwriting work right
-        testfile = str(tmpfile('testfile.{}'.format(filetype)))
+        testfile = str(tmpfile(f"testfile.{filetype}"))
         retdata.to_file(testfile)
         # with pytest.raises(FileExistsError):  # not in py27
         with pytest.raises(Exception):
-            retdata.to_file(
-                testfile, overwrite=False
-                )
-        retdata.to_file(
-            testfile, overwrite=True
-            )
+            retdata.to_file(testfile, overwrite=False)
+        retdata.to_file(testfile, overwrite=True)
 
 
 def test_ReturnedData_saving(tmpfile):
@@ -106,42 +101,30 @@ def test_ReturnedData_saving(tmpfile):
 
         # Check that file name and extension checking is enforced
         retdata = ReturnedData(filetype=filetype)
-        retdata.contents[0]._write_new_data(b'testtext')
+        retdata.contents[0]._write_new_data(b"testtext")
         with pytest.raises(TypeError):
             retdata.to_file(1)
         with pytest.raises(TypeError):
-            retdata.to_file(
-                str(tmpfile("testfile.xyz"))
-                )
+            retdata.to_file(str(tmpfile("testfile.xyz")))
         # Repeat for .to_files()
         with pytest.raises(TypeError):
             retdata.to_files([1])
         with pytest.raises(TypeError):
-            retdata.to_files(
-                [str(tmpfile("testfile.xyz"))]
-                )
+            retdata.to_files([str(tmpfile("testfile.xyz"))])
 
         # Check that not overwriting and overwriting work right
-        testfile = str(tmpfile('testfile.{}'.format(filetype)))
+        testfile = str(tmpfile(f"testfile.{filetype}"))
         retdata.to_file(testfile)
         # with pytest.raises(FileExistsError):  # not in py27
         with pytest.raises(Exception):
-            retdata.to_file(
-                testfile, overwrite=False
-                )
-        retdata.to_file(
-            testfile, overwrite=True
-            )
+            retdata.to_file(testfile, overwrite=False)
+        retdata.to_file(testfile, overwrite=True)
         # repeat for .to_files()
-        testfile = str(tmpfile('testfile2.{}'.format(filetype)))
+        testfile = str(tmpfile(f"testfile2.{filetype}"))
         retdata.to_files([testfile])
         with pytest.raises(Exception):
-            retdata.to_files(
-                [testfile], overwrite=False
-                )
-        retdata.to_files(
-            [testfile], overwrite=True
-            )
+            retdata.to_files([testfile], overwrite=False)
+        retdata.to_files([testfile], overwrite=True)
 
 
 def test_ReturnedDataFile_dataframe():

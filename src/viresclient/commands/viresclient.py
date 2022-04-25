@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # viresclient CLI
 #
 # Project: VirES-Python-Client
 # Authors: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2019 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,22 +25,28 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # pylint: disable=missing-docstring,arguments-differ
 
 import sys
-import logging
 from argparse import ArgumentParser
+
 from .common import Command
 from .configuration import (
-    SetTokenCommand, RemoveServerCommand,
-    SetDefaultServerCommand, RemoveDefaultServerCommand,
-    ShowConfigurationCommand, InitializeConfigurationCommand,
-    ClearCredentialsCommand
+    ClearCredentialsCommand,
+    InitializeConfigurationCommand,
+    RemoveDefaultServerCommand,
+    RemoveServerCommand,
+    SetDefaultServerCommand,
+    SetTokenCommand,
+    ShowConfigurationCommand,
 )
 from .upload import (
-    UploadDataFileCommand, ShowUploadsCommand, RemoveUploadsCommand,
-    RemoveConstantParameters, SetConstantParameters,
+    RemoveConstantParameters,
+    RemoveUploadsCommand,
+    SetConstantParameters,
+    ShowUploadsCommand,
+    UploadDataFileCommand,
 )
 
 # dictionary of registered commands
@@ -64,7 +70,7 @@ COMMANDS = {
 
 
 def main(*cli_args):
-    """ main function. """
+    """main function."""
     parser = ArgumentParser()
 
     # add registered subcommands
@@ -82,7 +88,7 @@ def main(*cli_args):
     parsed_args = dict(parser.parse_args(args=cli_args[1:]).__dict__)
 
     # execute selected subcommand
-    requested_command = parsed_args.pop('command')
+    requested_command = parsed_args.pop("command")
     return COMMANDS[requested_command].execute(**parsed_args)
 
 

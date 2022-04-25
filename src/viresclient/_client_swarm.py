@@ -2,166 +2,201 @@
 
 import datetime
 import json
-from collections import OrderedDict
 import os
 import sys
+from collections import OrderedDict
 from io import StringIO
-from pandas import read_csv
-from tqdm import tqdm
 from textwrap import dedent
 from warnings import warn
 
+from pandas import read_csv
+from tqdm import tqdm
+
+from ._client import TEMPLATE_FILES, ClientRequest, WPSInputs
+from ._data import CONFIG_SWARM
+from ._data_handling import ReturnedDataFile
 from ._wps.environment import JINJA2_ENVIRONMENT
 from ._wps.time_util import parse_datetime
-from ._client import WPSInputs, ClientRequest, TEMPLATE_FILES
-from ._data_handling import ReturnedDataFile
-from ._data import CONFIG_SWARM
 
 TEMPLATE_FILES = {
     **TEMPLATE_FILES,
-    'sync': "vires_fetch_filtered_data.xml",
-    'async': "vires_fetch_filtered_data_async.xml",
-    'model_info': "vires_get_model_info.xml",
-    'times_from_orbits': "vires_times_from_orbits.xml",
-    'get_observatories': 'vires_get_observatories.xml',
-    'get_conjunctions': 'vires_get_conjunctions.xml',
+    "sync": "vires_fetch_filtered_data.xml",
+    "async": "vires_fetch_filtered_data_async.xml",
+    "model_info": "vires_get_model_info.xml",
+    "times_from_orbits": "vires_times_from_orbits.xml",
+    "get_observatories": "vires_get_observatories.xml",
+    "get_conjunctions": "vires_get_conjunctions.xml",
 }
 
 REFERENCES = {
-    'General Swarm': (" Swarm Data Handbook, https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook ",
-                      " The Swarm Satellite Constellation Application and Research Facility (SCARF) and Swarm data products, https://doi.org/10.5047/eps.2013.07.001 ",
-                      " Swarm Science Data Processing and Products (2013), https://link.springer.com/journal/40623/65/11/page/1 ",
-                      " Special issue “Swarm science results after 2 years in space (2016), https://www.springeropen.com/collections/swsr ",
-                      " Earth's Magnetic Field: Understanding Geomagnetic Sources from the Earth's Interior and its Environment (2017), https://link.springer.com/journal/11214/206/1/page/1 ")
-    }
+    "General Swarm": (
+        " Swarm Data Handbook, https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook ",
+        " The Swarm Satellite Constellation Application and Research Facility (SCARF) and Swarm data products, https://doi.org/10.5047/eps.2013.07.001 ",
+        " Swarm Science Data Processing and Products (2013), https://link.springer.com/journal/40623/65/11/page/1 ",
+        " Special issue “Swarm science results after 2 years in space (2016), https://www.springeropen.com/collections/swsr ",
+        " Earth's Magnetic Field: Understanding Geomagnetic Sources from the Earth's Interior and its Environment (2017), https://link.springer.com/journal/11214/206/1/page/1 ",
+    )
+}
 
 MODEL_REFERENCES = {
-    'IGRF':
-        (" International Geomagnetic Reference Field: the thirteenth generation, (https://doi.org/10.1186/s40623-020-01288-x) ",
-         " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "),
-    'IGRF12':
-        (" International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
-         " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "
-         " deprecated model identifier, use IGRF instead"),
-    'CHAOS-Core':
-        ("CHAOS-7 Core field (SH degrees 1-20)",
-         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
-    'CHAOS-Static':
-        ("CHAOS-7 crust field (SH degrees 21-185)",
-         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
-    'CHAOS-MMA-Primary':
-        ("CHAOS-7 Primary (external) magnetospheric field",
-         " hhttp://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
-    'CHAOS-MMA-Secondary':
-        ("CHAOS-7 Secondary (internal) magnetospheric field",
-         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ "),
-    'CHAOS-6-Core':
-        ("CHAOS Core field",
-         " deprecated model identifier, use CHAOS-Core instead"),
-    'CHAOS-6-Static':
-        ("CHAOS crust field",
-         " deprecated model identifier, use CHAOS-Static instead"),
-    'CHAOS-6-MMA-Primary':
-        ("CHAOS Primary (external) magnetospheric field",
-         " deprecated model identifier, use CHAOS-MMA-Primary instead"),
-    'CHAOS-6-MMA-Secondary':
-        ("CHAOS-Secondary (internal) magnetospheric field",
-         " deprecated model identifier, use CHAOS-MMA-Secondary instead"),
-    'MF7':
-        ("MF7 crustal field model, derived from CHAMP satellite observations",
-         " http://geomag.org/models/MF7.html"),
-    'LCS-1':
-        ("The LCS-1 high-resolution lithospheric field model, derived from CHAMP and Swarm satellite observations",
-         " http://www.spacecenter.dk/files/magnetic-models/LCS-1/"),
-    'MCO_SHA_2C':
-        ("[Comprehensive Inversion]: Core field of CIY4",
-         " A comprehensive model of Earth’s magnetic field determined from 4 years of Swarm satellite observations, https://doi.org/10.1186/s40623-018-0896-3 ",
-         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MCO/SW_OPER_MCO_VAL_2C_20131201T000000_20180101T000000_0401.ZIP "),
-    'MCO_SHA_2D':
-        ("[Dedicated Chain]: Core field",
-         "An algorithm for deriving core magnetic field models from the Swarm data set, https://doi.org/10.5047/eps.2013.07.005 ",
-         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MCO/SW_OPER_MCO_VAL_2D_20131126T000000_20180101T000000_0401.ZIP "),
-    'MLI_SHA_2C':
-        ("[Comprehensive Inversion]: Lithospheric field of CIY4",
-         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2C_00000000T000000_99999999T999999_0401.ZIP"),
-    'MLI_SHA_2D':
-        ("[Dedicated Chain]: Lithospheric field",
-         " Swarm SCARF Dedicated Lithospheric Field Inversion chain, https://doi.org/10.5047/eps.2013.07.008 ",
-         " Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2D_00000000T000000_99999999T999999_0401.ZIP "),
-    'MLI_SHA_2E':
-        ("[Extended dedicated chain]: Lithospheric field",
-         " Joint inversion of Swarm, CHAMP, and WDMAM data ",
-         " https://swarm-diss.eo.esa.int/?do=download&file=swarm%2FLevel2longterm%2FMLI%2FSW_OPER_MLI_VAL_2E_00000000T000000_99999999T999999_0502.ZIP "),
-    'MMA_SHA_2C-Primary':
-        ("[Comprehensive Inversion]: Primary (external) magnetospheric field of CIY4",
-         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MMA/SW_OPER_MMA_VAL_2C_20131201T000000_20180101T000000_0401.ZIP"),
-    'MMA_SHA_2C-Secondary':
-        ("[Comprehensive Inversion]: Secondary (internal/induced) magnetospheric field of CIY4",),
-    'MMA_SHA_2F-Primary':
-        ("[Fast-Track Product]: Primary (external) magnetospheric field",
-         " Rapid modelling of the large-scale magnetospheric field from Swarm satellite data, https://doi.org/10.5047/eps.2013.09.003 "),
-    'MMA_SHA_2F-Secondary':
-        ("[Fast-Track Product]: Secondary (internal/induced) magnetospheric field",),
-    'MIO_SHA_2C-Primary':
-        ("[Comprehensive Inversion]: Primary (external) ionospheric field of CIY4",
-         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MIO/SW_OPER_MIO_VAL_2C_00000000T000000_99999999T999999_0401.ZIP "),
-    'MIO_SHA_2C-Secondary':
-        ("[Comprehensive Inversion]: Secondary (external/induced) ionospheric field of CIY4",),
-    'MIO_SHA_2D-Primary':
-        ("[Dedicated Chain]: Primary (external) ionospheric field, DIFI",
-         " Swarm SCARF dedicated ionospheric field inversion chain, https://doi.org/10.5047/eps.2013.08.006 ",
-         " First results from the Swarm Dedicated Ionospheric Field Inversion chain, https://doi.org/10.1186/s40623-016-0481-6 ",
-         " http://geomag.colorado.edu/difi-3 ",
-         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MIO/SW_OPER_MIO_VAL_2D_20131201T000000_20171231T235959_0402.ZIP "),
-    'MIO_SHA_2D-Secondary':
-        ("[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",),
-    'AMPS':
-        ("AMPS - associated magnetic field, https://github.com/klaundal/pyAMPS",),
-    'MCO_SHA_2X':
-        ("Alias for 'CHAOS-Core'",),
-    'CHAOS':
-        ("Alias for 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'",),
-    'CHAOS-MMA':
-        ("Alias for 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'",),
-    'MMA_SHA_2C':
-        ("Alias for 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'",),
-    'MMA_SHA_2F':
-        ("Alias for 'MMA_SHA_2F-Primary' + 'MMA_SHA_2F-Secondary'",),
-    'MIO_SHA_2C':
-        ("Alias for 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary'",),
-    'MIO_SHA_2D':
-        ("Alias for 'MIO_SHA_2D-Primary' + 'MIO_SHA_2D-Secondary'",),
-    'SwarmCI':
-        ("Alias for 'MCO_SHA_2C' + 'MLI_SHA_2C' + 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary' + 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'",),
+    "IGRF": (
+        " International Geomagnetic Reference Field: the thirteenth generation, (https://doi.org/10.1186/s40623-020-01288-x) ",
+        " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html ",
+    ),
+    "IGRF12": (
+        " International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
+        " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "
+        " deprecated model identifier, use IGRF instead",
+    ),
+    "CHAOS-Core": (
+        "CHAOS-7 Core field (SH degrees 1-20)",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ ",
+    ),
+    "CHAOS-Static": (
+        "CHAOS-7 crust field (SH degrees 21-185)",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ ",
+    ),
+    "CHAOS-MMA-Primary": (
+        "CHAOS-7 Primary (external) magnetospheric field",
+        " hhttp://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ ",
+    ),
+    "CHAOS-MMA-Secondary": (
+        "CHAOS-7 Secondary (internal) magnetospheric field",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ ",
+    ),
+    "CHAOS-6-Core": (
+        "CHAOS Core field",
+        " deprecated model identifier, use CHAOS-Core instead",
+    ),
+    "CHAOS-6-Static": (
+        "CHAOS crust field",
+        " deprecated model identifier, use CHAOS-Static instead",
+    ),
+    "CHAOS-6-MMA-Primary": (
+        "CHAOS Primary (external) magnetospheric field",
+        " deprecated model identifier, use CHAOS-MMA-Primary instead",
+    ),
+    "CHAOS-6-MMA-Secondary": (
+        "CHAOS-Secondary (internal) magnetospheric field",
+        " deprecated model identifier, use CHAOS-MMA-Secondary instead",
+    ),
+    "MF7": (
+        "MF7 crustal field model, derived from CHAMP satellite observations",
+        " http://geomag.org/models/MF7.html",
+    ),
+    "LCS-1": (
+        "The LCS-1 high-resolution lithospheric field model, derived from CHAMP and Swarm satellite observations",
+        " http://www.spacecenter.dk/files/magnetic-models/LCS-1/",
+    ),
+    "MCO_SHA_2C": (
+        "[Comprehensive Inversion]: Core field of CIY4",
+        " A comprehensive model of Earth’s magnetic field determined from 4 years of Swarm satellite observations, https://doi.org/10.1186/s40623-018-0896-3 ",
+        "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MCO/SW_OPER_MCO_VAL_2C_20131201T000000_20180101T000000_0401.ZIP ",
+    ),
+    "MCO_SHA_2D": (
+        "[Dedicated Chain]: Core field",
+        "An algorithm for deriving core magnetic field models from the Swarm data set, https://doi.org/10.5047/eps.2013.07.005 ",
+        "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MCO/SW_OPER_MCO_VAL_2D_20131126T000000_20180101T000000_0401.ZIP ",
+    ),
+    "MLI_SHA_2C": (
+        "[Comprehensive Inversion]: Lithospheric field of CIY4",
+        "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2C_00000000T000000_99999999T999999_0401.ZIP",
+    ),
+    "MLI_SHA_2D": (
+        "[Dedicated Chain]: Lithospheric field",
+        " Swarm SCARF Dedicated Lithospheric Field Inversion chain, https://doi.org/10.5047/eps.2013.07.008 ",
+        " Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2D_00000000T000000_99999999T999999_0401.ZIP ",
+    ),
+    "MLI_SHA_2E": (
+        "[Extended dedicated chain]: Lithospheric field",
+        " Joint inversion of Swarm, CHAMP, and WDMAM data ",
+        " https://swarm-diss.eo.esa.int/?do=download&file=swarm%2FLevel2longterm%2FMLI%2FSW_OPER_MLI_VAL_2E_00000000T000000_99999999T999999_0502.ZIP ",
+    ),
+    "MMA_SHA_2C-Primary": (
+        "[Comprehensive Inversion]: Primary (external) magnetospheric field of CIY4",
+        "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MMA/SW_OPER_MMA_VAL_2C_20131201T000000_20180101T000000_0401.ZIP",
+    ),
+    "MMA_SHA_2C-Secondary": (
+        "[Comprehensive Inversion]: Secondary (internal/induced) magnetospheric field of CIY4",
+    ),
+    "MMA_SHA_2F-Primary": (
+        "[Fast-Track Product]: Primary (external) magnetospheric field",
+        " Rapid modelling of the large-scale magnetospheric field from Swarm satellite data, https://doi.org/10.5047/eps.2013.09.003 ",
+    ),
+    "MMA_SHA_2F-Secondary": (
+        "[Fast-Track Product]: Secondary (internal/induced) magnetospheric field",
+    ),
+    "MIO_SHA_2C-Primary": (
+        "[Comprehensive Inversion]: Primary (external) ionospheric field of CIY4",
+        "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MIO/SW_OPER_MIO_VAL_2C_00000000T000000_99999999T999999_0401.ZIP ",
+    ),
+    "MIO_SHA_2C-Secondary": (
+        "[Comprehensive Inversion]: Secondary (external/induced) ionospheric field of CIY4",
+    ),
+    "MIO_SHA_2D-Primary": (
+        "[Dedicated Chain]: Primary (external) ionospheric field, DIFI",
+        " Swarm SCARF dedicated ionospheric field inversion chain, https://doi.org/10.5047/eps.2013.08.006 ",
+        " First results from the Swarm Dedicated Ionospheric Field Inversion chain, https://doi.org/10.1186/s40623-016-0481-6 ",
+        " http://geomag.colorado.edu/difi-3 ",
+        "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MIO/SW_OPER_MIO_VAL_2D_20131201T000000_20171231T235959_0402.ZIP ",
+    ),
+    "MIO_SHA_2D-Secondary": (
+        "[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",
+    ),
+    "AMPS": ("AMPS - associated magnetic field, https://github.com/klaundal/pyAMPS",),
+    "MCO_SHA_2X": ("Alias for 'CHAOS-Core'",),
+    "CHAOS": (
+        "Alias for 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'",
+    ),
+    "CHAOS-MMA": ("Alias for 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'",),
+    "MMA_SHA_2C": ("Alias for 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'",),
+    "MMA_SHA_2F": ("Alias for 'MMA_SHA_2F-Primary' + 'MMA_SHA_2F-Secondary'",),
+    "MIO_SHA_2C": ("Alias for 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary'",),
+    "MIO_SHA_2D": ("Alias for 'MIO_SHA_2D-Primary' + 'MIO_SHA_2D-Secondary'",),
+    "SwarmCI": (
+        "Alias for 'MCO_SHA_2C' + 'MLI_SHA_2C' + 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary' + 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'",
+    ),
 }
 
 DEPRECATED_MODELS = {
-    'IGRF12': "Use IGRF instead.",
-    'CHAOS-6-Core': "Use CHAOS-Core instead.",
-    'CHAOS-6-Static': "Use CHAOS-Static instead.",
-    'CHAOS-6-MMA-Primary': "Use CHAOS-MMA-Primary instead.",
-    'CHAOS-6-MMA-Secondary': "Use CHAOS-MMA-Secondary instead.",
+    "IGRF12": "Use IGRF instead.",
+    "CHAOS-6-Core": "Use CHAOS-Core instead.",
+    "CHAOS-6-Static": "Use CHAOS-Static instead.",
+    "CHAOS-6-MMA-Primary": "Use CHAOS-MMA-Primary instead.",
+    "CHAOS-6-MMA-Secondary": "Use CHAOS-MMA-Secondary instead.",
 }
 
 COLLECTION_REFERENCES = {
-    "MAG": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#MAGX_LR_1B_Product ",
-            ),
-    "MAG_HR": ("https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#MAGX_HR_1B_Product ",
-            ),
-    "EFI": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#EFIX_LP_1B_Product ",
-            ),
-    "IBI": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#IBIxTMS_2F ",
-            " https://earth.esa.int/documents/10174/1514862/Swarm_L2_IBI_product_description "),
-    "TEC": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#TECxTMS_2F ",
-            " https://earth.esa.int/documents/10174/1514862/Swarm_Level-2_TEC_Product_Description "),
-    "FAC": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#FAC_TMS_2F ",
-            " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#FACxTMS_2F ",
-            " https://earth.esa.int/documents/10174/1514862/Swarm_L2_FAC_single_product_description ",
-            " https://earth.esa.int/documents/10174/1514862/Swarm-L2-FAC-Dual-Product-Description "),
-    "EEF": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#EEFxTMS_2F ",
-            " https://earth.esa.int/documents/10174/1514862/Swarm-Level-2-EEF-Product-Description "),
-    "IPD": (" https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#IPDxIPR_2F ",
-            ),
+    "MAG": (
+        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#MAGX_LR_1B_Product ",
+    ),
+    "MAG_HR": (
+        "https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#MAGX_HR_1B_Product ",
+    ),
+    "EFI": (
+        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#EFIX_LP_1B_Product ",
+    ),
+    "IBI": (
+        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#IBIxTMS_2F ",
+        " https://earth.esa.int/documents/10174/1514862/Swarm_L2_IBI_product_description ",
+    ),
+    "TEC": (
+        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#TECxTMS_2F ",
+        " https://earth.esa.int/documents/10174/1514862/Swarm_Level-2_TEC_Product_Description ",
+    ),
+    "FAC": (
+        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#FAC_TMS_2F ",
+        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#FACxTMS_2F ",
+        " https://earth.esa.int/documents/10174/1514862/Swarm_L2_FAC_single_product_description ",
+        " https://earth.esa.int/documents/10174/1514862/Swarm-L2-FAC-Dual-Product-Description ",
+    ),
+    "EEF": (
+        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#EEFxTMS_2F ",
+        " https://earth.esa.int/documents/10174/1514862/Swarm-Level-2-EEF-Product-Description ",
+    ),
+    "IPD": (
+        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#IPDxIPR_2F ",
+    ),
     "AUX_OBSH": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSM": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSS": ("https://doi.org/10.5047/eps.2013.07.011",),
@@ -171,16 +206,24 @@ COLLECTION_REFERENCES = {
     "AEJ_PBL": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
     "AEJ_PBS": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
     "AOB_FAC": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
-    "MIT_LP": ("https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",),
-    "MIT_TEC": ("https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",),
-    "PPI_FAC": ("https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",),
+    "MIT_LP": (
+        "https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",
+    ),
+    "MIT_TEC": (
+        "https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",
+    ),
+    "PPI_FAC": (
+        "https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",
+    ),
     "MAG_CS": ("https://doi.org/10.1186/s40623-020-01171-9",),
     "MAG_GRACE": ("https://doi.org/10.1186/s40623-021-01373-9",),
     "MAG_GFO": ("https://doi.org/10.1186/s40623-021-01364-w",),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
-        COLLECTION_REFERENCES[f"VOBS_{mission}_{cadence}"] = ("https://earth.esa.int/eogateway/activities/gvo",)
+        COLLECTION_REFERENCES[f"VOBS_{mission}_{cadence}"] = (
+            "https://earth.esa.int/eogateway/activities/gvo",
+        )
 
 DATA_CITATIONS = {
     "AUX_OBSH": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/hour/README",
@@ -194,31 +237,32 @@ VOBS_SITES = CONFIG_SWARM.get("VOBS_SITES")
 
 
 class SwarmWPSInputs(WPSInputs):
-    """Holds the set of inputs to be passed to the request template for Swarm
-    """
+    """Holds the set of inputs to be passed to the request template for Swarm"""
 
     NAMES = [
-        'collection_ids',
-        'model_expression',
-        'begin_time',
-        'end_time',
-        'variables',
-        'filters',
-        'sampling_step',
-        'response_type',
-        'custom_shc',
-        ]
+        "collection_ids",
+        "model_expression",
+        "begin_time",
+        "end_time",
+        "variables",
+        "filters",
+        "sampling_step",
+        "response_type",
+        "custom_shc",
+    ]
 
-    def __init__(self,
-                 collection_ids=None,
-                 model_expression=None,
-                 begin_time=None,
-                 end_time=None,
-                 variables=None,
-                 filters=None,
-                 sampling_step=None,
-                 response_type=None,
-                 custom_shc=None):
+    def __init__(
+        self,
+        collection_ids=None,
+        model_expression=None,
+        begin_time=None,
+        end_time=None,
+        variables=None,
+        filters=None,
+        sampling_step=None,
+        response_type=None,
+        custom_shc=None,
+    ):
         # Set up default values
         # Obligatory - these must be replaced before the request is made
         self.collection_ids = None if collection_ids is None else collection_ids
@@ -227,7 +271,7 @@ class SwarmWPSInputs(WPSInputs):
         self.response_type = None if response_type is None else response_type
         # Optional - these defaults will be used if not replaced before the
         #            request is made
-        self.model_expression = str() if model_expression is None else model_expression
+        self.model_expression = "" if model_expression is None else model_expression
         self.variables = [] if variables is None else variables
         self.filters = None if filters is None else filters
         self.sampling_step = None if sampling_step is None else sampling_step
@@ -407,132 +451,128 @@ class SwarmRequest(ClientRequest):
         logging_level (str):
 
     """
+
     MISSION_SPACECRAFTS = {
-        'Swarm': ['A', 'B', 'C'],
-        'GRACE': ['1', '2'],
-        'GRACE-FO': ['1', '2'],
-        'CryoSat-2': None,
+        "Swarm": ["A", "B", "C"],
+        "GRACE": ["1", "2"],
+        "GRACE-FO": ["1", "2"],
+        "CryoSat-2": None,
     }
 
     CONJUNCTION_MISISON_SPACECRAFT_PAIRS = {
-        (('Swarm', 'A'), ('Swarm', 'B')),
+        (("Swarm", "A"), ("Swarm", "B")),
     }
 
     COLLECTIONS = {
-        "MAG": ["SW_OPER_MAG{}_LR_1B".format(x) for x in "ABC"],
-        "MAG_HR": ["SW_OPER_MAG{}_HR_1B".format(x) for x in "ABC"],
-        "EFI": ["SW_OPER_EFI{}_LP_1B".format(x) for x in "ABC"],
-        "IBI": ["SW_OPER_IBI{}TMS_2F".format(x) for x in "ABC"],
-        "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in "ABC"],
-        "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in "ABC_"],
-        "EEF": ["SW_OPER_EEF{}TMS_2F".format(x) for x in "ABC"],
-        "IPD": ["SW_OPER_IPD{}IRR_2F".format(x) for x in "ABC"],
-
-        "AEJ_LPL": ["SW_OPER_AEJ{}LPL_2F".format(x) for x in "ABC"],
-        "AEJ_LPL:Quality": [
-            "SW_OPER_AEJ{}LPL_2F:Quality".format(x) for x in "ABC"
-        ],
-        "AEJ_LPS": ["SW_OPER_AEJ{}LPS_2F".format(x) for x in "ABC"],
-        "AEJ_LPS:Quality": [
-            "SW_OPER_AEJ{}LPS_2F:Quality".format(x) for x in "ABC"
-        ],
-        "AEJ_PBL": ["SW_OPER_AEJ{}PBL_2F".format(x) for x in "ABC"],
-        "AEJ_PBS": ["SW_OPER_AEJ{}PBS_2F".format(x) for x in "ABC"],
+        "MAG": [f"SW_OPER_MAG{x}_LR_1B" for x in "ABC"],
+        "MAG_HR": [f"SW_OPER_MAG{x}_HR_1B" for x in "ABC"],
+        "EFI": [f"SW_OPER_EFI{x}_LP_1B" for x in "ABC"],
+        "IBI": [f"SW_OPER_IBI{x}TMS_2F" for x in "ABC"],
+        "TEC": [f"SW_OPER_TEC{x}TMS_2F" for x in "ABC"],
+        "FAC": [f"SW_OPER_FAC{x}TMS_2F" for x in "ABC_"],
+        "EEF": [f"SW_OPER_EEF{x}TMS_2F" for x in "ABC"],
+        "IPD": [f"SW_OPER_IPD{x}IRR_2F" for x in "ABC"],
+        "AEJ_LPL": [f"SW_OPER_AEJ{x}LPL_2F" for x in "ABC"],
+        "AEJ_LPL:Quality": [f"SW_OPER_AEJ{x}LPL_2F:Quality" for x in "ABC"],
+        "AEJ_LPS": [f"SW_OPER_AEJ{x}LPS_2F" for x in "ABC"],
+        "AEJ_LPS:Quality": [f"SW_OPER_AEJ{x}LPS_2F:Quality" for x in "ABC"],
+        "AEJ_PBL": [f"SW_OPER_AEJ{x}PBL_2F" for x in "ABC"],
+        "AEJ_PBS": [f"SW_OPER_AEJ{x}PBS_2F" for x in "ABC"],
         "AEJ_PBS:GroundMagneticDisturbance": [
-            "SW_OPER_AEJ{}PBS_2F:GroundMagneticDisturbance".format(x) for x in "ABC"
+            f"SW_OPER_AEJ{x}PBS_2F:GroundMagneticDisturbance" for x in "ABC"
         ],
-        "AOB_FAC": ["SW_OPER_AOB{}FAC_2F".format(x) for x in "ABC"],
+        "AOB_FAC": [f"SW_OPER_AOB{x}FAC_2F" for x in "ABC"],
         "AUX_OBSH": [
             "SW_OPER_AUX_OBSH2_",
-            *[f"SW_OPER_AUX_OBSH2_:{code}" for code in IAGA_CODES]
+            *[f"SW_OPER_AUX_OBSH2_:{code}" for code in IAGA_CODES],
         ],
         "AUX_OBSM": [
             "SW_OPER_AUX_OBSM2_",
-            *[f"SW_OPER_AUX_OBSM2_:{code}" for code in IAGA_CODES]
+            *[f"SW_OPER_AUX_OBSM2_:{code}" for code in IAGA_CODES],
         ],
         "AUX_OBSS": [
             "SW_OPER_AUX_OBSS2_",
-            *[f"SW_OPER_AUX_OBSS2_:{code}" for code in IAGA_CODES]
+            *[f"SW_OPER_AUX_OBSS2_:{code}" for code in IAGA_CODES],
         ],
         "VOBS_SW_1M": [
             "SW_OPER_VOBS_1M_2_",
-            *[f"SW_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+            *[f"SW_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES],
         ],
         "VOBS_SW_4M": [
             "SW_OPER_VOBS_4M_2_",
-            *[f"SW_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+            *[f"SW_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES],
         ],
         "VOBS_CH_1M": [
             "CH_OPER_VOBS_1M_2_",
-            *[f"CH_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+            *[f"CH_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES],
         ],
         "VOBS_CR_1M": [
             "CR_OPER_VOBS_1M_2_",
-            *[f"CR_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+            *[f"CR_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES],
         ],
         "VOBS_OR_1M": [
             "OR_OPER_VOBS_1M_2_",
-            *[f"OR_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+            *[f"OR_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES],
         ],
         "VOBS_CO_1M": [
             "CO_OPER_VOBS_1M_2_",
-            *[f"CO_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES]
+            *[f"CO_OPER_VOBS_1M_2_:{site}" for site in VOBS_SITES],
         ],
         "VOBS_OR_4M": [
             "OR_OPER_VOBS_4M_2_",
-            *[f"OR_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+            *[f"OR_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES],
         ],
         "VOBS_CH_4M": [
             "CH_OPER_VOBS_4M_2_",
-            *[f"CH_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+            *[f"CH_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES],
         ],
         "VOBS_CR_4M": [
             "CR_OPER_VOBS_4M_2_",
-            *[f"CR_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+            *[f"CR_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES],
         ],
         "VOBS_CO_4M": [
             "CO_OPER_VOBS_4M_2_",
-            *[f"CO_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES]
+            *[f"CO_OPER_VOBS_4M_2_:{site}" for site in VOBS_SITES],
         ],
         "VOBS_SW_1M:SecularVariation": [
             "SW_OPER_VOBS_1M_2_:SecularVariation",
-            *[f"SW_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+            *[f"SW_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES],
         ],
         "VOBS_SW_4M:SecularVariation": [
             "SW_OPER_VOBS_4M_2_:SecularVariation",
-            *[f"SW_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+            *[f"SW_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES],
         ],
         "VOBS_CH_1M:SecularVariation": [
             "CH_OPER_VOBS_1M_2_:SecularVariation",
-            *[f"CH_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+            *[f"CH_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES],
         ],
         "VOBS_CR_1M:SecularVariation": [
             "CR_OPER_VOBS_1M_2_:SecularVariation",
-            *[f"CR_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+            *[f"CR_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES],
         ],
         "VOBS_OR_1M:SecularVariation": [
             "OR_OPER_VOBS_1M_2_:SecularVariation",
-            *[f"OR_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+            *[f"OR_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES],
         ],
         "VOBS_CO_1M:SecularVariation": [
             "CO_OPER_VOBS_1M_2_:SecularVariation",
-            *[f"CO_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+            *[f"CO_OPER_VOBS_1M_2_:SecularVariation:{site}" for site in VOBS_SITES],
         ],
         "VOBS_OR_4M:SecularVariation": [
             "OR_OPER_VOBS_4M_2_:SecularVariation",
-            *[f"OR_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+            *[f"OR_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES],
         ],
         "VOBS_CH_4M:SecularVariation": [
             "CH_OPER_VOBS_4M_2_:SecularVariation",
-            *[f"CH_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+            *[f"CH_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES],
         ],
         "VOBS_CR_4M:SecularVariation": [
             "CR_OPER_VOBS_4M_2_:SecularVariation",
-            *[f"CR_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+            *[f"CR_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES],
         ],
         "VOBS_CO_4M:SecularVariation": [
             "CO_OPER_VOBS_4M_2_:SecularVariation",
-            *[f"CO_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES]
+            *[f"CO_OPER_VOBS_4M_2_:SecularVariation:{site}" for site in VOBS_SITES],
         ],
         "MIT_LP": [f"SW_OPER_MIT{x}_LP_2F" for x in "ABC"],
         "MIT_LP:ID": [f"SW_OPER_MIT{x}_LP_2F:ID" for x in "ABC"],
@@ -541,11 +581,13 @@ class SwarmRequest(ClientRequest):
         "PPI_FAC": [f"SW_OPER_PPI{x}FAC_2F" for x in "ABC"],
         "PPI_FAC:ID": [f"SW_OPER_PPI{x}FAC_2F:ID" for x in "ABC"],
         # Multi-mission magnetic products
-        "MAG_CS": ["CS_OPER_MAG",],
+        "MAG_CS": [
+            "CS_OPER_MAG",
+        ],
         "MAG_GRACE": ["GRACE_A_MAG", "GRACE_B_MAG"],
         "MAG_GFO": ["GF1_OPER_FGM_ACAL_CORR", "GF2_OPER_FGM_ACAL_CORR"],
         # Swarm spacecraft positions
-        "MOD_SC": [f"SW_OPER_MOD{x}_SC_1B" for x in "ABC"]
+        "MOD_SC": [f"SW_OPER_MOD{x}_SC_1B" for x in "ABC"],
     }
 
     OBS_COLLECTIONS = [
@@ -556,8 +598,7 @@ class SwarmRequest(ClientRequest):
         "SW_OPER_VOBS_4M_2_",
         "CH_OPER_VOBS_1M_2_",
         "CR_OPER_VOBS_1M_2_",
-        "OR_OPER_VOBS_1M_2_"
-        "CO_OPER_VOBS_1M_2_",
+        "OR_OPER_VOBS_1M_2_" "CO_OPER_VOBS_1M_2_",
         "OR_OPER_VOBS_4M_2_",
         "CH_OPER_VOBS_4M_2_",
         "CR_OPER_VOBS_4M_2_",
@@ -581,7 +622,7 @@ class SwarmRequest(ClientRequest):
         "MAG_HR": "PT0.019S",  # approx 50Hz (the sampling is not exactly 50Hz)
         "EFI": "PT0.5S",
         "IBI": "PT1S",
-        "TEC": "PT1S",      # Actually more complicated
+        "TEC": "PT1S",  # Actually more complicated
         "FAC": "PT1S",
         "EEF": "PT90M",
         "IPD": "PT1S",
@@ -620,63 +661,153 @@ class SwarmRequest(ClientRequest):
 
     PRODUCT_VARIABLES = {
         "MAG": [
-            "F", "dF_AOCS", "dF_other", "F_error", "B_VFM", "B_NEC", "dB_Sun",
-            "dB_AOCS", "dB_other", "B_error", "q_NEC_CRF", "Att_error",
-            "Flags_F", "Flags_B", "Flags_q", "Flags_Platform", "ASM_Freq_Dev",
-            ],
-        "MAG_HR": [ #NOTE: F is calculated on the fly from B_NEC (F = |B_NEC|)
-            "F", "B_VFM", "B_NEC", "dB_Sun", "dB_AOCS", "dB_other", "B_error",
-            "q_NEC_CRF", "Att_error", "Flags_B", "Flags_q", "Flags_Platform",
-            ],
+            "F",
+            "dF_AOCS",
+            "dF_other",
+            "F_error",
+            "B_VFM",
+            "B_NEC",
+            "dB_Sun",
+            "dB_AOCS",
+            "dB_other",
+            "B_error",
+            "q_NEC_CRF",
+            "Att_error",
+            "Flags_F",
+            "Flags_B",
+            "Flags_q",
+            "Flags_Platform",
+            "ASM_Freq_Dev",
+        ],
+        "MAG_HR": [  # NOTE: F is calculated on the fly from B_NEC (F = |B_NEC|)
+            "F",
+            "B_VFM",
+            "B_NEC",
+            "dB_Sun",
+            "dB_AOCS",
+            "dB_other",
+            "B_error",
+            "q_NEC_CRF",
+            "Att_error",
+            "Flags_B",
+            "Flags_q",
+            "Flags_Platform",
+        ],
         "EFI": [
-            "U_orbit", "Ne", "Ne_error", "Te", "Te_error", "Vs", "Vs_error",
-            "Flags_LP", "Flags_Ne", "Flags_Te", "Flags_Vs",
-            ],
+            "U_orbit",
+            "Ne",
+            "Ne_error",
+            "Te",
+            "Te_error",
+            "Vs",
+            "Vs_error",
+            "Flags_LP",
+            "Flags_Ne",
+            "Flags_Te",
+            "Flags_Vs",
+        ],
         "IBI": [
-            "Bubble_Index", "Bubble_Probability", "Flags_Bubble", "Flags_F",
-            "Flags_B", "Flags_q",
-            ],
+            "Bubble_Index",
+            "Bubble_Probability",
+            "Flags_Bubble",
+            "Flags_F",
+            "Flags_B",
+            "Flags_q",
+        ],
         "TEC": [
-            "GPS_Position", "LEO_Position", "PRN", "L1", "L2", "P1", "P2", "S1",
-            "S2", "Elevation_Angle", "Absolute_VTEC", "Absolute_STEC",
-            "Relative_STEC", "Relative_STEC_RMS", "DCB", "DCB_Error",
-            ],
+            "GPS_Position",
+            "LEO_Position",
+            "PRN",
+            "L1",
+            "L2",
+            "P1",
+            "P2",
+            "S1",
+            "S2",
+            "Elevation_Angle",
+            "Absolute_VTEC",
+            "Absolute_STEC",
+            "Relative_STEC",
+            "Relative_STEC_RMS",
+            "DCB",
+            "DCB_Error",
+        ],
         "FAC": [
-            "IRC", "IRC_Error", "FAC", "FAC_Error", "Flags", "Flags_F",
-            "Flags_B", "Flags_q"],
+            "IRC",
+            "IRC_Error",
+            "FAC",
+            "FAC_Error",
+            "Flags",
+            "Flags_F",
+            "Flags_B",
+            "Flags_q",
+        ],
         "EEF": ["EEF", "EEJ", "RelErr", "Flags"],
         "IPD": [
-            "Ne", "Te", "Background_Ne", "Foreground_Ne", "PCP_flag",
-            "Grad_Ne_at_100km", "Grad_Ne_at_50km", "Grad_Ne_at_20km",
-            "Grad_Ne_at_PCP_edge", "ROD", "RODI10s", "RODI20s",
-            "delta_Ne10s", "delta_Ne20s", "delta_Ne40s",
-            "Num_GPS_satellites", "mVTEC", "mROT", "mROTI10s", "mROTI20s",
-            "IBI_flag", "Ionosphere_region_flag", "IPIR_index",
-            "Ne_quality_flag", "TEC_STD"
-            ],
-        "AEJ_LPL": [
-            "Latitude_QD", "Longitude_QD", "MLT_QD",
-            "J_NE", "J_QD"
+            "Ne",
+            "Te",
+            "Background_Ne",
+            "Foreground_Ne",
+            "PCP_flag",
+            "Grad_Ne_at_100km",
+            "Grad_Ne_at_50km",
+            "Grad_Ne_at_20km",
+            "Grad_Ne_at_PCP_edge",
+            "ROD",
+            "RODI10s",
+            "RODI20s",
+            "delta_Ne10s",
+            "delta_Ne20s",
+            "delta_Ne40s",
+            "Num_GPS_satellites",
+            "mVTEC",
+            "mROT",
+            "mROTI10s",
+            "mROTI20s",
+            "IBI_flag",
+            "Ionosphere_region_flag",
+            "IPIR_index",
+            "Ne_quality_flag",
+            "TEC_STD",
         ],
+        "AEJ_LPL": ["Latitude_QD", "Longitude_QD", "MLT_QD", "J_NE", "J_QD"],
         "AEJ_LPL:Quality": ["RMS_misfit", "Confidence"],
         "AEJ_LPS": [
-            "Latitude_QD", "Longitude_QD", "MLT_QD",
-            "J_CF_NE", "J_DF_NE", "J_CF_SemiQD", "J_DF_SemiQD", "J_R"
-            ],
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "J_CF_NE",
+            "J_DF_NE",
+            "J_CF_SemiQD",
+            "J_DF_SemiQD",
+            "J_R",
+        ],
         "AEJ_LPS:Quality": ["RMS_misfit", "Confidence"],
         "AEJ_PBL": [
-            "Latitude_QD", "Longitude_QD", "MLT_QD",
-            "J_QD",  "Flags", "PointType"
-            ],
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "J_QD",
+            "Flags",
+            "PointType",
+        ],
         "AEJ_PBS": [
-            "Latitude_QD", "Longitude_QD", "MLT_QD",
-            "J_DF_SemiQD", "Flags", "PointType"
-            ],
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "J_DF_SemiQD",
+            "Flags",
+            "PointType",
+        ],
         "AEJ_PBS:GroundMagneticDisturbance": ["B_NE"],
         "AOB_FAC": [
-            "Latitude_QD", "Longitude_QD", "MLT_QD",
-            "Boundary_Flag", "Quality", "Pair_Indicator"
-            ],
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "Boundary_Flag",
+            "Quality",
+            "Pair_Indicator",
+        ],
         "AUX_OBSH": ["B_NEC", "F", "IAGA_code", "Quality", "ObsIndex"],
         "AUX_OBSM": ["B_NEC", "F", "IAGA_code", "Quality"],
         "AUX_OBSS": ["B_NEC", "F", "IAGA_code", "Quality"],
@@ -701,55 +832,158 @@ class SwarmRequest(ClientRequest):
         "VOBS_CR_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
         "VOBS_CO_4M:SecularVariation": ["SiteCode", "B_SV", "sigma_SV"],
         "MIT_LP": [
-            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
-            "Ne", "Te", "Depth", "DR", "Width", "dL", "PW_Gradient", "EW_Gradient",
+            "Counter",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "L_value",
+            "SZA",
+            "Ne",
+            "Te",
+            "Depth",
+            "DR",
+            "Width",
+            "dL",
+            "PW_Gradient",
+            "EW_Gradient",
             "Quality",
         ],
         "MIT_LP:ID": [
-            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
-            "Ne", "Te", "Position_Quality", "PointType",
+            "Counter",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "L_value",
+            "SZA",
+            "Ne",
+            "Te",
+            "Position_Quality",
+            "PointType",
         ],
         "MIT_TEC": [
-            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
-            "TEC", "Depth", "DR", "Width", "dL", "PW_Gradient", "EW_Gradient",
+            "Counter",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "L_value",
+            "SZA",
+            "TEC",
+            "Depth",
+            "DR",
+            "Width",
+            "dL",
+            "PW_Gradient",
+            "EW_Gradient",
             "Quality",
         ],
         "MIT_TEC:ID": [
-            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
-            "TEC", "Position_Quality", "PointType",
+            "Counter",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "L_value",
+            "SZA",
+            "TEC",
+            "Position_Quality",
+            "PointType",
         ],
         "PPI_FAC": [
-            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
-            "Sigma", "PPI", "dL", "Quality",
+            "Counter",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "L_value",
+            "SZA",
+            "Sigma",
+            "PPI",
+            "dL",
+            "Quality",
         ],
         "PPI_FAC:ID": [
-            "Counter", "Latitude_QD", "Longitude_QD", "MLT_QD", "L_value", "SZA",
-            "Position_Quality", "PointType",
+            "Counter",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "L_value",
+            "SZA",
+            "Position_Quality",
+            "PointType",
         ],
         "MAG_CS": [
-            "F", "B_NEC", "B_mod_NEC", "B_NEC1", "B_NEC2", "B_NEC3",
-            "B_FGM1", "B_FGM2", "B_FGM3", "q_NEC_CRF", "q_error",
+            "F",
+            "B_NEC",
+            "B_mod_NEC",
+            "B_NEC1",
+            "B_NEC2",
+            "B_NEC3",
+            "B_FGM1",
+            "B_FGM2",
+            "B_FGM3",
+            "q_NEC_CRF",
+            "q_error",
         ],
         "MAG_GRACE": [
-            "F", "B_NEC", "B_NEC_raw", "B_FGM",
-            "q_NEC_CRF", "q_error",
+            "F",
+            "B_NEC",
+            "B_NEC_raw",
+            "B_FGM",
+            "q_NEC_CRF",
+            "q_error",
         ],
         "MAG_GFO": [
-            "F", "B_NEC", "B_FGM", "dB_MTQ_FGM", "dB_XI_FGM", "dB_NY_FGM", "dB_BT_FGM",
-            "dB_ST_FGM", "dB_SA_FGM", "dB_BAT_FGM", "q_NEC_FGM", "B_FLAG",
+            "F",
+            "B_NEC",
+            "B_FGM",
+            "dB_MTQ_FGM",
+            "dB_XI_FGM",
+            "dB_NY_FGM",
+            "dB_BT_FGM",
+            "dB_ST_FGM",
+            "dB_SA_FGM",
+            "dB_BAT_FGM",
+            "q_NEC_FGM",
+            "B_FLAG",
         ],
         "MOD_SC": [],
     }
 
     AUXILIARY_VARIABLES = [
-        "Timestamp", "Latitude", "Longitude", "Radius", "Spacecraft",
-        "OrbitDirection", "QDOrbitDirection", "SyncStatus", "Kp10", "Kp", "Dst",
-        "F107", "IMF_BY_GSM", "IMF_BZ_GSM", "IMF_V", "F10_INDEX", "OrbitSource",
-        "OrbitNumber", "AscendingNodeTime", "AscendingNodeLongitude", "QDLat",
-        "QDLon", "QDBasis", "MLT", "SunDeclination", "SunHourAngle",
-        "SunRightAscension", "SunAzimuthAngle", "SunZenithAngle",
-        "SunLongitude", "SunVector", "DipoleAxisVector", "NGPLatitude",
-        "NGPLongitude", "DipoleTiltAngle", "dDst"
+        "Timestamp",
+        "Latitude",
+        "Longitude",
+        "Radius",
+        "Spacecraft",
+        "OrbitDirection",
+        "QDOrbitDirection",
+        "SyncStatus",
+        "Kp10",
+        "Kp",
+        "Dst",
+        "F107",
+        "IMF_BY_GSM",
+        "IMF_BZ_GSM",
+        "IMF_V",
+        "F10_INDEX",
+        "OrbitSource",
+        "OrbitNumber",
+        "AscendingNodeTime",
+        "AscendingNodeLongitude",
+        "QDLat",
+        "QDLon",
+        "QDBasis",
+        "MLT",
+        "SunDeclination",
+        "SunHourAngle",
+        "SunRightAscension",
+        "SunAzimuthAngle",
+        "SunZenithAngle",
+        "SunLongitude",
+        "SunVector",
+        "DipoleAxisVector",
+        "NGPLatitude",
+        "NGPLongitude",
+        "DipoleTiltAngle",
+        "dDst",
     ]
 
     MAGNETIC_MODEL_VARIABLES = {
@@ -761,24 +995,44 @@ class SwarmRequest(ClientRequest):
     }
 
     MAGNETIC_MODELS = [
-        "IGRF", "IGRF12", "LCS-1", "MF7",
-        "CHAOS-Core", "CHAOS-Static", "CHAOS-MMA-Primary", "CHAOS-MMA-Secondary",
-        "CHAOS-6-Core", "CHAOS-6-Static", "CHAOS-6-MMA-Primary", "CHAOS-6-MMA-Secondary",
-        "MCO_SHA_2C", "MCO_SHA_2D", "MLI_SHA_2C", "MLI_SHA_2D", "MLI_SHA_2E",
-        "MMA_SHA_2C-Primary", "MMA_SHA_2C-Secondary",
-        "MMA_SHA_2F-Primary", "MMA_SHA_2F-Secondary",
-        "MIO_SHA_2C-Primary", "MIO_SHA_2C-Secondary",
-        "MIO_SHA_2D-Primary", "MIO_SHA_2D-Secondary",
+        "IGRF",
+        "IGRF12",
+        "LCS-1",
+        "MF7",
+        "CHAOS-Core",
+        "CHAOS-Static",
+        "CHAOS-MMA-Primary",
+        "CHAOS-MMA-Secondary",
+        "CHAOS-6-Core",
+        "CHAOS-6-Static",
+        "CHAOS-6-MMA-Primary",
+        "CHAOS-6-MMA-Secondary",
+        "MCO_SHA_2C",
+        "MCO_SHA_2D",
+        "MLI_SHA_2C",
+        "MLI_SHA_2D",
+        "MLI_SHA_2E",
+        "MMA_SHA_2C-Primary",
+        "MMA_SHA_2C-Secondary",
+        "MMA_SHA_2F-Primary",
+        "MMA_SHA_2F-Secondary",
+        "MIO_SHA_2C-Primary",
+        "MIO_SHA_2C-Secondary",
+        "MIO_SHA_2D-Primary",
+        "MIO_SHA_2D-Secondary",
         "AMPS",
-        "MCO_SHA_2X", "CHAOS", "CHAOS-MMA", "MMA_SHA_2C", "MMA_SHA_2F", "MIO_SHA_2C", "MIO_SHA_2D", "SwarmCI",
+        "MCO_SHA_2X",
+        "CHAOS",
+        "CHAOS-MMA",
+        "MMA_SHA_2C",
+        "MMA_SHA_2F",
+        "MIO_SHA_2C",
+        "MIO_SHA_2D",
+        "SwarmCI",
     ]
 
-    def __init__(self, url=None, token=None,
-                 config=None, logging_level="NO_LOGGING"):
-        super().__init__(
-            url, token, config, logging_level,
-            server_type="Swarm"
-            )
+    def __init__(self, url=None, token=None, config=None, logging_level="NO_LOGGING"):
+        super().__init__(url, token, config, logging_level, server_type="Swarm")
 
         self._available = self._get_available_data()
         self._request_inputs = SwarmWPSInputs()
@@ -792,9 +1046,7 @@ class SwarmRequest(ClientRequest):
         # Build the reverse mapping: "SW_OPER_MAGA_LR_1B": "MAG" etc
         collections_to_keys = {}
         for key, collections in cls.COLLECTIONS.items():
-            collections_to_keys.update({
-                collection: key for collection in collections
-            })
+            collections_to_keys.update({collection: key for collection in collections})
 
         return {
             "collections": cls.COLLECTIONS,
@@ -804,7 +1056,7 @@ class SwarmRequest(ClientRequest):
             "models": cls.MAGNETIC_MODELS,
             "model_variables": cls.MAGNETIC_MODEL_VARIABLES,
             "auxiliaries": cls.AUXILIARY_VARIABLES,
-            }
+        }
 
     @staticmethod
     def _parse_models_input(models=None):
@@ -822,22 +1074,23 @@ class SwarmRequest(ClientRequest):
         #  e.g. {"model_name": "model_expression", ..}
         # Check if models input is basic list of strings,
         #  If not, then handle inputs given as dicts or list of tuples
-        if (isinstance(models, list) and
-                all(isinstance(item, str) for item in models)):
+        if isinstance(models, list) and all(isinstance(item, str) for item in models):
             # Convert the models list to an OrderedDict
             model_expressions = OrderedDict()
             for model in models:
-                model_id, _, model_expression = [
+                model_id, _, model_expression = (
                     s.strip() for s in model.partition("=")
-                ]
+                )
                 model_expressions[model_id] = model_expression
         else:
             try:
                 model_expressions = OrderedDict(models)
                 # Check that everything is a string
-                if not all(isinstance(item, str)for item in
-                           [*model_expressions.values()] +
-                           [*model_expressions.keys()]):
+                if not all(
+                    isinstance(item, str)
+                    for item in [*model_expressions.values()]
+                    + [*model_expressions.keys()]
+                ):
                     raise ValueError
             except ValueError:
                 raise ValueError("Invalid models input!")
@@ -851,7 +1104,7 @@ class SwarmRequest(ClientRequest):
             else:
                 s = "=".join([model_id, model_expression])
             model_expression_string = ",".join([model_expression_string, s])
-        model_ids = list(s.strip("\'\"") for s in model_expressions.keys())
+        model_ids = list(s.strip("'\"") for s in model_expressions.keys())
         return model_ids, model_expression_string[1:]
 
     def available_collections(self, groupname=None, details=True):
@@ -871,20 +1124,19 @@ class SwarmRequest(ClientRequest):
         collections_short["AUX_OBSH"] = ["SW_OPER_AUX_OBSH2_"]
         for mission in ("SW", "OR", "CH", "CR", "CO"):
             for cadence in ("1M", "4M"):
-                collections_short[f"VOBS_{mission}_{cadence}"] = \
-                    [f"{mission}_OPER_VOBS_{cadence}_2_"]
-                collections_short[f"VOBS_{mission}_{cadence}:SecularVariation"] = \
-                    [f"{mission}_OPER_VOBS_{cadence}_2_:SecularVariation"]
+                collections_short[f"VOBS_{mission}_{cadence}"] = [
+                    f"{mission}_OPER_VOBS_{cadence}_2_"
+                ]
+                collections_short[f"VOBS_{mission}_{cadence}:SecularVariation"] = [
+                    f"{mission}_OPER_VOBS_{cadence}_2_:SecularVariation"
+                ]
 
         def _filter_collections(groupname):
-            """ Reduce the full list to just one group, e.g. "MAG """
+            """Reduce the full list to just one group, e.g. "MAG"""
             if groupname:
                 groups = list(collections_short.keys())
                 if groupname in groups:
-                    return {
-                        groupname:
-                        collections_short[groupname]
-                    }
+                    return {groupname: collections_short[groupname]}
                 else:
                     raise ValueError("Invalid collection group name")
             else:
@@ -899,8 +1151,8 @@ class SwarmRequest(ClientRequest):
             for key, val in collections_filtered.items():
                 print(key)
                 for i in val:
-                    print('  ', i)
-                refs = COLLECTION_REFERENCES.get(key, ('No reference...',))
+                    print("  ", i)
+                refs = COLLECTION_REFERENCES.get(key, ("No reference...",))
                 for ref in refs:
                     print(ref)
                 print()
@@ -926,10 +1178,9 @@ class SwarmRequest(ClientRequest):
         else:
             raise Exception(
                 "collection must be one of {}\nor\n{}".format(
-                    ", ".join(keys),
-                    "\n".join(self._available["collections_to_keys"])
-                    )
+                    ", ".join(keys), "\n".join(self._available["collections_to_keys"])
                 )
+            )
 
     def available_models(self, param=None, details=True, nice_output=True):
         """Show details of avalable models.
@@ -957,7 +1208,7 @@ class SwarmRequest(ClientRequest):
 
         def filter_by_param(d, param):
             if param in ("F", "C", "D"):
-                param = '2' + param
+                param = "2" + param
             return [i for i in d if param in i]
 
         # get all models provided by the server
@@ -965,7 +1216,8 @@ class SwarmRequest(ClientRequest):
 
         # keep only models really provided by the server
         d = [
-            model_name for model_name in self._available["models"]
+            model_name
+            for model_name in self._available["models"]
             if model_name in models_info
         ]
 
@@ -977,7 +1229,7 @@ class SwarmRequest(ClientRequest):
             d = {
                 model_name: {
                     "description": MODEL_REFERENCES[model_name],
-                    "details": models_info[model_name]
+                    "details": models_info[model_name],
                 }
                 for model_name in d
             }
@@ -999,13 +1251,11 @@ class SwarmRequest(ClientRequest):
             return d
 
     def available_auxiliaries(self):
-        """Returns a list of the available auxiliary parameters.
-        """
+        """Returns a list of the available auxiliary parameters."""
         return self._available["auxiliaries"]
 
     def available_observatories(
-        self, collection, start_time=None, end_time=None,
-        details=False, verbose=True
+        self, collection, start_time=None, end_time=None, details=False, verbose=True
     ):
         """Get list of available observatories from server.
 
@@ -1039,26 +1289,23 @@ class SwarmRequest(ClientRequest):
             list or DataFrame: IAGA codes (and start/end times)
 
         """
+
         def _request_get_observatories(collection=None, start_time=None, end_time=None):
-            """ Make the get_observatories request to the server """
+            """Make the get_observatories request to the server"""
             templatefile = TEMPLATE_FILES["get_observatories"]
             template = JINJA2_ENVIRONMENT.get_template(templatefile)
             request = template.render(
                 collection_id=collection,
                 begin_time=start_time,
                 end_time=end_time,
-                response_type="text/csv"
-            ).encode('UTF-8')
-            response = self._get(
-                request, asynchronous=False, show_progress=False
-            )
+                response_type="text/csv",
+            ).encode("UTF-8")
+            response = self._get(request, asynchronous=False, show_progress=False)
             return response
 
         def _csv_to_df(csv_data):
-            """ Convert bytes data to pandas dataframe """
-            return read_csv(
-                StringIO(str(csv_data, 'utf-8'))
-            )
+            """Convert bytes data to pandas dataframe"""
+            return read_csv(StringIO(str(csv_data, "utf-8")))
 
         if collection not in self.OBS_COLLECTIONS:
             raise ValueError(
@@ -1090,10 +1337,12 @@ class SwarmRequest(ClientRequest):
         # Output notification for each of aux_type
         for aux_type in ["AUX_OBSH", "AUX_OBSM", "AUX_OBSS"]:
             if aux_type in collection_types_requested:
-                output_text = dedent(f"""
+                output_text = dedent(
+                    f"""
                 Accessing INTERMAGNET and/or WDC data
                 Check usage terms at {DATA_CITATIONS.get(aux_type)}
-                """)
+                """
+                )
                 tqdm.write(output_text)
 
     def set_collection(self, *args, verbose=True):
@@ -1107,25 +1356,29 @@ class SwarmRequest(ClientRequest):
         collections = [*args]
         for collection in collections:
             if not isinstance(collection, str):
-                raise TypeError(
-                    "{} invalid. Must be string."
-                    .format(collection)
-                    )
+                raise TypeError(f"{collection} invalid. Must be string.")
             if collection not in self._available["collections_to_keys"]:
                 raise ValueError(
                     "Invalid collection: {}. "
-                    "Check available with SwarmRequest().available_collections()"
-                    .format(collection)
+                    "Check available with SwarmRequest().available_collections()".format(
+                        collection
                     )
+                )
         if verbose:
             self._detect_AUX_OBS(collections)
         self._collection_list = collections
         self._request_inputs.set_collections(collections)
         return self
 
-    def set_products(self, measurements=None, models=None, custom_model=None,
-                     auxiliaries=None, residuals=False, sampling_step=None
-                     ):
+    def set_products(
+        self,
+        measurements=None,
+        models=None,
+        custom_model=None,
+        auxiliaries=None,
+        residuals=False,
+        sampling_step=None,
+    ):
         """Set the combination of products to retrieve.
 
         If residuals=True then just get the measurement-model residuals,
@@ -1170,7 +1423,8 @@ class SwarmRequest(ClientRequest):
                     "Check available with "
                     "SwarmRequest.available_measurements({})".format(
                         variable, collection_key, collection_key
-                    ))
+                    )
+                )
         # Check if at least one model defined when requesting residuals
         if residuals and not models:
             raise Exception("Residuals requested but no model defined!")
@@ -1182,7 +1436,7 @@ class SwarmRequest(ClientRequest):
                 raise Exception(
                     "'{}' not available. Check available with "
                     "SwarmRequest.available_auxiliaries()".format(variable)
-                    )
+                )
         # Load the custom .shc file
         if custom_model:
             if os.path.exists(custom_model):
@@ -1201,8 +1455,7 @@ class SwarmRequest(ClientRequest):
 
         # model-related measurements
         _requested_model_variables = [
-            variable for variable in measurements
-            if variable in model_variables
+            variable for variable in measurements if variable in model_variables
         ]
 
         if residuals:
@@ -1224,8 +1477,7 @@ class SwarmRequest(ClientRequest):
             variables.update(
                 f"{variable}_{model_id}"
                 for variable in (
-                    model_variables[variable]
-                    for variable in _requested_model_variables
+                    model_variables[variable] for variable in _requested_model_variables
                 )
                 for model_id in model_ids
             )
@@ -1256,12 +1508,12 @@ class SwarmRequest(ClientRequest):
         if not isinstance(parameter, str):
             raise TypeError("parameter must be a str")
         # Update the list that contains the separate filters
-        self._filterlist += [parameter+":"+str(minimum)+","+str(maximum)]
+        self._filterlist += [parameter + ":" + str(minimum) + "," + str(maximum)]
         # Convert the list into the string that gets passed to the xml template
         if len(self._filterlist) == 1:
             filters = self._filterlist[0]
         else:
-            filters = ';'.join(self._filterlist)
+            filters = ";".join(self._filterlist)
         # Update the SwarmWPSInputs object
         self._request_inputs.filters = filters
         return self
@@ -1272,7 +1524,9 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.filters = None
         return self
 
-    def get_times_for_orbits(self, start_orbit, end_orbit, mission="Swarm", spacecraft=None):
+    def get_times_for_orbits(
+        self, start_orbit, end_orbit, mission="Swarm", spacecraft=None
+    ):
         """Translate a pair of orbit numbers to a time interval.
 
         Args:
@@ -1293,9 +1547,9 @@ class SwarmRequest(ClientRequest):
         """
         # check old function signature and print warning
         if (
-            isinstance(start_orbit, str) and
-            isinstance(mission, int) and
-            spacecraft is None
+            isinstance(start_orbit, str)
+            and isinstance(mission, int)
+            and spacecraft is None
         ):
             spacecraft, start_orbit, end_orbit = start_orbit, end_orbit, mission
             mission = "Swarm"
@@ -1322,13 +1576,12 @@ class SwarmRequest(ClientRequest):
             mission=mission,
             spacecraft=spacecraft,
             start_orbit=start_orbit,
-            end_orbit=end_orbit
-        ).encode('UTF-8')
-        response = self._get(
-            request, asynchronous=False, show_progress=False)
-        responsedict = json.loads(response.decode('UTF-8'))
-        start_time = parse_datetime(responsedict['start_time'])
-        end_time = parse_datetime(responsedict['end_time'])
+            end_orbit=end_orbit,
+        ).encode("UTF-8")
+        response = self._get(request, asynchronous=False, show_progress=False)
+        responsedict = json.loads(response.decode("UTF-8"))
+        start_time = parse_datetime(responsedict["start_time"])
+        end_time = parse_datetime(responsedict["end_time"])
         return start_time, end_time
 
     def _fix_spacecraft(self, mission, spacecraft):
@@ -1358,12 +1611,11 @@ class SwarmRequest(ClientRequest):
                     f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS[mission])}"
                 )
 
-        elif spacecraft: # mission without spacecraft id
+        elif spacecraft:  # mission without spacecraft id
             raise ValueError(
                 f"No {mission} spacecraft shall be specified! "
                 "Set spacecraft to None."
             )
-
 
     def get_orbit_number(self, spacecraft, input_time, mission="Swarm"):
         """Translate a time to an orbit number.
@@ -1385,8 +1637,7 @@ class SwarmRequest(ClientRequest):
             input_time = parse_datetime(input_time)
         except TypeError:
             raise TypeError(
-                "input_time must be datetime object or ISO-8601 "
-                "date/time string"
+                "input_time must be datetime object or ISO-8601 " "date/time string"
             )
         # Change to spacecraft = "A" etc. for this request
         if spacecraft in ("Alpha", "Bravo", "Charlie"):
@@ -1397,33 +1648,34 @@ class SwarmRequest(ClientRequest):
                 f"Allowed options are: {','.join(self.MISSION_SPACECRAFTS)}"
             )
         spacecraft = str(spacecraft)
-        if mission=="Swarm":
+        if mission == "Swarm":
             collection = f"SW_OPER_MOD{spacecraft}_SC_1B"
-        elif mission=="GRACE":
+        elif mission == "GRACE":
             if spacecraft in "12":
-                spacecraft = "AB"[int(spacecraft)-1]
+                spacecraft = "AB"[int(spacecraft) - 1]
             elif spacecraft not in "AB":
                 raise ValueError(f"Invalid spacecraft: {spacecraft}")
             collection = f"GRACE_{spacecraft}_MAG"
-        elif mission=="GRACE-FO":
+        elif mission == "GRACE-FO":
             collection = f"GF{spacecraft}_OPER_FGM_ACAL_CORR"
-        elif mission=="CryoSat-2":
+        elif mission == "CryoSat-2":
             collection = "CS_OPER_MAG"
         request_inputs = SwarmWPSInputs(
             collection_ids={collection: [collection]},
             begin_time=input_time,
-            end_time=input_time+datetime.timedelta(seconds=1),
+            end_time=input_time + datetime.timedelta(seconds=1),
             variables=["OrbitNumber"],
-            response_type="text/csv"
+            response_type="text/csv",
         )
-        request = request_inputs.as_xml(self._templatefiles['sync'])
+        request = request_inputs.as_xml(self._templatefiles["sync"])
         retdata = ReturnedDataFile(filetype="csv")
-        response_handler = self._response_handler(
-            retdata, show_progress=False
-        )
+        response_handler = self._response_handler(retdata, show_progress=False)
         self._get(
-            request, asynchronous=False, response_handler=response_handler,
-            show_progress=False)
+            request,
+            asynchronous=False,
+            response_handler=response_handler,
+            show_progress=False,
+        )
         df = retdata.as_dataframe()
         if len(df) == 0:
             raise ValueError(
@@ -1434,8 +1686,7 @@ class SwarmRequest(ClientRequest):
         else:
             return df["OrbitNumber"][0]
 
-    def get_model_info(self, models=None, custom_model=None,
-                       original_response=False):
+    def get_model_info(self, models=None, custom_model=None, original_response=False):
         """Get model info from server.
 
         Handles the same models input as .set_products(), and returns a dict
@@ -1464,25 +1715,21 @@ class SwarmRequest(ClientRequest):
         """
 
         def _request_get_model_info(model_expression=None, custom_shc=None):
-            """ Make the get_model_info request. """
+            """Make the get_model_info request."""
             templatefile = TEMPLATE_FILES["model_info"]
             template = JINJA2_ENVIRONMENT.get_template(templatefile)
             request = template.render(
                 model_expression=model_expression,
                 custom_shc=custom_shc,
-                response_type="application/json"
-            ).encode('UTF-8')
-            response = self._get(
-                request, asynchronous=False, show_progress=False)
-            response_list = json.loads(response.decode('UTF-8'))
+                response_type="application/json",
+            ).encode("UTF-8")
+            response = self._get(request, asynchronous=False, show_progress=False)
+            response_list = json.loads(response.decode("UTF-8"))
             return response_list
 
         def _build_dict(response_list):
-            """ Build dictionary output organised by model name. """
-            return {
-                model_dict.pop("name"): model_dict
-                for model_dict in response_list
-            }
+            """Build dictionary output organised by model name."""
+            return {model_dict.pop("name"): model_dict for model_dict in response_list}
 
         if custom_model:
             with open(custom_model) as custom_shc_file:
@@ -1506,7 +1753,7 @@ class SwarmRequest(ClientRequest):
 
     @staticmethod
     def _check_deprecated_models(models):
-        """ Print deprecation warning for deprecated models. """
+        """Print deprecation warning for deprecated models."""
         deprecated_models = []
         for deprecated_model in DEPRECATED_MODELS:
             for model in models:
@@ -1514,15 +1761,24 @@ class SwarmRequest(ClientRequest):
                     deprecated_models.append(deprecated_model)
                     break
         for deprecated_model in deprecated_models:
-            print("WARNING: Model {} is deprecated. {}".format(
-                deprecated_model, DEPRECATED_MODELS[deprecated_model]
-            ), file=sys.stdout)
+            print(
+                "WARNING: Model {} is deprecated. {}".format(
+                    deprecated_model, DEPRECATED_MODELS[deprecated_model]
+                ),
+                file=sys.stdout,
+            )
 
-
-    def get_conjunctions(self, start_time=None, end_time=None, threshold=1.0,
-                         spacecraft1='A', spacecraft2='B',
-                         mission1='Swarm', mission2='Swarm'):
-        """ Get times of the spacecraft conjunctions. Currently available for
+    def get_conjunctions(
+        self,
+        start_time=None,
+        end_time=None,
+        threshold=1.0,
+        spacecraft1="A",
+        spacecraft2="B",
+        mission1="Swarm",
+        mission2="Swarm",
+    ):
+        """Get times of the spacecraft conjunctions. Currently available for
         the following spacecraft pairs:
           - Swarm-A/Swarm-B
 
@@ -1558,13 +1814,11 @@ class SwarmRequest(ClientRequest):
         self._check_mission_spacecraft(mission2, spacecraft2)
 
         if (mission1, spacecraft1) == (mission2, spacecraft2):
-            raise ValueError(
-                "The first and second spacecraft must not be the same!"
-            )
+            raise ValueError("The first and second spacecraft must not be the same!")
 
-        spacecraft_pair = tuple(sorted([
-            (mission1, spacecraft1), (mission2, spacecraft2)
-        ]))
+        spacecraft_pair = tuple(
+            sorted([(mission1, spacecraft1), (mission2, spacecraft2)])
+        )
 
         if spacecraft_pair not in self.CONJUNCTION_MISISON_SPACECRAFT_PAIRS:
             raise ValueError(
@@ -1582,7 +1836,7 @@ class SwarmRequest(ClientRequest):
             mission1=mission1,
             mission2=mission2,
             threshold=threshold,
-        ).encode('UTF-8')
+        ).encode("UTF-8")
 
         show_progress = False
         leave_progress_bar = False

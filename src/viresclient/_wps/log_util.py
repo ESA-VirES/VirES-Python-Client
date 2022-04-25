@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # logging utilities
 #
 # Author: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2018 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,17 +24,17 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-from logging import StreamHandler, Formatter, INFO
 from datetime import datetime
+from logging import INFO, Formatter, StreamHandler
 
-DEFAULT_LOG_FORMAT = '%(asctime)s %(levelname)s %(message)s'
-DEFAULT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
+DEFAULT_LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
+DEFAULT_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
 def set_stream_handler(logger, level=INFO, log_format=None, time_format=None):
-    """ Set stream handler to the given logger. """
+    """Set stream handler to the given logger."""
     formatter = FormatterUTC(
         log_format or DEFAULT_LOG_FORMAT,
         time_format or DEFAULT_TIME_FORMAT,
@@ -47,17 +47,19 @@ def set_stream_handler(logger, level=INFO, log_format=None, time_format=None):
 
 
 class FormatterUTC(Formatter):
-    """" Custom log formatter class printing UTC timestamps with microsecond
+    """ " Custom log formatter class printing UTC timestamps with microsecond
     precision.
 
     The formatter uses 'datetime.datetime.strftime' method
     rather then 'time.strftime` used by the default formatter.
     """
+
     converter = datetime.utcfromtimestamp
 
     def formatTime(self, record, datefmt=None):
         dts = self.converter(record.created)
         return dts.strftime(datefmt) if datefmt else dts.isoformat(" ")
+
 
 #    def format(self, record):
 #        record.msg = record.msg.encode('unicode_escape')

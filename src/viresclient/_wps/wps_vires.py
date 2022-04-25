@@ -1,10 +1,10 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # WPS 1.0 service proxy
 #
 # Author: Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2018 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 try:
     from urllib.parse import urlparse
@@ -33,9 +33,9 @@ except ImportError:
     from urlparse import urlparse
 
 import re
-from .wps import WPS10Service
-from .environment import JINJA2_ENVIRONMENT
 
+from .environment import JINJA2_ENVIRONMENT
+from .wps import WPS10Service
 
 RE_MATCH_JOB_ID = re.compile(
     r"^[0-9a-f]{8,8}-[0-9a-f]{4,4}-[0-9a-f]{4,4}-[0-9a-f]{4,4}-[0-9a-f]{12,12}$"
@@ -43,7 +43,7 @@ RE_MATCH_JOB_ID = re.compile(
 
 
 class ViresWPS10Service(WPS10Service):
-    """ VirES specific WPS 1.0 service proxy class.
+    """VirES specific WPS 1.0 service proxy class.
     This class implement additional VirES specific synchronous clean-up handler.
 
         wps = ViresWPS10Service(url, headers)
@@ -53,18 +53,19 @@ class ViresWPS10Service(WPS10Service):
             headers - optional dictionary of the HTTP headers sent with each
                       request
     """
+
     template_remove_job = JINJA2_ENVIRONMENT.get_template("vires_remove_job.xml")
 
     def _default_cleanup_handler(self, status_url):
-        """ Remove asynchronous job using the VirES specific interface. """
+        """Remove asynchronous job using the VirES specific interface."""
         job_id = status_url_to_job_id(status_url)
         self.logger.debug("Removing VirES asynchronous job %s.", job_id)
-        request = self.template_remove_job.render(job_id=job_id).encode('UTF-8')
+        request = self.template_remove_job.render(job_id=job_id).encode("UTF-8")
         self.retrieve(request)
 
 
 def status_url_to_job_id(status_url):
-    """ Extract job id from a VirES WPS status URL. """
+    """Extract job id from a VirES WPS status URL."""
     for item in urlparse(status_url).path.split("/"):
         if RE_MATCH_JOB_ID.match(item):
             return item

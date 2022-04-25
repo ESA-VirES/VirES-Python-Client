@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # Configuration file handling.
 #
 # Authors: Ashley Smith <ashley.smith@ed.ac.uk>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2018 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,21 +25,23 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-import os
 import json
+import os
+from configparser import ConfigParser
+from getpass import getpass
 from io import StringIO
 from os.path import expanduser, join
-from getpass import getpass
-from configparser import ConfigParser
+
 from ._api.token import TokenManager
 
 # Identify whether code is running in Jupyter notebook or not
 try:
     from IPython import get_ipython
     from IPython.display import display_html
-    IN_JUPYTER = 'zmqshell' in str(type(get_ipython()))
+
+    IN_JUPYTER = "zmqshell" in str(type(get_ipython()))
     from IPython.core.error import StdinNotImplementedError
 except ImportError:
     IN_JUPYTER = False
@@ -53,17 +55,17 @@ TOKEN_GUI_PATH = "/accounts/tokens/"
 
 
 def _get_ows_url(url):
-    """ https//foo.bar(/ows)? -> https//foo.bar/ows """
+    """https//foo.bar(/ows)? -> https//foo.bar/ows"""
     return TokenManager.RE_URL_BASE.sub(DATA_API_PATH, url, count=1)
 
 
 def _get_token_gui_url(url):
-    """ https//foo.bar(/ows)? -> https//foo.bar/accounts/tokens/ """
+    """https//foo.bar(/ows)? -> https//foo.bar/accounts/tokens/"""
     return TokenManager.RE_URL_BASE.sub(TOKEN_GUI_PATH, url, count=1)
 
 
 def set_token(url="https://vires.services/ows", token=None, set_default=False):
-    """ Set the access token for a given URL, using user input.
+    """Set the access token for a given URL, using user input.
 
     Get an access token at https://vires.services/accounts/tokens/
 
@@ -91,28 +93,31 @@ def set_token(url="https://vires.services/ows", token=None, set_default=False):
         # Provide user with information on token setting URL
         # Nicer output in IPython, with a clickable link
         if IN_JUPYTER:
+
             def _linkify(_url):
                 if _url:
                     return '<a href="{url}">{url}</a>'.format(url=_url)
-                return '(link not found)'
+                return "(link not found)"
+
             display_html(
-                'Setting access token for {}...<br>'.format(url)
-                + 'Generate a token at {}'.format(_linkify(url4token)),
-                raw=True)
+                f"Setting access token for {url}...<br>"
+                + f"Generate a token at {_linkify(url4token)}",
+                raw=True,
+            )
         else:
-            print('Setting access token for', url, ' ...')
-            url4token = url4token if url4token else '(link not found)'
-            print('Generate a token at', url4token)
+            print("Setting access token for", url, " ...")
+            url4token = url4token if url4token else "(link not found)"
+            print("Generate a token at", url4token)
         # Prompt user to supply token, if input is allowed
         try:
-            token = getpass('Enter token:')
+            token = getpass("Enter token:")
         except EOFError:
             # getpass is meant to do something like this as a fallback
             # but it fails with EOFError in Jupyter (rare glitch)
             # https://github.com/ESA-VirES/VirES-Python-Client/issues/46
-            token = input('Enter token:')
+            token = input("Enter token:")
         except StdinNotImplementedError:
-            print('No input method available. Unable to set token.')
+            print("No input method available. Unable to set token.")
             return
     config = ClientConfig()
     config.set_site_config(url, token=token)
@@ -123,8 +128,8 @@ def set_token(url="https://vires.services/ows", token=None, set_default=False):
     print("Token saved for", url)
 
 
-class ClientConfig():
-    """ Client configuration.
+class ClientConfig:
+    """Client configuration.
 
     Example usage::
 
@@ -150,34 +155,34 @@ class ClientConfig():
 
     @property
     def path(self):
-        """ Get path of the configuration file. """
+        """Get path of the configuration file."""
         return self._path
 
     @property
     def default_url(self):
-        """ Get default URL or None if not set. """
-        return self._get_section('default').get('url')
+        """Get default URL or None if not set."""
+        return self._get_section("default").get("url")
 
     @default_url.setter
     def default_url(self, value):
-        """ Set default URL. """
-        self._update_section('default', url=value)
+        """Set default URL."""
+        self._update_section("default", url=value)
 
     @default_url.deleter
     def default_url(self):
-        """ Unset the default URL. """
-        self._update_section('default', url=None)
+        """Unset the default URL."""
+        self._update_section("default", url=None)
 
     def set_site_config(self, url, **options):
-        """ Set configuration for the given URL. """
+        """Set configuration for the given URL."""
         self._set_section(url, **options)
 
     def get_site_config(self, url):
-        """ Get configuration for the given URL. """
+        """Get configuration for the given URL."""
         return dict(self._get_section(url))
 
     def _update_section(self, section, **options):
-        """ Update configuration file section. """
+        """Update configuration file section."""
         all_options = dict(self._get_section(section))
         all_options.update(options)
         self._set_section(section, **all_options)
@@ -189,56 +194,52 @@ class ClientConfig():
             return {}
 
     def _set_section(self, section, **options):
-        """ Set configuration file section. """
-        options = {
-            key: value
-            for key, value in options.items() if value is not None
-        }
+        """Set configuration file section."""
+        options = {key: value for key, value in options.items() if value is not None}
         if options:
             self._config[section] = options
         else:
             self._delete_section(section)
 
     def _delete_section(self, section):
-        """ Delete configuration file section. """
+        """Delete configuration file section."""
         try:
             del self._config[section]
         except KeyError:
             pass
 
     def save(self):
-        """ Save the configuration file. """
-        with open(self._path, 'w') as file_:
+        """Save the configuration file."""
+        with open(self._path, "w") as file_:
             self._config.write(file_)
             # make the saved file private
-            if os.name == 'posix':
+            if os.name == "posix":
                 os.chmod(file_.fileno(), 0o0600)
 
     def __str__(self):
-        """ Dump configuration to a string. """
+        """Dump configuration to a string."""
         fobj = StringIO()
         self._config.write(fobj)
         return fobj.getvalue()
 
-
     def init(self, env_var_name="VIRES_ACCESS_CONFIG"):
-        """ Initialize client configuration. """
+        """Initialize client configuration."""
         env_config = _parse_env_config(_get_env_config(env_var_name))
 
         if not self.default_url:
-            url = _get_ows_url(env_config['default_server'])
+            url = _get_ows_url(env_config["default_server"])
             print("Setting default URL to %s ..." % url)
             self.default_url = url
 
         # retrieve and server tokens
-        for server_url, token_dict in env_config['servers'].items():
+        for server_url, token_dict in env_config["servers"].items():
             url = _get_ows_url(server_url)
             if self.get_site_config(url):
                 continue
             print("Creating new access token for %s ..." % url)
             try:
                 token = _retrieve_access_token(
-                    server_url, token_dict['token'], env_config["instance_name"]
+                    server_url, token_dict["token"], env_config["instance_name"]
                 )
             except TokenManager.Error as error:
                 print("ERROR: Failed to create a new access token! Reason: %s" % error)
@@ -247,7 +248,7 @@ class ClientConfig():
 
 
 def _retrieve_access_token(url, token, purpose):
-    return TokenManager(url, token).post(purpose=purpose)['token']
+    return TokenManager(url, token).post(purpose=purpose)["token"]
 
 
 def _get_env_config(env_var_name):
@@ -261,7 +262,6 @@ def _get_env_config(env_var_name):
             "environment variable!" % env_var_name
         )
     return {}
-
 
 
 def _parse_env_config(env_config):

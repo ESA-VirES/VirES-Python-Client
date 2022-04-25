@@ -101,6 +101,6 @@ You can reference *viresclient* directly using the DOI of our zenodo_ record. Vi
 
 .. _zenodo: https://doi.org/10.5281/zenodo.2554162
 
-    | "We use the Python package, viresclient [1], to access [...] from ESA's VirES for Swarm service [2]"  
-    | [1] https://doi.org/10.5281/zenodo.2554162  
+    | "We use the Python package, viresclient [1], to access [...] from ESA's VirES for Swarm service [2]"
+    | [1] https://doi.org/10.5281/zenodo.2554162
     | [2] https://vires.services

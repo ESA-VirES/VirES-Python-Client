@@ -22,4 +22,4 @@ jobs:
       - name: Setup Nox
         uses: excitedleigh/setup-nox@v2.0.0
       - name: Run Nox
-        run: nox
+        run: nox -s tests

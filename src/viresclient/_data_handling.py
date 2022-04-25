@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # Handles the WPS requests to the VirES server
 #
 # Authors: Ashley Smith <ashley.smith@ed.ac.uk>
 #          Martin Paces <martin.paces@eox.at>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2018 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,22 +25,24 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-import os
-import tempfile
-import shutil
-import numpy
-import pandas
 import json
-import xarray
+import os
+import shutil
+import tempfile
+
 import cdflib
 import netCDF4
+import numpy
+import pandas
+import xarray
+
 from ._wps import time_util
+
 if os.name == "nt":
     import atexit
 
-from ._data import CONFIG_SWARM
 from ._data import CONFIG_AEOLUS
 
 CDF_EPOCH_1970 = 62167219200000.0
@@ -79,9 +81,8 @@ FRAME_DESCRIPTIONS = {
 }
 
 
-class FileReader(object):
-    """Provides access to file contents (wrapper around cdflib)
-    """
+class FileReader:
+    """Provides access to file contents (wrapper around cdflib)"""
 
     def __init__(self, file, filetype="cdf"):
         """
@@ -93,18 +94,17 @@ class FileReader(object):
             self._cdf = self._open_cdf(file)
             globalatts = self._cdf.globalattsget()
             self.sources = self._ensure_list(
-                globalatts.get('ORIGINAL_PRODUCT_NAMES', []))
+                globalatts.get("ORIGINAL_PRODUCT_NAMES", [])
+            )
             self.magnetic_models = self._ensure_list(
-                globalatts.get('MAGNETIC_MODELS', []))
-            self.range_filters = self._ensure_list(
-                globalatts.get('DATA_FILTERS', []))
-            self.variables = self._cdf.cdf_info()['zVariables']
-            self._varatts = {var: self._cdf.varattsget(var)
-                             for var in self.variables}
-            self._varinfo = {var: self._cdf.varinq(var)
-                             for var in self.variables}
+                globalatts.get("MAGNETIC_MODELS", [])
+            )
+            self.range_filters = self._ensure_list(globalatts.get("DATA_FILTERS", []))
+            self.variables = self._cdf.cdf_info()["zVariables"]
+            self._varatts = {var: self._cdf.varattsget(var) for var in self.variables}
+            self._varinfo = {var: self._cdf.varinq(var) for var in self.variables}
         else:
-            raise NotImplementedError("{} not supported".format(filetype))
+            raise NotImplementedError(f"{filetype} not supported")
 
     def __enter__(self):
         return self
@@ -155,10 +155,7 @@ class FileReader(object):
     @staticmethod
     def _cdftime_to_datetime(t):
         try:
-            return pandas.to_datetime(
-                (t - CDF_EPOCH_1970)/1e3,
-                unit='s'
-            )
+            return pandas.to_datetime((t - CDF_EPOCH_1970) / 1e3, unit="s")
         except TypeError:
             return []
 
@@ -169,9 +166,11 @@ class FileReader(object):
         columns.remove("Timestamp")
         # Split columns according to those to be expanded into multiple columns
         if expand:
-            columns_to_expand = set(c for c in columns
-                                    if c in DATANAMES_TO_FRAME_NAMES.keys()
-                                    or "B_NEC" in c)
+            columns_to_expand = {
+                c
+                for c in columns
+                if c in DATANAMES_TO_FRAME_NAMES.keys() or "B_NEC" in c
+            }
             # Avoid conflict with 2D AOB_FAC Quality variable
             # when accessing AUX_OBS Quality
             if any(["AUX_OBS" in s for s in self.sources]):
@@ -203,9 +202,9 @@ class FileReader(object):
             framename = DATANAMES_TO_FRAME_NAMES.get(column, "NEC")
             suffixes = FRAME_LABELS[framename]
             if len(vector_data.shape) > 2:
-                raise NotImplementedError("{}".format(column))
+                raise NotImplementedError(f"{column}")
             if vector_data.shape[1] != len(suffixes):
-                raise NotImplementedError("{}".format(column))
+                raise NotImplementedError(f"{column}")
             for i, suffix in enumerate(suffixes):
                 df[column + "_" + str(suffix)] = vector_data[:, i]
         return df
@@ -216,12 +215,18 @@ class FileReader(object):
         #  (this is done in ReturnedData)
         # Initialise dataset with time coordinate
         ds = xarray.Dataset(
-            coords={"Timestamp":
-                    self._cdftime_to_datetime(self.get_variable("Timestamp"))})
+            coords={
+                "Timestamp": self._cdftime_to_datetime(self.get_variable("Timestamp"))
+            }
+        )
         # Add Spacecraft variable as Categorical to save memory
         if "Spacecraft" in self.variables:
-            ds["Spacecraft"] = (("Timestamp",), pandas.Categorical(
-                self.get_variable("Spacecraft"), categories=ALLOWED_SPACECRFTS))
+            ds["Spacecraft"] = (
+                ("Timestamp",),
+                pandas.Categorical(
+                    self.get_variable("Spacecraft"), categories=ALLOWED_SPACECRFTS
+                ),
+            )
         datanames = set(self.variables) - {"Timestamp", "Spacecraft"}
         # Loop through each variable available and append them to the Dataset,
         #  attaching the Timestamp coordinate to each.
@@ -244,17 +249,17 @@ class FileReader(object):
                     dims_used.add(dimname)
                 else:
                     dimname = "%s_dim1" % dataname
-                ds[dataname] = (("Timestamp", dimname),
-                                self.get_variable(dataname))
+                ds[dataname] = (("Timestamp", dimname), self.get_variable(dataname))
             # 3D case (matrix series), e.g. QDBasis
             elif numdims == 2:
                 dimname1 = "%s_dim1" % dataname
                 dimname2 = "%s_dim2" % dataname
-                ds[dataname] = (("Timestamp", dimname1, dimname2),
-                                self.get_variable(dataname))
+                ds[dataname] = (
+                    ("Timestamp", dimname1, dimname2),
+                    self.get_variable(dataname),
+                )
             else:
-                raise NotImplementedError("%s: array too complicated" %
-                                          dataname)
+                raise NotImplementedError("%s: array too complicated" % dataname)
         # Add named coordinates
         for dimname, dimlabels in FRAME_LABELS.items():
             if dimname in dims_used:
@@ -306,10 +311,12 @@ class FileReader(object):
             pos_vars = ["Longitude", "Latitude", "Radius", codevar]
             _ds_locs = next(iter(ds[pos_vars].groupby("Timestamp")))[1]
             if len(sites) > 1:
-                _ds_locs = _ds_locs.drop(("Timestamp")).rename({"Timestamp": "Site"})
+                _ds_locs = _ds_locs.drop("Timestamp").rename({"Timestamp": "Site"})
             else:
-                _ds_locs = _ds_locs.drop(("Timestamp")).expand_dims("Site")
-            _ds_locs["Site"] = [sites_inv.get(code) for code in _ds_locs[codevar].values]
+                _ds_locs = _ds_locs.drop("Timestamp").expand_dims("Site")
+            _ds_locs["Site"] = [
+                sites_inv.get(code) for code in _ds_locs[codevar].values
+            ]
             _ds_locs = _ds_locs.sortby("Site")
         # Create dataset initialised with the (V)OBS positional info as coords
         # and datavars (empty) reshaped to (Site, Timestamp, ...)
@@ -321,11 +328,17 @@ class FileReader(object):
                 "Latitude": ("Site", _ds_locs["Latitude"].data),
                 "Longitude": ("Site", _ds_locs["Longitude"].data),
                 "Radius": ("Site", _ds_locs["Radius"].data),
-                "NEC": ["N", "E", "C"]
+                "NEC": ["N", "E", "C"],
             },
         )
         # (Dropping unused Spacecraft var)
-        data_vars = set(ds.data_vars) - {"Latitude", "Longitude", "Radius", codevar, "Spacecraft"}
+        data_vars = set(ds.data_vars) - {
+            "Latitude",
+            "Longitude",
+            "Radius",
+            codevar,
+            "Spacecraft",
+        }
         N_sites = len(_ds_locs[codevar])
         # Create empty data variables to be infilled
         for var in data_vars:
@@ -361,24 +374,22 @@ def make_pandas_DataFrame_from_csv(csv_filename):
     except Exception:
         raise Exception("Bad or empty csv.")
     # Convert to datetime objects
-    df['Timestamp'] = df['Timestamp'].apply(
-        time_util.parse_datetime)
+    df["Timestamp"] = df["Timestamp"].apply(time_util.parse_datetime)
     # Convert the columns of vectors from strings to lists
     # Returns empty dataframe when retrieval from server is empty
     if len(df) != 0:
         # Convert the columns of vectors from strings to lists
         for col in df:
             if type(df[col][0]) is str:
-                if df[col][0][0] == '{':
+                if df[col][0][0] == "{":
                     df[col] = df[col].apply(
-                        lambda x: [
-                            float(y) for y in x.strip('{}').split(';')
-                        ])
-    df.set_index('Timestamp', inplace=True)
+                        lambda x: [float(y) for y in x.strip("{}").split(";")]
+                    )
+    df.set_index("Timestamp", inplace=True)
     return df
 
 
-class ReturnedDataFile(object):
+class ReturnedDataFile:
     """For handling individual files returned from the server.
 
     Holds the data returned from the server and the data type.
@@ -390,35 +401,34 @@ class ReturnedDataFile(object):
 
     def __init__(self, filetype=None, tmpdir=None):
         self._supported_filetypes = ("csv", "cdf", "nc")
-        self.filetype = str() if filetype is None else filetype
+        self.filetype = "" if filetype is None else filetype
         if tmpdir is not None:
             if not os.path.exists(tmpdir):
                 raise Exception("tmpdir does not exist")
         if os.name == "nt":
             self._file = tempfile.NamedTemporaryFile(
-                prefix="vires_", dir=tmpdir, delete=False)
+                prefix="vires_", dir=tmpdir, delete=False
+            )
             self._file.close()
             atexit.register(os.remove, self._file.name)
         else:
-            self._file = tempfile.NamedTemporaryFile(
-                prefix="vires_", dir=tmpdir)
+            self._file = tempfile.NamedTemporaryFile(prefix="vires_", dir=tmpdir)
 
     def __str__(self):
-        return "viresclient ReturnedDataFile object of type " + \
-               self.filetype + \
-               "\nSave it to a file with .to_file('filename')" + \
-               "\nLoad it as a pandas dataframe with .as_dataframe()" + \
-               "\nLoad it as an xarray dataset with .as_xarray()"
+        return (
+            "viresclient ReturnedDataFile object of type "
+            + self.filetype
+            + "\nSave it to a file with .to_file('filename')"
+            + "\nLoad it as a pandas dataframe with .as_dataframe()"
+            + "\nLoad it as an xarray dataset with .as_xarray()"
+        )
 
     def open_cdf(self):
-        """Returns the opened file as cdflib.CDF
-        """
+        """Returns the opened file as cdflib.CDF"""
         return FileReader._open_cdf(self._file.name)
 
     def _write_new_data(self, data):
-        """Replace the tempfile contents with 'data' (bytes)
-
-        """
+        """Replace the tempfile contents with 'data' (bytes)"""
         if not isinstance(data, bytes):
             raise TypeError("data must be of type bytes")
         # If on Windows, the file will be closed so needs to be re-opened:
@@ -426,17 +436,14 @@ class ReturnedDataFile(object):
             temp_file.write(data)
 
     def _write_file(self, filename):
-        """Write the tempfile out to a regular file
-
-        """
+        """Write the tempfile out to a regular file"""
         with open(self._file.name, "rb") as temp_file:
-            with open(filename, 'wb') as out_file:
+            with open(filename, "wb") as out_file:
                 shutil.copyfileobj(temp_file, out_file)
 
     @property
     def filetype(self):
-        """Filetype is one of ("csv", "cdf", "nc")
-        """
+        """Filetype is one of ("csv", "cdf", "nc")"""
         return self._filetype
 
     @filetype.setter
@@ -445,26 +452,20 @@ class ReturnedDataFile(object):
             raise TypeError("filetype must be a string")
         value = value.lower()
         if value not in self._supported_filetypes:
-            raise TypeError("Chosen filetype must be one of: {}".format(
-                            self._supported_filetypes
-                            ))
+            raise TypeError(
+                f"Chosen filetype must be one of: {self._supported_filetypes}"
+            )
         self._filetype = value
 
     @staticmethod
     def _check_outfile(path, path_extension, overwrite=False):
-        """Check validity of path and extension, and if it exists already
-
-        """
+        """Check validity of path and extension, and if it exists already"""
         if not isinstance(path, str):
             raise TypeError("path must be a string")
-        if path.split('.')[-1].lower() != path_extension:
-            raise TypeError("Filename extension should be {}".format(
-                path_extension
-                ))
+        if path.split(".")[-1].lower() != path_extension:
+            raise TypeError(f"Filename extension should be {path_extension}")
         if os.path.isfile(path) and not overwrite:
-            raise Exception(
-                "File not written as it already exists and overwrite=False"
-                )
+            raise Exception("File not written as it already exists and overwrite=False")
 
     def to_file(self, path, overwrite=False):
         """Saves the data to the specified file.
@@ -487,7 +488,7 @@ class ReturnedDataFile(object):
         Extension should be .nc
 
         """
-        self._check_outfile(path, 'nc', overwrite)
+        self._check_outfile(path, "nc", overwrite)
         # Convert to xarray Dataset
         ds = self.as_xarray()
         ds.to_netcdf(path)
@@ -500,13 +501,13 @@ class ReturnedDataFile(object):
             pandas.DataFrame
 
         """
-        if self.filetype == 'csv':
+        if self.filetype == "csv":
             if expand:
                 raise NotImplementedError
             df = make_pandas_DataFrame_from_csv(self._file.name)
-        elif self.filetype == 'nc':
+        elif self.filetype == "nc":
             df = self.as_xarray().to_dataframe()
-        elif self.filetype == 'cdf':
+        elif self.filetype == "cdf":
             with FileReader(self._file) as f:
                 df = f.as_pandas_dataframe(expand=expand)
         return df
@@ -523,12 +524,12 @@ class ReturnedDataFile(object):
             xarray.Dataset
 
         """
-        if self.filetype == 'csv':
+        if self.filetype == "csv":
             raise NotImplementedError("csv to xarray is not supported")
-        elif self.filetype == 'cdf':
+        elif self.filetype == "cdf":
             with FileReader(self._file) as f:
                 ds = f.as_xarray_dataset(reshape=reshape)
-        elif self.filetype == 'nc':
+        elif self.filetype == "nc":
             # xarrays open_dataset does not retrieve data in groups
             # group needs to be specified while opening
             # we iterate here over the available groups
@@ -539,21 +540,21 @@ class ReturnedDataFile(object):
             # some datasets do not have groups
             if nc.groups:
                 for group in nc.groups:
-                    ds = ds.merge(xarray.open_dataset(
-                        self._file.name, group=group, engine='netcdf4'
-                    ))
+                    ds = ds.merge(
+                        xarray.open_dataset(
+                            self._file.name, group=group, engine="netcdf4"
+                        )
+                    )
             else:
-                ds = xarray.open_dataset(
-                    self._file.name, engine='netcdf4'
-                )
+                ds = xarray.open_dataset(self._file.name, engine="netcdf4")
             # Go through Aeolus parameters and check if unit information is available
             # TODO: We are "flattening" the list of parameters, same parameter
             # id in different collection types could select incorrect one
             for parameter in ds:
                 for coll_obj in CONFIG_AEOLUS["collections"].values():
                     for field_type in coll_obj.values():
-                        if parameter in field_type and field_type[parameter]['uom']:
-                            ds[parameter].attrs["units"] = field_type[parameter]['uom']
+                        if parameter in field_type and field_type[parameter]["uom"]:
+                            ds[parameter].attrs["units"] = field_type[parameter]["uom"]
             # TODO: Go through Swarm parameters
         return ds
 
@@ -567,31 +568,38 @@ class ReturnedDataFile(object):
             dict of xarray.Dataset
 
         """
-        if self.filetype == 'csv':
+        if self.filetype == "csv":
             raise NotImplementedError("csv to xarray dict is not supported")
-        elif self.filetype == 'cdf':
+        elif self.filetype == "cdf":
             raise NotImplementedError("cdf to xarray dict is not supported")
-        elif self.filetype == 'nc':
+        elif self.filetype == "nc":
             result_dict = {}
             nc = netCDF4.Dataset(self._file.name)
             # some datasets do not have groups
             if nc.groups:
                 for group in nc.groups:
                     ds = xarray.Dataset()
-                    ds = ds.merge(xarray.open_dataset(
-                        self._file.name, group=group, engine='netcdf4'
-                    ))
+                    ds = ds.merge(
+                        xarray.open_dataset(
+                            self._file.name, group=group, engine="netcdf4"
+                        )
+                    )
                     for parameter in ds:
                         for coll_obj in CONFIG_AEOLUS["collections"].values():
                             for field_type in coll_obj.values():
-                                if parameter in field_type and field_type[parameter]['uom']:
-                                    ds[parameter].attrs["units"] = field_type[parameter]['uom']
+                                if (
+                                    parameter in field_type
+                                    and field_type[parameter]["uom"]
+                                ):
+                                    ds[parameter].attrs["units"] = field_type[
+                                        parameter
+                                    ]["uom"]
                     result_dict[group] = ds
             else:
-                result_dict['group'] = xarray.open_dataset(
-                    self._file.name, engine='netcdf4'
+                result_dict["group"] = xarray.open_dataset(
+                    self._file.name, engine="netcdf4"
                 )
-            
+
         return result_dict
 
     @property
@@ -599,11 +607,14 @@ class ReturnedDataFile(object):
         if self.filetype == "nc":
             nc = netCDF4.Dataset(self._file.name)
             json_hist = json.loads(nc.history)
-            sources = [elem for elem in zip(
-                json_hist["inputFiles"],
-                json_hist["baselines"],
-                json_hist["software_vers"],
-            )]
+            sources = [
+                elem
+                for elem in zip(
+                    json_hist["inputFiles"],
+                    json_hist["baselines"],
+                    json_hist["software_vers"],
+                )
+            ]
         else:
             with FileReader(self._file) as f:
                 sources = f.sources
@@ -622,7 +633,7 @@ class ReturnedDataFile(object):
         return range_filters
 
 
-class ReturnedData(object):
+class ReturnedData:
     """Flexible object for working with data returned from the server
 
     Holds a list of ReturnedDataFile objects under self.contents
@@ -642,21 +653,24 @@ class ReturnedData(object):
     """
 
     def __init__(self, filetype=None, N=1, tmpdir=None):
-        self.contents = [ReturnedDataFile(filetype=filetype, tmpdir=tmpdir)
-                         for i in range(N)]
+        self.contents = [
+            ReturnedDataFile(filetype=filetype, tmpdir=tmpdir) for i in range(N)
+        ]
         # filetype checking / conversion has been done in ReturnedDataFile
         self.filetype = self.contents[0].filetype
 
     def __str__(self):
-        return "viresclient ReturnedData object of type "+self.filetype +\
-            "\nSave it to a file with .to_file('filename')" + \
-            "\nLoad it as a pandas dataframe with .as_dataframe()" + \
-            "\nLoad it as an xarray dataset with .as_xarray()"
+        return (
+            "viresclient ReturnedData object of type "
+            + self.filetype
+            + "\nSave it to a file with .to_file('filename')"
+            + "\nLoad it as a pandas dataframe with .as_dataframe()"
+            + "\nLoad it as an xarray dataset with .as_xarray()"
+        )
 
     @property
     def filetype(self):
-        """Filetype string
-        """
+        """Filetype string"""
         return self._filetype
 
     @filetype.setter
@@ -667,8 +681,7 @@ class ReturnedData(object):
 
     @property
     def sources(self):
-        """ Get list of source product identifiers.
-        """
+        """Get list of source product identifiers."""
         sources = set()
         for item in self._contents:
             sources.update(item.sources)
@@ -676,8 +689,7 @@ class ReturnedData(object):
 
     @property
     def magnetic_models(self):
-        """ Get list of magnetic models used.
-        """
+        """Get list of magnetic models used."""
         models = set()
         for item in self._contents:
             models.update(item.magnetic_models)
@@ -685,8 +697,7 @@ class ReturnedData(object):
 
     @property
     def range_filters(self):
-        """ Get list of filters applied.
-        """
+        """Get list of filters applied."""
         filters = set()
         for item in self._contents:
             filters.update(item.range_filters)
@@ -694,8 +705,7 @@ class ReturnedData(object):
 
     @property
     def contents(self):
-        """List of ReturnedDataFile objects
-        """
+        """List of ReturnedDataFile objects"""
         return self._contents
 
     @contents.setter
@@ -706,7 +716,8 @@ class ReturnedData(object):
             if not isinstance(i, ReturnedDataFile):
                 raise TypeError(
                     "Items in ReturnedData.contents should be"
-                    "of type ReturnedDataFile")
+                    "of type ReturnedDataFile"
+                )
         self._contents = value
 
     def as_dataframe(self, expand=False):
@@ -725,8 +736,7 @@ class ReturnedData(object):
             pandas.DataFrame
 
         """
-        return pandas.concat(
-            [d.as_dataframe(expand=expand) for d in self.contents])
+        return pandas.concat([d.as_dataframe(expand=expand) for d in self.contents])
 
     def as_xarray(self, reshape=False):
         """Convert the data to an xarray Dataset.
@@ -746,10 +756,13 @@ class ReturnedData(object):
         for i, data in enumerate(self.contents):
             ds_part = data.as_xarray(reshape=reshape)
             if ds_part is None:
-                print("Warning: ",
+                print(
+                    "Warning: ",
                     "Unable to create dataset from part {} of {}".format(
-                        i+1, len(self.contents)),
-                    "\n(This part is likely empty)")
+                        i + 1, len(self.contents)
+                    ),
+                    "\n(This part is likely empty)",
+                )
             else:
                 ds_list.append(ds_part)
         ds_list = [i for i in ds_list if i is not None]
@@ -768,7 +781,11 @@ class ReturnedData(object):
                 ds_list_per_dim = []
                 for d in dims:
                     drop_dims = [dd for dd in dims if dd != d]
-                    ds_list_per_dim.append(xarray.concat([_ds.drop_dims(drop_dims) for _ds in ds_list], dim=d))
+                    ds_list_per_dim.append(
+                        xarray.concat(
+                            [_ds.drop_dims(drop_dims) for _ds in ds_list], dim=d
+                        )
+                    )
                 ds = xarray.merge(ds_list_per_dim)
         # # Test this other option:
         # ds = self.contents[0].as_xarray()
@@ -802,10 +819,13 @@ class ReturnedData(object):
         for i, data in enumerate(self.contents):
             ds_part = data.as_xarray_dict()
             if ds_part is None:
-                print("Warning: ",
+                print(
+                    "Warning: ",
                     "Unable to create dataset from part {} of {}".format(
-                        i+1, len(self.contents)),
-                    "\n(This part is likely empty)")
+                        i + 1, len(self.contents)
+                    ),
+                    "\n(This part is likely empty)",
+                )
             else:
                 ds_list.append(ds_part)
         ds_list = [i for i in ds_list if i is not None]
@@ -842,10 +862,7 @@ class ReturnedData(object):
         if not isinstance(paths, list) or not isinstance(paths[0], str):
             raise TypeError("paths must be a list of strings")
         if len(paths) != nfiles:
-            raise Exception(
-                "Number of paths must equal number of files ({})".format(
-                    nfiles
-                ))
+            raise Exception(f"Number of paths must equal number of files ({nfiles})")
         for path, retdata in zip(paths, self.contents):
             retdata.to_file(path, overwrite)
 
@@ -872,5 +889,6 @@ class ReturnedData(object):
         """
         if len(self.contents) != 1:
             raise NotImplementedError(
-                "Data is split into multiple files. Use .to_files instead")
+                "Data is split into multiple files. Use .to_files instead"
+            )
         self.contents[0].to_file(path, overwrite)

@@ -1,11 +1,11 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 #
 # WPS 1.0 service proxy
 #
 # Authors: Martin Paces <martin.paces@eox.at>
 #          Ashley Smith <ashley.smith@ed.ac.uk>
 #
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Copyright (C) 2018 EOX IT Services GmbH
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,29 +25,31 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 try:
-    from urllib.request import urlopen, Request
     from urllib.error import HTTPError
+    from urllib.request import Request, urlopen
 except ImportError:
     # Python 2 backward compatibility
     from urllib2 import urlopen, Request, HTTPError
 
-from time import sleep
-from logging import getLogger, LoggerAdapter
 from contextlib import closing
+from logging import LoggerAdapter, getLogger
+from time import sleep
 from xml.etree import ElementTree
+
 from .time_util import Timer
 
 NS_OWS11 = "http://www.opengis.net/ows/1.1"
 NS_OWS20 = "http://www.opengis.net/ows/2.0"
 
 
-class WPSStatus(object):
-    """ WPS status information.
+class WPSStatus:
+    """WPS status information.
     Matches output from WPS10Service.poll_status()
     """
+
     def __init__(self):
         self.status = None
         self.percentCompleted = 0
@@ -62,35 +64,46 @@ class WPSStatus(object):
 
 
 class WPSError(Exception):
-    """ WPS error exception """
+    """WPS error exception"""
+
     def __init__(self, code, locator, text):
         self.ows_exception_code = code
         self.ows_exception_text = code
         self.ows_exception_locator = locator
-        Exception.__init__(self, "WPS Request Failed! Reason: %s%s%s" % (
-            code or "", " [%s]" % locator if locator else "",
-            ": %s" % text if text else ""
-        ))
+        Exception.__init__(
+            self,
+            "WPS Request Failed! Reason: %s%s%s"
+            % (
+                code or "",
+                " [%s]" % locator if locator else "",
+                ": %s" % text if text else "",
+            ),
+        )
 
 
 class AuthenticationError(Exception):
-    """ Authentication error exception """
+    """Authentication error exception"""
+
     def __init__(self, text=None):
         Exception.__init__(
-            self, "Perhaps credentials are missing or invalid. {}"
-            .format(text if text else ""))
+            self,
+            "Perhaps credentials are missing or invalid. {}".format(
+                text if text else ""
+            ),
+        )
 
 
-class WPS10Service(object):
-    """ WPS 1.0 service proxy class.
+class WPS10Service:
+    """WPS 1.0 service proxy class.
 
-        wps = WPS10Service(url, headers)
+    wps = WPS10Service(url, headers)
 
-        Parameters:
-            url     - service URL
-            headers - optional dictionary of the HTTP headers sent with each
-                      request
+    Parameters:
+        url     - service URL
+        headers - optional dictionary of the HTTP headers sent with each
+                  request
     """
+
     STATUS = {
         "{http://www.opengis.net/wps/1.0.0}ProcessAccepted": "ACCEPTED",
         "{http://www.opengis.net/wps/1.0.0}ProcessFailed": "FAILED",
@@ -100,7 +113,7 @@ class WPS10Service(object):
 
     class _LoggerAdapter(LoggerAdapter):
         def process(self, msg, kwargs):
-            return 'WPS10Service: %s' % msg, kwargs
+            return "WPS10Service: %s" % msg, kwargs
 
     def __init__(self, url, headers=None, logger=None):
         self.url = url
@@ -108,35 +121,42 @@ class WPS10Service(object):
         self.logger = self._LoggerAdapter(logger or getLogger(__name__), {})
 
     def retrieve(self, request, handler=None):
-        """ Send a synchronous POST WPS request to a server and retrieve
+        """Send a synchronous POST WPS request to a server and retrieve
         the output.
         """
         return self._retrieve(
-            Request(self.url, request, self.headers),
-            handler, self.error_handler
+            Request(self.url, request, self.headers), handler, self.error_handler
         )
 
-    def retrieve_async(self, request, handler=None, status_handler=None,
-                       cleanup_handler=None, polling_interval=1,
-                       output_name="output"):
-        """ Send an asynchronous POST WPS request to a server and retrieve
+    def retrieve_async(
+        self,
+        request,
+        handler=None,
+        status_handler=None,
+        cleanup_handler=None,
+        polling_interval=1,
+        output_name="output",
+    ):
+        """Send an asynchronous POST WPS request to a server and retrieve
         the output.
         """
         timer = Timer()
-        status, percentCompleted, status_url, execute_response = self.submit_async(request)
+        status, percentCompleted, status_url, execute_response = self.submit_async(
+            request
+        )
         wpsstatus = WPSStatus()
         wpsstatus.update(status, percentCompleted, status_url, execute_response)
 
         def log_wpsstatus(wpsstatus):
             self.logger.info(
-                "%s %s %.3fs",
-                wpsstatus.status, wpsstatus.url, timer.elapsed_time
-                )
+                "%s %s %.3fs", wpsstatus.status, wpsstatus.url, timer.elapsed_time
+            )
 
         def log_wpsstatus_percentCompleted(wpsstatus):
             self.logger.info(
                 "{:.3f}s elapsed: Percent Completed: {}\n".format(
-                    timer.elapsed_time, wpsstatus.percentCompleted)
+                    timer.elapsed_time, wpsstatus.percentCompleted
+                )
             )
 
         try:
@@ -159,7 +179,9 @@ class WPS10Service(object):
                     status_handler(wpsstatus)
 
             if wpsstatus.status == "FAILED":
-                ows_exception, namespace = self.find_exception(wpsstatus.execute_response)
+                ows_exception, namespace = self.find_exception(
+                    wpsstatus.execute_response
+                )
                 raise self.parse_ows_exception(ows_exception, namespace)
 
             output = self.retrieve_async_output(
@@ -172,16 +194,14 @@ class WPS10Service(object):
         return output
 
     def retrieve_async_output(self, status_url, output_name, handler=None):
-        """ Retrieve asynchronous job output reference. """
-        self.logger.debug(
-            "Retrieving asynchronous job output '%s'.", output_name
-        )
+        """Retrieve asynchronous job output reference."""
+        self.logger.debug("Retrieving asynchronous job output '%s'.", output_name)
         output_url = self.parse_output_reference(status_url, output_name)
         return self._retrieve(Request(output_url, None, self.headers), handler)
 
     @staticmethod
     def parse_output_reference(xml, identifier):
-        """ Parse output reference. """
+        """Parse output reference."""
         root = xml.getroot()
         wps_outputs = root.find("{http://www.opengis.net/wps/1.0.0}ProcessOutputs")
         for elm in wps_outputs.findall("./{http://www.opengis.net/wps/1.0.0}Output"):
@@ -192,19 +212,19 @@ class WPS10Service(object):
                 )
                 return elm_reference.attrib["href"]
 
-
     def submit_async(self, request):
-        """ Send a POST WPS asynchronous request to a server and retrieve
+        """Send a POST WPS asynchronous request to a server and retrieve
         the status URL.
         """
         self.logger.debug("Submitting asynchronous job.")
         return self._retrieve(
             Request(self.url, request, self.headers),
-            self.parse_status, self.error_handler
+            self.parse_status,
+            self.error_handler,
         )
 
     def poll_status(self, status_url):
-        """ Poll status of an asynchronous WPS job. """
+        """Poll status of an asynchronous WPS job."""
         self.logger.debug("Polling asynchronous job status.")
         return self._retrieve(
             Request(status_url, None, self.headers), self.parse_status
@@ -212,23 +232,23 @@ class WPS10Service(object):
 
     @classmethod
     def parse_status(cls, response):
-        """ Parse process status and status location. """
+        """Parse process status and status location."""
         xml = ElementTree.parse(response)
         return (
             cls.parse_process_status(xml),
             cls.parse_process_percentCompleted(xml),
             cls.parse_status_location(xml),
-            xml
+            xml,
         )
 
     @staticmethod
     def parse_status_location(xml):
-        """ Parse status location from an asynchronous WPS execute response. """
+        """Parse status location from an asynchronous WPS execute response."""
         return xml.getroot().attrib["statusLocation"]
 
     @classmethod
     def parse_process_status(cls, xml):
-        """ Parse status from an asynchronous WPS execute response. """
+        """Parse status from an asynchronous WPS execute response."""
         root = xml.getroot()
         elm_status = root.find("{http://www.opengis.net/wps/1.0.0}Status")
         if elm_status is None:
@@ -239,7 +259,7 @@ class WPS10Service(object):
 
     @classmethod
     def parse_process_percentCompleted(cls, xml):
-        """ Parse percentCompleted from an asynchronous WPS execute response. """
+        """Parse percentCompleted from an asynchronous WPS execute response."""
         root = xml.getroot()
         elm_status = root.find("{http://www.opengis.net/wps/1.0.0}Status")
         if elm_status is None:
@@ -258,7 +278,7 @@ class WPS10Service(object):
 
     @classmethod
     def error_handler(cls, http_error):
-        """ Handle HTTP error and parse OWS exception. """
+        """Handle HTTP error and parse OWS exception."""
         if http_error.status in [401, 403]:
             raise AuthenticationError
         try:
@@ -270,7 +290,7 @@ class WPS10Service(object):
 
     @classmethod
     def parse_ows_exception(cls, ows_exception, namespace):
-        """ Parse OWS exception. """
+        """Parse OWS exception."""
         locator = ows_exception.attrib.get("locator")
         code = ows_exception.attrib.get("exceptionCode")
         text_element = ows_exception.find("{%s}ExceptionText" % namespace)
@@ -279,7 +299,7 @@ class WPS10Service(object):
 
     @classmethod
     def find_exception(cls, xml):
-        """ Find OWS exception element in the given XML document. """
+        """Find OWS exception element in the given XML document."""
         element = xml.getroot()
         for namespace in (NS_OWS11, NS_OWS20):
             ows_exception = element.find(".//{%s}Exception" % namespace)
@@ -289,16 +309,14 @@ class WPS10Service(object):
             raise ElementTree.ParseError
 
     def _retrieve(self, request, response_handler=None, error_handler=None):
-        """ Retrieve and parse HTTP response. """
+        """Retrieve and parse HTTP response."""
         method = request.get_method()
         url = request.get_full_url()
         timer = Timer()
         try:
             with closing(urlopen(request)) as file_in:
                 output = (response_handler or self._default_handler)(file_in)
-            self.logger.info(
-                "%d %s %s %.3fs", 200, method, url, timer.elapsed_time
-            )
+            self.logger.info("%d %s %s %.3fs", 200, method, url, timer.elapsed_time)
             return output
         except HTTPError as error:
             self.logger.error(

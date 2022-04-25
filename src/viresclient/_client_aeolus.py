@@ -1,68 +1,72 @@
-import datetime, json
+import datetime
+import json
 
-from ._client import WPSInputs, ClientRequest
-from ._data_handling import ReturnedDataFile
-from ._data import CONFIG_AEOLUS
 import pandas as pd
+
+from ._client import ClientRequest, WPSInputs
+from ._data import CONFIG_AEOLUS
+from ._data_handling import ReturnedDataFile
+
 # from pandas import DataFrame, json_normalize
 
 TEMPLATE_FILES = {
-    'sync': "vires_aeolus_fetch_filtered_data.xml",
-    'async': "vires_aeolus_fetch_filtered_data_async.xml"
+    "sync": "vires_aeolus_fetch_filtered_data.xml",
+    "async": "vires_aeolus_fetch_filtered_data_async.xml",
 }
 
 
 class AeolusWPSInputs(WPSInputs):
 
     NAMES = [
-        'processId',
-        'collection_ids',
-        'begin_time',
-        'end_time',
-        'response_type',
-        'fields',
-        'filters',
-        'aux_type',
-        'observation_fields',
-        'measurement_fields',
-        'mie_profile_fields',
-        'rayleigh_profile_fields',
-        'mie_wind_fields',
-        'rayleigh_wind_fields',
-        'mie_grouping_fields',
-        'rayleigh_grouping_fields',
-        'ica_fields',
-        'sca_fields',
-        'mca_fields',
-        'group_fields',
-        'bbox',
-        'dsd_info'
+        "processId",
+        "collection_ids",
+        "begin_time",
+        "end_time",
+        "response_type",
+        "fields",
+        "filters",
+        "aux_type",
+        "observation_fields",
+        "measurement_fields",
+        "mie_profile_fields",
+        "rayleigh_profile_fields",
+        "mie_wind_fields",
+        "rayleigh_wind_fields",
+        "mie_grouping_fields",
+        "rayleigh_grouping_fields",
+        "ica_fields",
+        "sca_fields",
+        "mca_fields",
+        "group_fields",
+        "bbox",
+        "dsd_info",
     ]
 
-    def __init__(self,
-                 processId=None,
-                 collection_ids=None,
-                 begin_time=None,
-                 end_time=None,
-                 response_type=None,
-                 fields=None,
-                 filters=None,
-                 aux_type=None,
-                 observation_fields=None,
-                 measurement_fields=None,
-                 sca_fields=None,
-                 ica_fields=None,
-                 mca_fields=None,
-                 group_fields=None,
-                 mie_profile_fields=None,
-                 rayleigh_profile_fields=None,
-                 mie_wind_fields=None,
-                 rayleigh_wind_fields=None,
-                 mie_grouping_fields=None,
-                 rayleigh_grouping_fields=None,
-                 bbox=None,
-                 dsd_info=False,
-                 ):
+    def __init__(
+        self,
+        processId=None,
+        collection_ids=None,
+        begin_time=None,
+        end_time=None,
+        response_type=None,
+        fields=None,
+        filters=None,
+        aux_type=None,
+        observation_fields=None,
+        measurement_fields=None,
+        sca_fields=None,
+        ica_fields=None,
+        mca_fields=None,
+        group_fields=None,
+        mie_profile_fields=None,
+        rayleigh_profile_fields=None,
+        mie_wind_fields=None,
+        rayleigh_wind_fields=None,
+        mie_grouping_fields=None,
+        rayleigh_grouping_fields=None,
+        bbox=None,
+        dsd_info=False,
+    ):
         # Obligatory
         self.processId = None if processId is None else processId
         self.collection_ids = None if collection_ids is None else collection_ids
@@ -107,7 +111,7 @@ class AeolusWPSInputs(WPSInputs):
         self._sca_fields = self.sca_fields
         self._bbox = self.bbox
         self._dsd_info = self.dsd_info
-        return {key: self.__dict__['_{}'.format(key)] for key in self.NAMES}
+        return {key: self.__dict__[f"_{key}"] for key in self.NAMES}
 
     @property
     def processId(self):
@@ -217,15 +221,12 @@ class AeolusRequest(ClientRequest):
         logging_level (str):
 
     """
-    def __init__(self, url=None, token=None,
-                 config=None, logging_level="NO_LOGGING"):
-        super().__init__(
-            url, token, config, logging_level,
-            server_type="Aeolus"
-            )
+
+    def __init__(self, url=None, token=None, config=None, logging_level="NO_LOGGING"):
+        super().__init__(url, token, config, logging_level, server_type="Aeolus")
         # self._available = self._set_available_data()
         self._request_inputs = AeolusWPSInputs()
-        self._request_inputs.processId = 'aeolus:level1B'
+        self._request_inputs.processId = "aeolus:level1B"
         self._templatefiles = TEMPLATE_FILES
         self._filterlist = {}
         self._supported_filetypes = ("nc",)
@@ -251,11 +252,13 @@ class AeolusRequest(ClientRequest):
             raise ValueError("Product not found")
 
     def available_collections(
-        self, collection=None, field_type=None, like=None, details=True):
+        self, collection=None, field_type=None, like=None, details=True
+    ):
         return CONFIG_AEOLUS
-    
+
     def print_available_collections(
-        self, collection=None, field_type=None, regex=None, details=True, path=False):
+        self, collection=None, field_type=None, regex=None, details=True, path=False
+    ):
         pd.set_option("display.max_rows", None)
         pd.set_option("display.max_colwidth", None)
         collection_dfs = []
@@ -265,20 +268,20 @@ class AeolusRequest(ClientRequest):
             for _, ft in collection_obj.items():
                 fdf = pd.DataFrame(ft).transpose()
                 fdf.index.name = "identifier"
-                if regex != None:
+                if regex is not None:
                     fdf = fdf[fdf.index.str.contains(regex, regex=True)]
-                if path == False:
-                    del fdf['path']
+                if path is False:
+                    del fdf["path"]
                 field_dfs.append(fdf)
             ft_df = pd.concat(
                 field_dfs, names=["field type"], keys=collection_obj.keys()
             )
-            if field_type != None:
-                try: 
+            if field_type is not None:
+                try:
                     ft_df = ft_df.loc[field_type]
                     collection_dfs.append(ft_df)
                     collection_names.append(c_name)
-                except KeyError: 
+                except KeyError:
                     pass
             else:
                 collection_dfs.append(ft_df)
@@ -287,15 +290,15 @@ class AeolusRequest(ClientRequest):
             print("Passed field_type not found")
             return
         df = pd.concat(collection_dfs, names=["collection"], keys=collection_names)
-        df.fillna("-",inplace=True)
-        if collection != None:
-            try: 
+        df.fillna("-", inplace=True)
+        if collection is not None:
+            try:
                 df = df.loc[collection]
-            except KeyError: 
+            except KeyError:
                 print("Passed collection not found")
                 return
         if not details:
-            df = df.filter('')
+            df = df.filter("")
         return df
 
     def set_bbox(self, bbox=None):
@@ -309,13 +312,22 @@ class AeolusRequest(ClientRequest):
         if bbox:
             self._request_inputs.bbox = bbox
 
-    def set_fields(self,
-                   observation_fields=None, measurement_fields=None,
-                   ica_fields=None, sca_fields=None, mca_fields=None,
-                   mie_profile_fields=None, rayleigh_profile_fields=None,
-                   rayleigh_wind_fields=None, mie_wind_fields=None,
-                   rayleigh_grouping_fields=None, mie_grouping_fields=None,
-                   group_fields=None, fields=None):
+    def set_fields(
+        self,
+        observation_fields=None,
+        measurement_fields=None,
+        ica_fields=None,
+        sca_fields=None,
+        mca_fields=None,
+        mie_profile_fields=None,
+        rayleigh_profile_fields=None,
+        rayleigh_wind_fields=None,
+        mie_wind_fields=None,
+        rayleigh_grouping_fields=None,
+        mie_grouping_fields=None,
+        group_fields=None,
+        fields=None,
+    ):
         if observation_fields:
             self._request_inputs.observation_fields = ",".join(observation_fields)
         if measurement_fields:
@@ -329,11 +341,15 @@ class AeolusRequest(ClientRequest):
         if mie_profile_fields:
             self._request_inputs.mie_profile_fields = ",".join(mie_profile_fields)
         if rayleigh_profile_fields:
-            self._request_inputs.rayleigh_profile_fields = ",".join(rayleigh_profile_fields)
+            self._request_inputs.rayleigh_profile_fields = ",".join(
+                rayleigh_profile_fields
+            )
         if rayleigh_wind_fields:
             self._request_inputs.rayleigh_wind_fields = ",".join(rayleigh_wind_fields)
         if rayleigh_grouping_fields:
-            self._request_inputs.rayleigh_grouping_fields = ",".join(rayleigh_grouping_fields)
+            self._request_inputs.rayleigh_grouping_fields = ",".join(
+                rayleigh_grouping_fields
+            )
         if mie_grouping_fields:
             self._request_inputs.mie_grouping_fields = ",".join(mie_grouping_fields)
         if mie_wind_fields:
@@ -342,7 +358,7 @@ class AeolusRequest(ClientRequest):
             self._request_inputs.group_fields = ",".join(group_fields)
         if fields:
             self._request_inputs.fields = ",".join(fields)
-    
+
     def set_variables(self, aux_type=None, fields=None, dsd_info=False):
         self._request_inputs.aux_type = aux_type
         self._request_inputs.fields = fields
@@ -365,10 +381,7 @@ class AeolusRequest(ClientRequest):
         if not isinstance(parameter, str):
             raise TypeError("parameter must be a str")
         # Update filter dictionary
-        self._filterlist[parameter] = {
-            "min": minimum,
-            "max": maximum
-        }
+        self._filterlist[parameter] = {"min": minimum, "max": maximum}
         # Update the inputs object with dictionary converted
         # to JSON used by XML template
         self._request_inputs.filters = json.dumps(self._filterlist)
@@ -380,7 +393,7 @@ class AeolusRequest(ClientRequest):
         self._request_inputs.filters = None
         return self
 
-    def get_from_file(self, path=None, filetype='nc'):
+    def get_from_file(self, path=None, filetype="nc"):
         """Get VirES ReturnedData object from file path
 
         Allows loading of locally saved netCDF file (e.g. using to_file method)
@@ -391,9 +404,10 @@ class AeolusRequest(ClientRequest):
             filetype (str)
 
         """
-        if filetype != 'nc':
+        if filetype != "nc":
             raise NotImplementedError(
-                "Currently only loading of netCDF files is supported")
+                "Currently only loading of netCDF files is supported"
+            )
         df = ReturnedDataFile(filetype=filetype)
         df._file.name = path
         return df
