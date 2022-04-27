@@ -177,6 +177,7 @@ COLLECTION_REFERENCES = {
     "MAG_CS": ("https://doi.org/10.1186/s40623-020-01171-9",),
     "MAG_GRACE": ("https://doi.org/10.1186/s40623-021-01373-9",),
     "MAG_GFO": ("https://doi.org/10.1186/s40623-021-01364-w",),
+    "EFI_TII_TC": ("TBD",), # FIXME
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
@@ -422,6 +423,8 @@ class SwarmRequest(ClientRequest):
         "MAG": ["SW_OPER_MAG{}_LR_1B".format(x) for x in "ABC"],
         "MAG_HR": ["SW_OPER_MAG{}_HR_1B".format(x) for x in "ABC"],
         "EFI": ["SW_OPER_EFI{}_LP_1B".format(x) for x in "ABC"],
+        "EFI_TII_TC02": ["SW_EXPT_EFI{}_TCT02".format(x) for x in "ABC"],
+        "EFI_TII_TC16": ["SW_EXPT_EFI{}_TCT16".format(x) for x in "ABC"],
         "IBI": ["SW_OPER_IBI{}TMS_2F".format(x) for x in "ABC"],
         "TEC": ["SW_OPER_TEC{}TMS_2F".format(x) for x in "ABC"],
         "FAC": ["SW_OPER_FAC{}TMS_2F".format(x) for x in "ABC_"],
@@ -580,6 +583,8 @@ class SwarmRequest(ClientRequest):
         "MAG": "PT1S",
         "MAG_HR": "PT0.019S",  # approx 50Hz (the sampling is not exactly 50Hz)
         "EFI": "PT0.5S",
+        "EFI_TII_TC02": "PT0.5S",
+        "EFI_TII_TC16": "PT0.0625S",
         "IBI": "PT1S",
         "TEC": "PT1S",      # Actually more complicated
         "FAC": "PT1S",
@@ -632,6 +637,18 @@ class SwarmRequest(ClientRequest):
             "U_orbit", "Ne", "Ne_error", "Te", "Te_error", "Vs", "Vs_error",
             "Flags_LP", "Flags_Ne", "Flags_Te", "Flags_Vs",
             ],
+        "EFI_TII_TC02": [ # identical to EFI_TII_TC16
+            "VsatC", "VsatE", "VsatN", "Bx", "By", "Bz", "Ehx", "Ehy", "Ehz",
+            "Evx", "Evy", "Evz", "Vicrx", "Vicry", "Vicrz", "Vixv", "Vixh",
+            "Viz", "Vixv_error", "Vixh_error", "Viz_error", "Latitude_QD",
+            "MLT_QD", "Calibration_flags", "Quality_flags",
+        ],
+        "EFI_TII_TC16": [ # identical to EFI_TII_TC02
+            "VsatC", "VsatE", "VsatN", "Bx", "By", "Bz", "Ehx", "Ehy", "Ehz",
+            "Evx", "Evy", "Evz", "Vicrx", "Vicry", "Vicrz", "Vixv", "Vixh",
+            "Viz", "Vixv_error", "Vixh_error", "Viz_error", "Latitude_QD",
+            "MLT_QD", "Calibration_flags", "Quality_flags",
+        ],
         "IBI": [
             "Bubble_Index", "Bubble_Probability", "Flags_Bubble", "Flags_F",
             "Flags_B", "Flags_q",
