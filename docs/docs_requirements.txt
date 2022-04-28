@@ -1,9 +1,0 @@
-pygments>=2.4.1
-sphinx_rtd_theme
-Jinja2
-pandas
-cdflib
-tables
-tqdm
-xarray
-netcdf4
