@@ -143,7 +143,7 @@ Setting extra constant parameters::
       Timestamp
 
 Removing constant parameters::
- 
+
   $ viresclient clear_upload_parameters https://staging.vires.services/ows
   eff3bd47-0098-45d3-ba9e-158bea0fae12: parameters removed
 

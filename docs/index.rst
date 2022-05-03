@@ -6,11 +6,11 @@ Get started `at the introduction <readme.html>`_
 .. toctree::
   :caption: Virtual Research Environments
 
-  🔗 VirES for Swarm <https://vires.services>
-  🔗 How-To Guides [Swarm Notebooks] <https://swarm.magneticearth.org>
-  🔗 VirES for Aeolus <https://aeolus.services>
-  🔗 How-To Guides [Aeolus Notebooks] <https://notebooks.aeolus.services>
-  
+  VirES for Swarm <https://vires.services>
+  Swarm Notebooks <https://notebooks.vires.services>
+  VirES for Aeolus <https://aeolus.services>
+  Aeolus Notebooks <https://notebooks.aeolus.services>
+
 
 .. toctree::
   :maxdepth: 2
@@ -27,20 +27,14 @@ Get started `at the introduction <readme.html>`_
 
 .. toctree::
   :maxdepth: 2
-  :caption: API
+  :caption: API & CLI
 
   api
-
-.. toctree::
-  :maxdepth: 2
-  :caption: CLI
-
   cli
 
 .. toctree::
   :maxdepth: 2
   :caption: External Links
 
-  🔗 GitHub: viresclient <https://github.com/ESA-VirES/VirES-Python-Client/>
-  🔗 GitHub: Swarm-DISC <https://github.com/Swarm-DISC/>
-  🔗 Magnetic Earth <https://magneticearth.org>
+  GitHub: viresclient <https://github.com/ESA-VirES/VirES-Python-Client/>
+  GitHub: Swarm-DISC <https://github.com/Swarm-DISC/>

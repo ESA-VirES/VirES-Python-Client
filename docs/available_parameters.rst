@@ -3,7 +3,7 @@ Available parameters for Swarm
 
 .. note::
 
-  | `See also: Jupyter notebook about data and model availability <https://swarm.magneticearth.org/notebooks/02b__viresclient-available-data>`_ - check out the other demo notebooks there too.
+  | `See also: Jupyter notebook about data and model availability <https://notebooks.vires.services/notebooks/02b__viresclient-available-data>`_ - check out the other demo notebooks there too.
 
 You can check which parameters are available with:
 
@@ -25,7 +25,7 @@ See the `Swarm Data Handbook`_ for details about the products and `Swarm Product
 
 .. _`Swarm Data Handbook`: https://earth.esa.int/eogateway/missions/swarm/product-data-handbook
 
-.. _`Swarm Product Demos`: https://swarm.magneticearth.org/notebooks/03a1_demo-magx_lr_1b
+.. _`Swarm Product Demos`: https://notebooks.vires.services/notebooks/03a1_demo-magx_lr_1b
 
 ----
 
@@ -73,7 +73,7 @@ SW_OPER_MITx_LP_2F     MIT_LP           Minima of the Midlatitude Ionospheric Tr
 SW_OPER_MITx_LP_2F:ID  MIT_LP:ID        -> Boundaries of the MIT - derived from the LP
 SW_OPER_MITxTEC_2F     MIT_TEC          Minima of the MIT - derived from Total Electron Content (TEC)
 SW_OPER_MITxTEC_2F:ID  MIT_TEC:ID       -> Boundaries of the MIT - derived from TEC
-SW_OPER_PPIxFAC_2F     PPI_FAC          Midnight Plasmapause Index (PPI) 
+SW_OPER_PPIxFAC_2F     PPI_FAC          Midnight Plasmapause Index (PPI)
 SW_OPER_PPIxFAC_2F:ID  PPI_FAC:ID       -> Boundaries of the Small-Scale Field Aligned Currents (SSFAC)
 ====================== ================ ===================================================================================================
 
@@ -125,7 +125,7 @@ The ``measurements``, ``models``, and ``auxiliaries`` chosen will match the cade
 ----
 
 ``measurements``
----------------- 
+----------------
 
 Choose combinations of measurements from one of the following sets, corresponding to the collection chosen above. The collection full name or collection type can be given to :py:meth:`viresclient.SwarmRequest.available_measurements` to retrieve the list of available measurements for a given collection (e.g. ``request.available_measurements("SW_OPER_MAGA_LR_1B")``)
 
@@ -184,7 +184,7 @@ AUX_OBSH contains a special variable, ``ObsIndex``, which is set to 0, 1, 2 ... 
 
 VOBS products:
 
-==================================== =========================================== 
+==================================== ===========================================
 Collection full name                 Available measurement names
 ==================================== ===========================================
 SW_OPER_VOBS_1M_2\_                  ``SiteCode,B_CF,B_OB,sigma_CF,sigma_OB``
@@ -205,7 +205,7 @@ Models are evaluated along the satellite track at the positions of the time seri
   For a good estimate of the ionospheric field measured by a Swarm satellite (with the core, crust and magnetosphere effects removed) use a composed model defined as:
   ``models=["'CHAOS-full' = 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'"]``
   `(click for more info) <https://github.com/klaundal/notebooks/blob/master/get_external_field.ipynb>`_
-  
+
   This composed model can also be accessed by an alias: ``models=["CHAOS"]`` which represents the full CHAOS model
 
   See `Magnetic Earth <https://magneticearth.org/pages/models.html>`_ for an introduction to geomagnetic models.
@@ -292,8 +292,7 @@ NB: When using model names containing a hyphen (``-``) then extra single (``'``)
 .. note::
 
   Check other packages such as `hapiclient`_ and others from `PyHC`_ for data from other sources.
-  
+
 .. _`hapiclient`: https://github.com/hapi-server/client-python
 
 .. _`PyHC`: http://heliopython.org/projects/
-
