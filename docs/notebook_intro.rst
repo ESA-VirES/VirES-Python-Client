@@ -13,7 +13,7 @@ The VRE is a whole analysis suite, including many other libraries from the Pytho
       -  Interact
    *  -  `Swarm-DISC/Swarm_notebooks <https://github.com/Swarm-DISC/Swarm_notebooks>`_
       -  .. image:: https://jupyterbook.org/badge.svg
-            :target: https://swarm.magneticearth.org
+            :target: https://notebooks.vires.services
       -  .. image:: https://img.shields.io/badge/nbgitpuller-VRE--Swarm-blue
             :target: https://vre.vires.services/hub/user-redirect/git-pull?repo=https://github.com/Swarm-DISC/Swarm_notebooks&urlpath=lab/tree/Swarm_notebooks/notebooks/
    *  -  `ESA-VirES/Aeolus-notebooks <https://github.com/ESA-VirES/Aeolus-notebooks>`_

@@ -28,7 +28,7 @@ viresclient_ is a Python package which connects to a VirES server, of which ther
 
 For code recipes and more, see `Swarm Notebooks`_ & `Aeolus Notebooks`_. To start experimenting right away, *viresclient* is installed on the "Virtual Research Environment" (VRE), which is a managed Jupyter-based system provided for ESA by EOX. The service is free and open to all, accessible through your VirES account - check the notebooks to read more and get started.
 
-.. _`Swarm Notebooks`: https://swarm.magneticearth.org
+.. _`Swarm Notebooks`: https://notebooks.vires.services
 .. _`Aeolus Notebooks`: https://notebooks.aeolus.services
 
 Data and models are processed on demand on the VirES server - a combination of measurements from any time interval can be accessed. These are the same data that can be accessed by the VirES GUI. *viresclient* handles the returned data to allow direct loading as a single pandas.DataFrame_, or xarray.Dataset_.

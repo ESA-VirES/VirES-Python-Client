@@ -3,7 +3,7 @@ Available parameters for Swarm
 
 .. note::
 
-  | `See also: Jupyter notebook about data and model availability <https://swarm.magneticearth.org/notebooks/02b__viresclient-available-data>`_ - check out the other demo notebooks there too.
+  | `See also: Jupyter notebook about data and model availability <https://notebooks.vires.services/notebooks/02b__viresclient-available-data>`_ - check out the other demo notebooks there too.
 
 You can check which parameters are available with:
 
@@ -25,7 +25,7 @@ See the `Swarm Data Handbook`_ for details about the products and `Swarm Product
 
 .. _`Swarm Data Handbook`: https://earth.esa.int/eogateway/missions/swarm/product-data-handbook
 
-.. _`Swarm Product Demos`: https://swarm.magneticearth.org/notebooks/03a1_demo-magx_lr_1b
+.. _`Swarm Product Demos`: https://notebooks.vires.services/notebooks/03a1_demo-magx_lr_1b
 
 ----
 
