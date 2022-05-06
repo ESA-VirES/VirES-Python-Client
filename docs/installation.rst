@@ -1,7 +1,7 @@
 Installation and First Usage
 ============================
 
-.. note:: For VRE users (it's free! read more: `Swarm <https://swarm.magneticearth.org>`_, `Aeolus <https://notebooks.aeolus.services>`_), viresclient is already installed and configured so skip these steps
+.. note:: For VRE users (it's free! read more: `Swarm <https://notebooks.vires.services>`_, `Aeolus <https://notebooks.aeolus.services>`_), viresclient is already installed and configured so skip these steps
 
 1. Installation
 ---------------
@@ -58,7 +58,7 @@ Recommended setup if starting without Python already
 
   and follow the instructions.
 
-  A first usage guide is provided as a Jupyter notebook (`view <https://swarm.magneticearth.org/notebooks/02a__intro-swarm-viresclient>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/Swarm-DISC/Swarm_notebooks/master/notebooks/02a__Intro-Swarm-viresclient.ipynb>`_, or use git to get the whole example repository::
+  A first usage guide is provided as a Jupyter notebook (`view <https://notebooks.vires.services/notebooks/02a__intro-swarm-viresclient>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/Swarm-DISC/Swarm_notebooks/master/notebooks/02a__Intro-Swarm-viresclient.ipynb>`_, or use git to get the whole example repository::
 
     git clone https://github.com/Swarm-DISC/Swarm_notebooks.git
 

@@ -1,5 +1,8 @@
+API Reference
+=============
+
 SwarmRequest
-============
+------------
 
 .. autoclass:: viresclient.SwarmRequest
     :members:
@@ -9,7 +12,7 @@ SwarmRequest
     :exclude-members: AUXILIARY_VARIABLES, COLLECTIONS, COLLECTION_SAMPLING_STEPS, MAGNETIC_MODELS, MAGNETIC_MODEL_VARIABLES, OBS_COLLECTIONS, PRODUCT_VARIABLES
 
 AeolusRequest
-=============
+-------------
 
 .. autoclass:: viresclient.AeolusRequest
     :members:
@@ -18,7 +21,7 @@ AeolusRequest
     :inherited-members:
 
 ReturnedData
-============
+------------
 
 .. autoclass:: viresclient.ReturnedData
     :members:
@@ -34,7 +37,7 @@ ReturnedData
 
 
 ClientConfig
-============
+------------
 
 .. autoclass:: viresclient.ClientConfig
     :members:
@@ -43,12 +46,12 @@ ClientConfig
     :inherited-members:
 
 set_token
-=========
+---------
 
 .. autofunction:: viresclient.set_token
 
 DataUpload
-==========
+----------
 
 .. autoclass:: viresclient.DataUpload
     :members:
