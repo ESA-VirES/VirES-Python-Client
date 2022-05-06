@@ -1779,7 +1779,7 @@ class SwarmRequest(ClientRequest):
         mission2="Swarm",
     ):
         """Get times of the spacecraft conjunctions.
-        
+
         Currently available for the following spacecraft pairs:
           - Swarm-A/Swarm-B
 
