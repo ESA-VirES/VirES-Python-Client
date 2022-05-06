@@ -1,22 +1,22 @@
-Welcome to viresclient's documentation!
-===============================================
+Introduction
+============
 
-Get started `at the introduction <readme.html>`_
+.. include:: ../README.rst
 
 .. toctree::
   :caption: Virtual Research Environments
 
-  VirES for Swarm <https://vires.services>
-  Swarm Notebooks <https://notebooks.vires.services>
-  VirES for Aeolus <https://aeolus.services>
-  Aeolus Notebooks <https://notebooks.aeolus.services>
+  🔗 VirES for Swarm <https://vires.services>
+  🔗 Swarm Notebooks <https://notebooks.vires.services>
+  🔗 VirES for Aeolus <https://aeolus.services>
+  🔗 Aeolus Notebooks <https://notebooks.aeolus.services>
 
 
 .. toctree::
   :maxdepth: 2
   :caption: Information on viresclient
 
-  readme
+  self
   installation
   config_details
   access_token

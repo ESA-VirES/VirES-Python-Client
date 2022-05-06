@@ -11,9 +11,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-import sys
-import urllib.request
+
 
 # -- Project information -----------------------------------------------------
 
@@ -73,13 +71,13 @@ pygments_style = "sphinx"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_book_theme"
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {"style_external_links": True}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -96,14 +94,7 @@ html_theme = "sphinx_book_theme"
 #
 # html_sidebars = {}
 
-# Fetch and use external logo
-logo_filename = "vre_logo_light.svg"
-if not os.path.exists(logo_filename):
-    urllib.request.urlretrieve(
-        "https://raw.githubusercontent.com/ESA-VirES/Swarm-VRE/staging/docs/_static/vre_logo_light.svg",
-        logo_filename,
-    )
-html_logo = logo_filename
+html_logo = "images/vre_logo_light.svg"
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
