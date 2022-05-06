@@ -470,8 +470,8 @@ class SwarmRequest(ClientRequest):
         "MAG_HR": [f"SW_OPER_MAG{x}_HR_1B" for x in "ABC"],
         "EFI": [f"SW_OPER_EFI{x}_LP_1B" for x in "ABC"],
         "EFI_TIE": [f"SW_OPER_EFI{x}TIE_2_" for x in "ABC"],
-        "EFI_TII_TC02": [f"SW_EXPT_EFI{x}_TCT02" for x in "ABC"],
-        "EFI_TII_TC16": [f"SW_EXPT_EFI{x}_TCT16" for x in "ABC"],
+        "EFI_TCT02": [f"SW_EXPT_EFI{x}_TCT02" for x in "ABC"],
+        "EFI_TCT16": [f"SW_EXPT_EFI{x}_TCT16" for x in "ABC"],
         "IBI": [f"SW_OPER_IBI{x}TMS_2F" for x in "ABC"],
         "TEC": [f"SW_OPER_TEC{x}TMS_2F" for x in "ABC"],
         "FAC": [f"SW_OPER_FAC{x}TMS_2F" for x in "ABC_"],
@@ -627,8 +627,8 @@ class SwarmRequest(ClientRequest):
         "MAG_HR": "PT0.019S",  # approx 50Hz (the sampling is not exactly 50Hz)
         "EFI": "PT0.5S",
         "EFI_TIE": "PT0.5S",
-        "EFI_TII_TC02": "PT0.5S",
-        "EFI_TII_TC16": "PT0.0625S",
+        "EFI_TCT02": "PT0.5S",
+        "EFI_TCT16": "PT0.0625S",
         "IBI": "PT1S",
         "TEC": "PT1S",  # Actually more complicated
         "FAC": "PT1S",
@@ -728,7 +728,7 @@ class SwarmRequest(ClientRequest):
             "Flag_ti_meas",
             "Flag_ti_model",
         ],
-        "EFI_TII_TC02": [  # identical to EFI_TII_TC16
+        "EFI_TCT02": [  # identical to EFI_TCT16
             "VsatC",
             "VsatE",
             "VsatN",
@@ -755,7 +755,7 @@ class SwarmRequest(ClientRequest):
             "Calibration_flags",
             "Quality_flags",
         ],
-        "EFI_TII_TC16": [  # identical to EFI_TII_TC02
+        "EFI_TCT16": [  # identical to EFI_TCT02
             "VsatC",
             "VsatE",
             "VsatN",
