@@ -6,10 +6,10 @@ Get started `at the introduction <readme.html>`_
 .. toctree::
   :caption: Virtual Research Environments
 
-  VirES for Swarm <https://vires.services>
-  Swarm Notebooks <https://notebooks.vires.services>
-  VirES for Aeolus <https://aeolus.services>
-  Aeolus Notebooks <https://notebooks.aeolus.services>
+  🔗 VirES for Swarm <https://vires.services>
+  🔗 Swarm Notebooks <https://notebooks.vires.services>
+  🔗 VirES for Aeolus <https://aeolus.services>
+  🔗 Aeolus Notebooks <https://notebooks.aeolus.services>
 
 
 .. toctree::
