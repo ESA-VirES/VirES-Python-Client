@@ -218,8 +218,13 @@ COLLECTION_REFERENCES = {
     "MAG_CS": ("https://doi.org/10.1186/s40623-020-01171-9",),
     "MAG_GRACE": ("https://doi.org/10.1186/s40623-021-01373-9",),
     "MAG_GFO": ("https://doi.org/10.1186/s40623-021-01364-w",),
-    "EFI_TIE": ("TBD",),  # FIXME
-    "EFI_TII_TC": ("TBD",),  # FIXME
+    "EFI_TIE": ("https://earth.esa.int/eogateway/activities/swarm-ion-temperature-estimation",),
+    "EFI_TCT02": (
+        "https://earth.esa.int/eogateway/documents/20142/37627/swarm-EFI-TII-cross-track-flow-dataset-release-notes.pdf",
+    ),
+    "EFI_TCT16": (
+        "https://earth.esa.int/eogateway/documents/20142/37627/swarm-EFI-TII-cross-track-flow-dataset-release-notes.pdf",
+    ),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
