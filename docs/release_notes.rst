@@ -4,6 +4,14 @@ Release notes
 Change log
 ----------
 
+Changes from 0.10.2 to 0.10.3
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added new collections:
+
+  - ``SW_OPER_EFIxTIE_2_`` (ion temperatrues)
+  - ``SW_EXPT_EFIx_TCT02`` & ``SW_EXPT_EFIx_TCT16`` (cross-track ion flows)
+
 Changes from 0.10.1 to 0.10.2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
