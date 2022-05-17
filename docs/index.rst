@@ -1,7 +1,7 @@
-Welcome to viresclient's documentation!
-===============================================
+Introduction
+============
 
-Get started `at the introduction <readme.html>`_
+.. include:: ../README.rst
 
 .. toctree::
   :caption: Virtual Research Environments
@@ -16,7 +16,7 @@ Get started `at the introduction <readme.html>`_
   :maxdepth: 2
   :caption: Information on viresclient
 
-  readme
+  self
   installation
   config_details
   access_token

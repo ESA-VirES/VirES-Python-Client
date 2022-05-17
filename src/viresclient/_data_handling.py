@@ -144,7 +144,9 @@ class FileReader:
         return self._varatts[var].get("UNITS", "")
 
     def get_variable_description(self, var):
-        return self._varatts[var].get("DESCRIPTION", "")
+        desc = self._varatts[var].get("DESCRIPTION", "")
+        catdesc = self._varatts[var].get("CATDESC", "")
+        return desc if desc else catdesc
 
     def get_variable_numdims(self, var):
         return self._varinfo[var].get("Num_Dims")

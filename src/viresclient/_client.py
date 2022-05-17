@@ -27,6 +27,7 @@
 # THE SOFTWARE.
 # -------------------------------------------------------------------------------
 
+import importlib
 import json
 import os
 from datetime import timedelta
@@ -39,8 +40,9 @@ try:
     IN_JUPYTER = "zmqshell" in str(type(get_ipython()))
 except Exception:
     IN_JUPYTER = False
-if IN_JUPYTER:
-    from tqdm.notebook import tqdm
+# Only use the fancy HTML (notebook) progress bar when in compatible environment
+if IN_JUPYTER and importlib.util.find_spec("ipywidgets") is not None:
+    from tqdm.auto import tqdm
 else:
     from tqdm import tqdm
 
