@@ -218,6 +218,7 @@ COLLECTION_REFERENCES = {
     "MAG_CS": ("https://doi.org/10.1186/s40623-020-01171-9",),
     "MAG_GRACE": ("https://doi.org/10.1186/s40623-021-01373-9",),
     "MAG_GFO": ("https://doi.org/10.1186/s40623-021-01364-w",),
+    "MAG_GOCE": ("TBD",),
     "EFI_TIE": (
         "https://earth.esa.int/eogateway/activities/swarm-ion-temperature-estimation",
     ),
@@ -598,6 +599,7 @@ class SwarmRequest(ClientRequest):
         ],
         "MAG_GRACE": ["GRACE_A_MAG", "GRACE_B_MAG"],
         "MAG_GFO": ["GF1_OPER_FGM_ACAL_CORR", "GF2_OPER_FGM_ACAL_CORR"],
+        "MAG_GOCE": ["GO_MAG_ACAL_CORR"],
         # Swarm spacecraft positions
         "MOD_SC": [f"SW_OPER_MOD{x}_SC_1B" for x in "ABC"],
     }
@@ -1029,6 +1031,22 @@ class SwarmRequest(ClientRequest):
             "dB_SA_FGM",
             "dB_BAT_FGM",
             "q_NEC_FGM",
+            "B_FLAG",
+        ],
+        "MAG_GOCE": [
+            "B_MAG",
+            "B_NEC",
+            "dB_MTQ_SC",
+            "dB_XI_SC",
+            "dB_NY_SC",
+            "dB_BT_SC",
+            "dB_ST_SC",
+            "dB_SA_SC",
+            "dB_BAT_SC",
+            "dB_HK_SC",
+            "dB_BLOCK_CORR",
+            "q_SC_NEC",
+            "q_MAG_SC",
             "B_FLAG",
         ],
         "MOD_SC": [],
