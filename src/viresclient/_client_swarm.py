@@ -218,7 +218,7 @@ COLLECTION_REFERENCES = {
     "MAG_CS": ("https://doi.org/10.1186/s40623-020-01171-9",),
     "MAG_GRACE": ("https://doi.org/10.1186/s40623-021-01373-9",),
     "MAG_GFO": ("https://doi.org/10.1186/s40623-021-01364-w",),
-    "MAG_GOCE": ("TBD",),
+    "MAG_GOCE": ("https://doi.org/10.5880/GFZ.2.3.2022.001",),
     "EFI_TIE": (
         "https://earth.esa.int/eogateway/activities/swarm-ion-temperature-estimation",
     ),
