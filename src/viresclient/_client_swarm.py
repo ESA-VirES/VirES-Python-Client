@@ -1034,6 +1034,7 @@ class SwarmRequest(ClientRequest):
             "B_FLAG",
         ],
         "MAG_GOCE": [
+            "F",
             "B_MAG",
             "B_NEC",
             "dB_MTQ_SC",
