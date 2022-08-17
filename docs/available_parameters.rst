@@ -43,6 +43,7 @@ SW_OPER_EFIx_LP_1B       EFI              Electric field instrument (Langmuir pr
 SW_OPER_EFIxTIE_2\_       EFI_TIE          Estimates of the ion temperatures
 SW_EXPT_EFIx_TCT02       EFI_TCT02        2Hz cross-track ion flows
 SW_EXPT_EFIx_TCT16       EFI_TCT16        16Hz cross-track ion flows
+SW_PREL_EFIxIDM_2\_      EFI_IDM          2Hz ion drift velocities and effective masses (SLIDEM project)
 SW_OPER_IPDxIRR_2F       IPD              Ionospheric plasma characteristics (derived quantities at 1Hz)
 SW_OPER_TECxTMS_2F       TEC              Total electron content
 SW_OPER_FACxTMS_2F       FAC              Field-aligned currents (single satellite)
@@ -141,6 +142,7 @@ MAG_HR          ``F,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_er
 EFI             ``U_orbit,Ne,Ne_error,Te,Te_error,Vs,Vs_error,Flags_LP,Flags_Ne,Flags_Te,Flags_Vs``
 EFI_TIE         ``Latitude_GD,Longitude_GD,Height_GD,Radius_GC,Latitude_QD,MLT_QD,Tn_msis,Te_adj_LP,Ti_meas_drift,Ti_model_drift,Flag_ti_meas,Flag_ti_model``
 EFI_TCTyy       ``VsatC,VsatE,VsatN,Bx,By,Bz,Ehx,Ehy,Ehz,Evx,Evy,Evz,Vicrx,Vicry,Vicrz,Vixv,Vixh,Viy,Viz,Vixv_error,Vixh_error,Viy_error,Viz_error,Latitude_QD,MLT_QD,Calibration_flags,Quality_flags``
+EFI_IDM         ``Latitude_GD,Longitude_GD,Height_GD,Radius_GC,Latitude_QD,MLT_QD,V_sat_nec,M_i_eff,M_i_eff_err,M_i_eff_Flags,M_i_eff_tbt_model,V_i,V_i_err,V_i_Flags,V_i_raw,N_i,N_i_err,N_i_Flags,A_fp,R_p,T_e,Phi_sc``
 IPD             ``Ne,Te,Background_Ne,Foreground_Ne,PCP_flag,Grad_Ne_at_100km,Grad_Ne_at_50km,Grad_Ne_at_20km,Grad_Ne_at_PCP_edge,ROD,RODI10s,RODI20s,delta_Ne10s,delta_Ne20s,delta_Ne40s,Num_GPS_satellites,mVTEC,mROT,mROTI10s,mROTI20s,IBI_flag,Ionosphere_region_flag,IPIR_index,Ne_quality_flag,TEC_STD``
 TEC             ``GPS_Position,LEO_Position,PRN,L1,L2,P1,P2,S1,S2,Elevation_Angle,Absolute_VTEC,Absolute_STEC,Relative_STEC,Relative_STEC_RMS,DCB,DCB_Error``
 FAC             ``IRC,IRC_Error,FAC,FAC_Error,Flags,Flags_F,Flags_B,Flags_q``
