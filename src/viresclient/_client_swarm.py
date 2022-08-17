@@ -467,6 +467,7 @@ class SwarmRequest(ClientRequest):
         "GRACE": ["1", "2"],
         "GRACE-FO": ["1", "2"],
         "CryoSat-2": None,
+        "GOCE": None,
     }
 
     CONJUNCTION_MISISON_SPACECRAFT_PAIRS = {
