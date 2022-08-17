@@ -773,7 +773,12 @@ class ReturnedData:
             return None
         elif len(ds_list) == 1:
             ds = ds_list[0]
+        elif "Timestamp" in ds_list[0].dims:
+            # Address simpler concatenation case for VirES for Swarm
+            # "Timestamp" always exists for Swarm, but is not present in Aeolus
+            ds = xarray.concat(ds_list, dim="Timestamp")
         else:
+            # Address complex concatenation case for VirES for Aeolus
             dims = [d for d in list(ds_list[0].dims) if "array" not in d]
             if dims == []:
                 return None
@@ -789,14 +794,6 @@ class ReturnedData:
                         )
                     )
                 ds = xarray.merge(ds_list_per_dim)
-        # # Test this other option:
-        # ds = self.contents[0].as_xarray()
-        # for d in self.contents[1:]:
-        #     ds = xarray.concat([ds, d.as_xarray()], dim="Timestamp")
-        # return ds
-        #
-        # https://github.com/pydata/xarray/issues/1379
-        # concat is slow. Maybe try extracting numpy arrays and rebuilding ds
 
         # Set the original data sources and models used as metadata
         # only for cdf data types
