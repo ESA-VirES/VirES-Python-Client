@@ -114,15 +114,16 @@ SW_OPER_VOBS_1M_2\_:SecularVariation VOBS_SW_1M:SecularVariation Secular variati
 
 Each VOBS product (e.g. Swarm 1-monthly) is split into two collections (e.g. ``SW_OPER_VOBS_1M_2_`` (containing ``B_OB`` & ``B_CF``) and ``SW_OPER_VOBS_1M_2_:SecularVariation`` (containing ``B_SV``)) because of the different temporal sampling points (i.e. differing ``Timestamp``) of these measurements. Data can also be requested for a specific virtual observatory alone (distinguishable by the ``SiteCode`` variable) with special collection names like ``SW_OPER_VOBS_1M_2_:N65W051`` and ``SW_OPER_VOBS_1M_2_:SecularVariation:N65W051``.
 
-Calibrated magnetic data are also available from external missions: Cryosat-2, GRACE (A+B), GRACE-FO (1+2):
+Calibrated magnetic data are also available from external missions: Cryosat-2, GRACE (A+B), GRACE-FO (1+2), GOCE:
 
-=============================== ================ =========================================================================================================
+=============================== ================ ===================================================================================================================================
 Collection full name            Collection type  Available measurement names
-=============================== ================ =========================================================================================================
+=============================== ================ ===================================================================================================================================
 CS_OPER_MAG                     MAG_CS           ``F,B_NEC,B_mod_NEC,B_NEC1,B_NEC2,B_NEC3,B_FGM1,B_FGM2,B_FGM3,q_NEC_CRF,q_error``
 GRACE_x_MAG (x=A/B)             MAG_GRACE        ``F,B_NEC,B_NEC_raw,B_FGM,B_mod_NEC,q_NEC_CRF,q_error``
-GFx_OPER_FGM_ACAL_CORR (x=1/2)  MAG_GFO          ``B_NEC,B_FGM,dB_MTQ_FGM,dB_XI_FGM,dB_NY_FGM,dB_BT_FGM,dB_ST_FGM,dB_SA_FGM,dB_BAT_FGM,q_NEC_FGM,B_FLAG``
-=============================== ================ =========================================================================================================
+GFx_OPER_FGM_ACAL_CORR (x=1/2)  MAG_GFO          ``F,B_NEC,B_FGM,dB_MTQ_FGM,dB_XI_FGM,dB_NY_FGM,dB_BT_FGM,dB_ST_FGM,dB_SA_FGM,dB_BAT_FGM,q_NEC_FGM,B_FLAG``
+GO_MAG_ACAL_CORR                MAG_GOCE         ``F,B_MAG,B_NEC,dB_MTQ_SC,dB_XI_SC,dB_NY_SC,dB_BT_SC,dB_ST_SC,dB_SA_SC,dB_BAT_SC,dB_HK_SC,dB_BLOCK_CORR,q_SC_NEC,q_MAG_SC,B_FLAG``
+=============================== ================ ===================================================================================================================================
 
 The ``measurements``, ``models``, and ``auxiliaries`` chosen will match the cadence of the ``collection`` chosen.
 
