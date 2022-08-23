@@ -1627,38 +1627,176 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.custom_shc = custom_shc
         return self
 
-    def set_range_filter(self, parameter=None, minimum=None, maximum=None):
+    def set_range_filter(self, parameter, minimum=None, maximum=None, negate=False):
         """Set a filter to apply.
 
         Filters data for minimum ≤ parameter ≤ maximum
+        of (parameter < minimum OR parameter > maximum) if negated.
 
         Note:
             Apply multiple filters with successive calls to set_range_filter()
 
         Args:
             parameter (str)
-            minimum (float)
-            maximum (float)
+            minimum (float or integer)
+            maximum (float or integer)
 
         """
         if not isinstance(parameter, str):
             raise TypeError("parameter must be a str")
-        # Update the list that contains the separate filters
-        self._filterlist += [parameter + ":" + str(minimum) + "," + str(maximum)]
-        # Convert the list into the string that gets passed to the xml template
-        if len(self._filterlist) == 1:
-            filters = self._filterlist[0]
-        else:
-            filters = ";".join(self._filterlist)
-        # Update the SwarmWPSInputs object
-        self._request_inputs.filters = filters
+
+        def _generate_filters(minop, maxop):
+            if minimum is not None:
+                yield f"{parameter} {minop} {minimum}"
+            if maximum is not None:
+                yield f"{parameter} {maxop} {maximum}"
+
+        nargs = 2 - (minimum is None) - (maximum is None)
+        if nargs == 0:
+            return
+
+        filter_ = (
+            " AND ".join(_generate_filters(">=", "<="))
+            if not negate else
+            " OR ".join(_generate_filters("<", ">"))
+        )
+
+        if nargs > 1:
+            filter_ = f"({filter_})"
+
+        self.add_filter(filter_)
+
         return self
 
-    def clear_range_filter(self):
+    def set_choice_filter(self, parameter, *values, negate=False):
+        """Set a filter to apply.
+
+        Filters data for parameter in values
+        of parameter not in values if negated.
+
+        Args:
+            parameter (str)
+            values (float or integer or string)
+
+        """
+        if not isinstance(parameter, str):
+            raise TypeError("parameter must be a str")
+
+        def _generate_filters(compop):
+            for value in values:
+                yield f"{parameter} {compop} {value!r}"
+
+        nargs = len(values)
+        if nargs == 0:
+            return
+
+        filter_ = (
+            " OR ".join(_generate_filters("=="))
+            if not negate else
+            " AND ".join(_generate_filters("!="))
+        )
+
+        if nargs > 1:
+            filter_ = f"({filter_})"
+
+        self.add_filter(filter_)
+
+        return self
+
+    def set_bitmask_filter(self, parameter, selection=0, mask=-1, negate=False):
+        """Set a filter to apply.
+
+        Filters data for parameter & mask == selection & mask
+        of parameter & mask != selection & mask if negated.
+
+        Args:
+            parameter (str)
+            mask (integer)
+            selection (integer)
+
+        """
+        if not isinstance(parameter, str):
+            raise TypeError("parameter must be a str")
+
+        def _get_filter(compop):
+            return (
+                f"{parameter} & {mask} {compop} {selection & mask}"
+                if mask != -1 else
+                f"{parameter} {compop} {selection}"
+            )
+
+        if not negate:
+            if mask != 0: # avoid pointless (0 == 0) filter
+                self.add_filter(_get_filter("=="))
+        else:
+            # mask == 0 leads to (0 != 0) filter and nothing is selected.
+            self.add_filter(_get_filter("!="))
+
+        return self
+
+    def add_filter(self, filter_):
+        """Add an arbitrary data filter.
+
+        Filter grammer:
+           filter: predicate
+           predicate:
+                variable == literal |
+                variable != literal |
+                variable < number |
+                variable > number |
+                variable <= number |
+                variable >= number |
+                variable & unsigned-integer == unsigned-integer |
+                variable & unsigned-integer != unsigned-integer |
+                (predicate AND predicate [AND predicate ...]) |
+                (predicate OR predicate [OR predicate ...]) |
+                NOT predicate
+           literal: boolean | integer | float | string
+           number: integer | float
+           variable: identifier | indentifier[index]
+           index: integer[, integer ...]
+
+           Both single- and double quoted strings are allowed.
+           NaN values are matched by the ==/!= operators, i.e., the predicates
+           are internally converted to a proper "IS NaN" or "IS NOT NaN"
+           comparison.
+
+        Examples:
+             Flags & 128 == 0
+                 Match records with Flag bit 7 set to 0.
+
+             Elevation >= 15
+                 Match values with values greater than or eqaul to 15.
+
+             (Label == "D" OR Label == "N" OR LABEL = "X")
+                 Match records with Label set to D, N or X.
+
+             (Type != 1 AND Type != 34)
+             NOT (Type == 1 OR Type == 34)
+                 Exclude records with Type set to 1 or 34.
+
+             (Vector[2] <= -0.1 OR Vector[2] >= 0.5)
+                 Match records with Vector[2] values outside of the (-0.1, 0.5)
+                 range.
+        """
+        if not isinstance(filter_, str):
+            raise TypeError("parameter must be a str")
+        self._filterlist.append(filter_)
+        # Update the SwarmWPSInputs object
+        self._request_inputs.filters = " AND ".join(self._filterlist)
+
+    def clear_filters(self):
         """Remove all applied filters."""
         self._filterlist = []
         self._request_inputs.filters = None
         return self
+
+    clear_range_filter = clear_filters # alias for backward compatibility
+
+    def applied_filters(self):
+        """ Print currently applied filters. """
+        for filter_ in self._filterlist:
+            print(filter_)
 
     def get_times_for_orbits(
         self, start_orbit, end_orbit, mission="Swarm", spacecraft=None
