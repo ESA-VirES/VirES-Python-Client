@@ -1737,7 +1737,7 @@ class SwarmRequest(ClientRequest):
     def add_filter(self, filter_):
         """Add an arbitrary data filter.
 
-        Filter grammer:
+        Filter grammar:
            filter: predicate
            predicate:
                 variable == literal |
@@ -1753,7 +1753,7 @@ class SwarmRequest(ClientRequest):
                 NOT predicate
            literal: boolean | integer | float | string
            number: integer | float
-           variable: identifier | indentifier[index]
+           variable: identifier | identifier[index]
            index: integer[, integer ...]
 
            Both single- and double quoted strings are allowed.
@@ -1766,7 +1766,7 @@ class SwarmRequest(ClientRequest):
                  Match records with Flag bit 7 set to 0.
 
              Elevation >= 15
-                 Match values with values greater than or eqaul to 15.
+                 Match values with values greater than or equal to 15.
 
              (Label == "D" OR Label == "N" OR LABEL = "X")
                  Match records with Label set to D, N or X.
