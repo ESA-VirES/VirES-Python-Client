@@ -235,6 +235,7 @@ class AeolusRequest(ClientRequest):
         # self._request_inputs.set_collection = collection
         # We set the process id corresponding to the selected collection
         collection_mapping = {
+            "ALD_U_N_1A": "aeolus:level1A",
             "ALD_U_N_1B": "aeolus:level1B",
             "ALD_U_N_2A": "aeolus:level2A",
             "ALD_U_N_2B": "aeolus:level2B",
