@@ -31,6 +31,13 @@ from os.path import dirname, join
 
 from jinja2 import Environment, FileSystemLoader
 
+
+def wrap_as_cdata(content):
+    """Wrap content by the XML CDATA element."""
+    content = content.replace("]]>", "]]]]><![CDATA[>")
+    return f"<![CDATA[{content}]]>"
+
+
 _DIRNAME = dirname(__file__)
 _TEMPLATESDIR = join(_DIRNAME, "templates")
 JINJA2_ENVIRONMENT = Environment(loader=FileSystemLoader(_TEMPLATESDIR))
@@ -38,4 +45,5 @@ JINJA2_ENVIRONMENT.filters.update(
     d2s=lambda d: d.isoformat("T") + "Z",
     l2s=lambda l: ", ".join(str(v) for v in l),
     o2j=json.dumps,
+    cdata=wrap_as_cdata,
 )

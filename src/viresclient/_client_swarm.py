@@ -1627,38 +1627,198 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.custom_shc = custom_shc
         return self
 
-    def set_range_filter(self, parameter=None, minimum=None, maximum=None):
-        """Set a filter to apply.
+    def set_range_filter(self, parameter, minimum=None, maximum=None, negate=False):
+        """Set a range filter to apply.
 
-        Filters data for minimum ≤ parameter ≤ maximum
+        Filters data for minimum ≤ parameter ≤ maximum,
+        or parameter < minimum OR parameter > maximum if negated.
 
         Note:
-            Apply multiple filters with successive calls to set_range_filter()
+            - Apply multiple filters with successive calls to ``.set_range_filter()``
+            - See :py:meth:`SwarmRequest.add_filter` for arbitrary filters.
 
         Args:
             parameter (str)
-            minimum (float)
-            maximum (float)
+            minimum (float or integer)
+            maximum (float or integer)
 
+        Examples:
+            ``request.set_range_filter("Latitude", 0, 90)``
+                to set "Latitude >= 0 AND Latitude <= 90"
+            ``request.set_range_filter("Latitude", 0, 90, negate=True)``
+                to set "(Latitude < 0 OR Latitude > 90)"
         """
         if not isinstance(parameter, str):
             raise TypeError("parameter must be a str")
-        # Update the list that contains the separate filters
-        self._filterlist += [parameter + ":" + str(minimum) + "," + str(maximum)]
-        # Convert the list into the string that gets passed to the xml template
-        if len(self._filterlist) == 1:
-            filters = self._filterlist[0]
-        else:
-            filters = ";".join(self._filterlist)
-        # Update the SwarmWPSInputs object
-        self._request_inputs.filters = filters
+
+        def _generate_filters(minop, maxop):
+            if minimum is not None:
+                yield f"{parameter} {minop} {minimum}"
+            if maximum is not None:
+                yield f"{parameter} {maxop} {maximum}"
+
+        nargs = 2 - (minimum is None) - (maximum is None)
+        if nargs == 0:
+            return
+
+        filter_ = (
+            " AND ".join(_generate_filters(">=", "<="))
+            if not negate
+            else " OR ".join(_generate_filters("<", ">"))
+        )
+
+        if nargs > 1:
+            filter_ = f"({filter_})"
+
+        self.add_filter(filter_)
+
         return self
 
-    def clear_range_filter(self):
+    def set_choice_filter(self, parameter, *values, negate=False):
+        """Set a choice filter to apply.
+
+        Filters data for *parameter in values*,
+        or *parameter not in values* if negated.
+
+        Note:
+            See :py:meth:`SwarmRequest.add_filter` for arbitrary filters.
+
+        Args:
+            parameter (str)
+            values (float or integer or string)
+
+        Examples:
+            ``request.set_choice_filter("Flags_F", 0, 1)``
+                to set "(Flags_F == 0 OR Flags_F == 1)"
+            ``request.set_choice_filter("Flags_F", 0, 1, negate=True)``
+                to set "(Flags_F != 0 AND Flags_F != 1)"
+        """
+        if not isinstance(parameter, str):
+            raise TypeError("parameter must be a str")
+
+        def _generate_filters(compop):
+            for value in values:
+                yield f"{parameter} {compop} {value!r}"
+
+        nargs = len(values)
+        if nargs == 0:
+            return
+
+        filter_ = (
+            " OR ".join(_generate_filters("=="))
+            if not negate
+            else " AND ".join(_generate_filters("!="))
+        )
+
+        if nargs > 1:
+            filter_ = f"({filter_})"
+
+        self.add_filter(filter_)
+
+        return self
+
+    def set_bitmask_filter(self, parameter, selection=0, mask=-1, negate=False):
+        """Set a bitmask filter to apply.
+
+        Filters data for *parameter & mask == selection & mask*,
+        or *parameter & mask != selection & mask* if negated.
+
+        Note:
+            See :py:meth:`SwarmRequest.add_filter` for arbitrary filters.
+
+        Args:
+            parameter (str)
+            mask (integer)
+            selection (integer)
+
+        Examples:
+            ``request.set_bitmask_filter("Flags_F", 0, 1)``
+                to set "Flags_F & 1 == 0" (i.e. bit 1 is set to 0)
+        """
+        if not isinstance(parameter, str):
+            raise TypeError("parameter must be a str")
+
+        def _get_filter(compop):
+            return (
+                f"{parameter} & {mask} {compop} {selection & mask}"
+                if mask != -1
+                else f"{parameter} {compop} {selection}"
+            )
+
+        if not negate:
+            if mask != 0:  # avoid pointless (0 == 0) filter
+                self.add_filter(_get_filter("=="))
+        else:
+            # mask == 0 leads to (0 != 0) filter and nothing is selected.
+            self.add_filter(_get_filter("!="))
+
+        return self
+
+    def add_filter(self, filter_):
+        """Add an arbitrary data filter.
+
+        Filter grammar:
+
+        .. code-block:: text
+
+           filter: predicate
+           predicate:
+                variable == literal |
+                variable != literal |
+                variable < number |
+                variable > number |
+                variable <= number |
+                variable >= number |
+                variable & unsigned-integer == unsigned-integer |
+                variable & unsigned-integer != unsigned-integer |
+                (predicate AND predicate [AND predicate ...]) |
+                (predicate OR predicate [OR predicate ...]) |
+                NOT predicate
+           literal: boolean | integer | float | string
+           number: integer | float
+           variable: identifier | identifier[index]
+           index: integer[, integer ...]
+
+           Both single- and double quoted strings are allowed.
+           NaN values are matched by the ==/!= operators, i.e., the predicates
+           are internally converted to a proper "IS NaN" or "IS NOT NaN"
+           comparison.
+
+        Examples:
+             "Flags & 128 == 0"
+                 Match records with Flag bit 7 set to 0.
+
+             "Elevation >= 15"
+                 Match values with values greater than or equal to 15.
+
+             "(Label == "D" OR Label == "N" OR LABEL = "X")"
+                 Match records with Label set to D, N or X.
+
+             "(Type != 1 AND Type != 34) NOT (Type == 1 OR Type == 34)"
+                 Exclude records with Type set to 1 or 34.
+
+             "(Vector[2] <= -0.1 OR Vector[2] >= 0.5)"
+                 Match records with Vector[2] values outside of the (-0.1, 0.5)
+                 range.
+        """
+        if not isinstance(filter_, str):
+            raise TypeError("parameter must be a str")
+        self._filterlist.append(filter_)
+        # Update the SwarmWPSInputs object
+        self._request_inputs.filters = " AND ".join(self._filterlist)
+
+    def clear_filters(self):
         """Remove all applied filters."""
         self._filterlist = []
         self._request_inputs.filters = None
         return self
+
+    clear_range_filter = clear_filters  # alias for backward compatibility
+
+    def applied_filters(self):
+        """Print currently applied filters."""
+        for filter_ in self._filterlist:
+            print(filter_)
 
     def get_times_for_orbits(
         self, start_orbit, end_orbit, mission="Swarm", spacecraft=None

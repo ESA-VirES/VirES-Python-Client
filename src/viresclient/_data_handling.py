@@ -99,7 +99,7 @@ class FileReader:
             self.magnetic_models = self._ensure_list(
                 globalatts.get("MAGNETIC_MODELS", [])
             )
-            self.range_filters = self._ensure_list(globalatts.get("DATA_FILTERS", []))
+            self.data_filters = self._ensure_list(globalatts.get("DATA_FILTERS", []))
             self.variables = self._cdf.cdf_info()["zVariables"]
             self._varatts = {var: self._cdf.varattsget(var) for var in self.variables}
             self._varinfo = {var: self._cdf.varinq(var) for var in self.variables}
@@ -629,10 +629,10 @@ class ReturnedDataFile:
         return magnetic_models
 
     @property
-    def range_filters(self):
+    def data_filters(self):
         with FileReader(self._file) as f:
-            range_filters = f.range_filters
-        return range_filters
+            data_filters = f.data_filters
+        return data_filters
 
 
 class ReturnedData:
@@ -645,7 +645,7 @@ class ReturnedData:
         ...
         data = request.get_between(..., ...)
         data.sources
-        data.range_filters
+        data.data_filters
         data.magnetic_models
         data.as_xarray()
         data.as_xarray_dict()
@@ -698,11 +698,11 @@ class ReturnedData:
         return sorted(models)
 
     @property
-    def range_filters(self):
+    def data_filters(self):
         """Get list of filters applied."""
         filters = set()
         for item in self._contents:
-            filters.update(item.range_filters)
+            filters.update(item.data_filters)
         return sorted(filters)
 
     @property
@@ -803,7 +803,7 @@ class ReturnedData:
         ds.attrs["Sources"] = self.sources
         if self.filetype == "cdf":
             ds.attrs["MagneticModels"] = self.magnetic_models
-            ds.attrs["RangeFilters"] = self.range_filters
+            ds.attrs["AppliedFilters"] = self.data_filters
         return ds
 
     def as_xarray_dict(self):
