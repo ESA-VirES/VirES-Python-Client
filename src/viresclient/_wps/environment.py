@@ -33,7 +33,7 @@ from jinja2 import Environment, FileSystemLoader
 
 
 def wrap_as_cdata(content):
-    """ Wrap content by the XML CDATA element. """
+    """Wrap content by the XML CDATA element."""
     content = content.replace("]]>", "]]]]><![CDATA[>")
     return f"<![CDATA[{content}]]>"
 
