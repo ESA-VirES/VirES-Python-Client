@@ -8,3 +8,6 @@ with open(join(_DIRNAME, "config_swarm.json"), encoding="utf-8") as f:
 
 with open(join(_DIRNAME, "config_aeolus.json"), encoding="utf-8") as f:
     CONFIG_AEOLUS = json.load(f)
+
+with open(join(_DIRNAME, "gui_workspace_config_swarm.json"), encoding="utf-8") as f:
+    GUI_WORKSPACE_CONFIG_SWARM = json.load(f)

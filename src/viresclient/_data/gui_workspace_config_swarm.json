@@ -1,0 +1,35 @@
+{
+    "serviceVersion": "3.9.0",
+    "timeSelection": [
+      "2022-08-30T00:00:00.000Z",
+      "2022-08-30T01:30:00.000Z"
+    ],
+    "viewSelection": "split",
+    "productsConfiguration": {
+      "SW_OPER_MAGA_LR_1B": {
+      }
+    },
+    "xAxisSelection": "Timestamp",
+    "xAxisLabel": null,
+    "plotConfiguration": [
+      {
+        "yAxis": [
+          "F"
+        ],
+        "yAxisLabel": null,
+        "y2Axis": [],
+        "y2AxisLabel": null,
+        "colorAxis": [
+          null
+        ],
+        "colorAxis2": []
+      }
+    ],
+    "satellites": {
+      "Alpha": true,
+      "Bravo": false,
+      "Charlie": false,
+      "NSC": false,
+      "Upload": false
+    }
+  }

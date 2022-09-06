@@ -34,5 +34,6 @@ from ._client_aeolus import AeolusRequest
 from ._client_swarm import SwarmRequest
 from ._config import ClientConfig, set_token
 from ._data_handling import ReturnedData, ReturnedDataFile
+from ._gui_links import GuiLinkGenerator
 
 __version__ = "0.11.0"
