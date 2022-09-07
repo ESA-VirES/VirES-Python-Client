@@ -58,3 +58,12 @@ DataUpload
     :undoc-members:
     :show-inheritance:
     :inherited-members:
+
+GuiLinkGenerator
+----------------
+
+.. autoclass:: viresclient.GuiLinkGenerator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :inherited-members:

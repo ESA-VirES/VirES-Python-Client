@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import sys
 from base64 import standard_b64encode
 from gzip import GzipFile
 from io import BytesIO
@@ -15,17 +14,22 @@ class GuiLinkGenerator:
 
     Examples:
 
-        ::
+        Using manual configuration::
+
             link_gen = GuiLinkGenerator("https://vires.services", "Swarm")
             link_gen.update_config(
                 serviceVersion="3.9.0",
                 timeSelection=["2022-08-30T00:00:00.000Z", "2022-08-30T01:30:00.000Z"],
-                collection="SW_OPER_MAGA_LR_1B",
+                collections=["SW_OPER_MAGA_LR_1B"],
                 parameter="F",
                 satellites=["Alpha"]
             )
             print(link_gen.url)
 
+        Using a workspace file exported from the GUI::
+
+            link_gen = GuiLinkGenerator("https://vires.services", "Swarm", file)
+            print(link_gen.url)
     """
 
     def __init__(self, base_url: str, server_type: str = "Swarm", from_file=None):
@@ -126,19 +130,3 @@ def gzip_data(data):
         file_gzip.close()
     buffer_.seek(0)
     return buffer_.read()
-
-
-def main():
-    link_gen = GuiLinkGenerator("https://vires.services", "Swarm")
-    link_gen.update_config(
-        serviceVersion="3.9.0",
-        timeSelection=["2022-08-30T00:00:00.000Z", "2022-08-30T01:30:00.000Z"],
-        collection="SW_OPER_MAGA_LR_1B",
-        parameter="F",
-        satellites=["Alpha"],
-    )
-    print(link_gen.url)
-
-
-if __name__ == "__main__":
-    sys.exit(main())
