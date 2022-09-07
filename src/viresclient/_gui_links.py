@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import sys
 import json
-from io import BytesIO
-from gzip import GzipFile
-from urllib.parse import quote
+import sys
 from base64 import standard_b64encode
+from gzip import GzipFile
+from io import BytesIO
+from urllib.parse import quote
 
 from viresclient._data import GUI_WORKSPACE_CONFIG_SWARM
 
@@ -40,8 +40,8 @@ class GuiLinkGenerator:
                 self.config = json.load(file_in)
 
     @property
-    def config_string(self):
-        return json.dumps(self.config).encode('ascii')
+    def config_bytestring(self):
+        return json.dumps(self.config).encode("ascii")
 
     def update_config(self, **options):
         """Update the configuration given a set of options
@@ -50,7 +50,7 @@ class GuiLinkGenerator:
 
             serviceVersion="3.9.0",
             timeSelection=["2022-08-30T00:00:00.000Z", "2022-08-30T01:30:00.000Z"],
-            collection="SW_OPER_MAGA_LR_1B",
+            collections=["SW_OPER_MAGA_LR_1B"],
             parameter="F",
             satellites=["Alpha"]
 
@@ -64,14 +64,21 @@ class GuiLinkGenerator:
     def _build_config_swarm(
         json_data: dict,
         serviceVersion: str = "NULL",
-        timeSelection: list[str] = ["NULL", "NULL"],
-        collection: str = "NULL",
+        timeSelection: tuple[str] = ("NULL", "NULL"),
+        collections: tuple[str] = ("NULL"),
         parameter: str = "NULL",
-        satellites: list[str] = ["NULL"],
+        satellites: tuple[str] = ("NULL"),
     ) -> str:
         json_data["serviceVersion"] = serviceVersion
         json_data["timeSelection"] = timeSelection
-        json_data["productsConfiguration"] = {collection: {}}
+        json_data["productsConfiguration"] = {
+            collection: {"visible": True} for collection in collections
+        }
+        # Web client always requires MAGA to be set
+        if "SW_OPER_MAGA_LR_1B" not in json_data["productsConfiguration"]:
+            json_data["productsConfiguration"]["SW_OPER_MAGA_LR_1B"] = {
+                "visible": False
+            }
         json_data["plotConfiguration"][0]["yAxis"] = [parameter]
         for satellite in ("Alpha", "Bravo", "Charlie", "NSC", "Upload"):
             json_data["satellites"][satellite] = satellite in satellites
@@ -80,37 +87,36 @@ class GuiLinkGenerator:
     @property
     def url(self):
         quoted_data_url = get_shortest_quoted_data_url(
-            self.config_string,
+            self.config_bytestring,
             [
                 get_data_url_json_base64_gzip,
                 get_data_url_json_base64,
                 get_data_url_json,
-            ]
+            ],
         )
         return f"{self.base_url}?ws={quoted_data_url}"
 
 
 def get_shortest_quoted_data_url(config, encoders):
-    return sorted([
-        (len(data), data) for data
-        in (quote(encoder(config)) for encoder in encoders)
-    ])[0][1]
+    return sorted(
+        (len(data), data) for data in (quote(encoder(config)) for encoder in encoders)
+    )[0][1]
 
 
 def get_data_url_json_base64_gzip(config):
     return "data:application/json+gzip;base64," + (
-        standard_b64encode(gzip_data(config)).decode('ascii')
+        standard_b64encode(gzip_data(config)).decode("ascii")
     )
 
 
 def get_data_url_json_base64(config):
     return "data:application/json;base64," + (
-        standard_b64encode(config).decode('ascii')
+        standard_b64encode(config).decode("ascii")
     )
 
 
 def get_data_url_json(config):
-    return "data:application/json," + config.decode('ascii')
+    return "data:application/json," + config.decode("ascii")
 
 
 def gzip_data(data):
@@ -129,11 +135,10 @@ def main():
         timeSelection=["2022-08-30T00:00:00.000Z", "2022-08-30T01:30:00.000Z"],
         collection="SW_OPER_MAGA_LR_1B",
         parameter="F",
-        satellites=["Alpha"]
+        satellites=["Alpha"],
     )
     print(link_gen.url)
 
 
 if __name__ == "__main__":
-    # sys.exit(main(sys.argv[1], sys.argv[2]))
     sys.exit(main())
