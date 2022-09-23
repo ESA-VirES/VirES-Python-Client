@@ -5,14 +5,14 @@
     <wps:Input>
       <ows:Identifier>collection_ids</ows:Identifier>
       <wps:Data>
-        <wps:ComplexData mimeType="application/json"><![CDATA[{{ collection_ids|o2j }}]]></wps:ComplexData>
+        <wps:ComplexData mimeType="application/json">{{ collection_ids|o2j|cdata }}</wps:ComplexData>
       </wps:Data>
     </wps:Input>
     {% if model_expression -%}
     <wps:Input>
       <ows:Identifier>model_ids</ows:Identifier>
       <wps:Data>
-        <wps:LiteralData>{{ model_expression }}</wps:LiteralData>
+        <wps:LiteralData>{{ model_expression|cdata }}</wps:LiteralData>
       </wps:Data>
     </wps:Input>
     {% endif -%}
@@ -20,7 +20,7 @@
     <wps:Input>
       <ows:Identifier>shc</ows:Identifier>
       <wps:Data>
-        <wps:ComplexData>{{ custom_shc }}</wps:ComplexData>
+        <wps:ComplexData>{{ custom_shc|cdata }}</wps:ComplexData>
       </wps:Data>
     </wps:Input>
     {% endif -%}
@@ -46,7 +46,7 @@
     <wps:Input>
       <ows:Identifier>filters</ows:Identifier>
       <wps:Data>
-        <wps:LiteralData>{{ filters }}</wps:LiteralData>
+        <wps:LiteralData>{{ filters|cdata }}</wps:LiteralData>
       </wps:Data>
     </wps:Input>
     {% endif -%}

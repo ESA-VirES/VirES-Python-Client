@@ -32,7 +32,13 @@ Recommended setup if starting without Python already
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1. Install Miniconda: https://docs.conda.io/en/latest/miniconda.html
-2. Create a new conda environment with some recommended packages::
+
+2. Set the conda-forge channel as the priority to install packages from::
+
+    conda config --add channels conda-forge
+    conda config --set channel_priority strict
+
+3. Create a new conda environment with some recommended packages::
 
     conda create --name myenv scipy matplotlib pandas xarray cartopy jupyter jupyterlab flake8 dask h5py netCDF4 jinja2 pytables tqdm ipywidgets
 
@@ -40,7 +46,7 @@ Recommended setup if starting without Python already
 
     conda activate myenv
 
-3. Use pip to install viresclient::
+4. Use pip to install viresclient::
 
     pip install viresclient
 
@@ -49,108 +55,162 @@ Recommended setup if starting without Python already
 2. First usage / Configuration
 ------------------------------
 
-.. note:: For Jupyter notebook users:
+.. tabs::
 
-  On creation of a SwarmRequest object, you will automatically be prompted to set a token. Just try::
+  .. group-tab:: Swarm
 
-    from viresclient import SwarmRequest
-    request = SwarmRequest()
+    .. note::
 
-  and follow the instructions.
+      *For Jupyter notebook users*, just try:
 
-  A first usage guide is provided as a Jupyter notebook (`view <https://notebooks.vires.services/notebooks/02a__intro-swarm-viresclient>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/Swarm-DISC/Swarm_notebooks/master/notebooks/02a__Intro-Swarm-viresclient.ipynb>`_, or use git to get the whole example repository::
+      .. code-block::
 
-    git clone https://github.com/Swarm-DISC/Swarm_notebooks.git
+        from viresclient import SwarmRequest
+        request = SwarmRequest()
 
-Access to the service is through the same user account as on the web interface (https://vires.services/) and is enabled through an access token (essentially a password). To get a token, log in to the website and click on your name on the top right to access the settings (`or follow this link <https://vires.services/accounts/tokens/>`_). From here, click on "Manage access tokens" and follow the instructions to create a new token.
+      and you will automatically be prompted to set a token.
 
-To set your token in the client, use either the Python interface:
+      A first usage guide is provided as a Jupyter notebook (`view <https://notebooks.vires.services/notebooks/02a__intro-swarm-viresclient>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/Swarm-DISC/Swarm_notebooks/master/notebooks/02a__Intro-Swarm-viresclient.ipynb>`_, or use git to get the whole example repository::
 
-.. code-block:: python
+        git clone https://github.com/Swarm-DISC/Swarm_notebooks.git
 
-  from viresclient import set_token
-  set_token("https://vires.services/ows")
-  # (you will now be prompted to enter the token)
+    Access to the service is through the same user account as on the web interface (https://vires.services/) and is enabled through an access token (essentially a password). To get a token, log in to the website and click on your name on the top right to access the settings (`or follow this link <https://vires.services/accounts/tokens/>`_). From here, click on "Manage access tokens" and follow the instructions to create a new token.
 
-or the command line tool::
+    To set your token in the client, use either the Python interface:
 
-  $ viresclient set_token https://vires.services/ows
-  Enter access token: r-8-mlkP_RBx4mDv0di5Bzt3UZ52NGg-
+    .. code-block:: python
 
-  $ viresclient set_default_server https://vires.services/ows
+      from viresclient import set_token
+      set_token("https://vires.services/ows")
+      # (you will now be prompted to enter the token)
 
-See also: see :doc:`config_details` and :doc:`access_token`
+    or the command line tool::
+
+      $ viresclient set_token https://vires.services/ows
+      Enter access token: r-8-mlkP_RBx4mDv0di5Bzt3UZ52NGg-
+
+      $ viresclient set_default_server https://vires.services/ows
+
+    See also: see :doc:`config_details` and :doc:`access_token`
+
+  .. group-tab:: Aeolus
+
+    .. note::
+
+      *For Jupyter notebook users*, just try:
+
+      .. code-block::
+
+        from viresclient import AeolusRequest
+        request = AeolusRequest()
+
+      and you will automatically be prompted to set a token.
+
+      A first usage guide is provided as a Jupyter notebook (`view <https://notebooks.aeolus.services/notebooks/02a__intro-aeolus-viresclient>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/ESA-VirES/Aeolus-notebooks/main/notebooks/02a__Intro-Aeolus-viresclient.ipynb>`_, or use git to get the whole example repository::
+
+        git clone https://github.com/ESA-VirES/Aeolus-notebooks.git
+
+    Access to the service is through the same user account as on the web interface (https://aeolus.services/) and is enabled through an access token (essentially a password). To get a token, log in to the website and click on your name on the top right to access the settings (`or follow this link <https://aeolus.services/accounts/tokens/>`_). From here, click on "Manage access tokens" and follow the instructions to create a new token.
+
+    To set your token in the client, use either the Python interface:
+
+    .. code-block:: python
+
+      from viresclient import set_token
+      set_token("https://aeolus.services/ows")
+      # (you will now be prompted to enter the token)
+
+    or the command line tool::
+
+      $ viresclient set_token https://aeolus.services/ows
+      Enter access token: r-8-mlkP_RBx4mDv0di5Bzt3UZ52NGg-
+
+      $ viresclient set_default_server https://aeolus.services/ows
+
+    See also: see :doc:`config_details` and :doc:`access_token`
+
 
 3. Example use
 --------------
 
 .. note::
 
-  A brief introduction is given here. For more possibilities, see :doc:`notebook_intro`
+  A brief introduction is given here. For more possibilities, see :doc:`notebook_intro`, and :doc:`capabilities`.
 
-Choose which collection to access (see :doc:`available_parameters` for more options):
+.. tabs::
 
-.. code-block:: python
+  .. group-tab:: Swarm
 
-  import datetime as dt
-  from viresclient import SwarmRequest
+    See also `Swarm access through VirES <https://notebooks.vires.services/notebooks/02a__intro-swarm-viresclient>`_
 
-  request = SwarmRequest()
-  request.set_collection("SW_OPER_MAGA_LR_1B")
+    Choose which collection to access (see :doc:`available_parameters` for more options):
 
-Next, use ``.set_products()`` to choose a combination of variables to retrieve, specified by keywords.
+    .. code-block:: python
 
-- ``measurements`` are measured by the satellite and members of the specified ``collection``
-- ``models`` are evaluated on the server at the positions of the satellite
-- ``auxiliaries`` are additional parameters not unique to the ``collection``
-- if ``residuals`` is set to ``True`` then only data-model residuals are returned
-- optionally use ``sampling_step`` to specify a resampling of the original time series (an `ISO-8601 duration <https://en.wikipedia.org/wiki/ISO_8601#Durations>`_).
+      import datetime as dt
+      from viresclient import SwarmRequest
 
-.. code-block:: python
+      request = SwarmRequest()
+      request.set_collection("SW_OPER_MAGA_LR_1B")
 
-  request.set_products(measurements=["F","B_NEC"],
-                       models=["MCO_SHA_2C", "MMA_SHA_2C-Primary", "MMA_SHA_2C-Secondary"],
-                       auxiliaries=["QDLat", "QDLon", "MLT", "OrbitNumber", "SunZenithAngle"],
-                       residuals=False,
-                       sampling_step="PT10S")
+    Next, use ``.set_products()`` to choose a combination of variables to retrieve, specified by keywords.
 
-Set a parameter range filter to apply. You can add multiple filters in sequence
+    - ``measurements`` are measured by the satellite and members of the specified ``collection``
+    - ``models`` are evaluated on the server at the positions of the satellite
+    - ``auxiliaries`` are additional parameters not unique to the ``collection``
+    - if ``residuals`` is set to ``True`` then only data-model residuals are returned
+    - optionally use ``sampling_step`` to specify a resampling of the original time series (an `ISO-8601 duration <https://en.wikipedia.org/wiki/ISO_8601#Durations>`_).
 
-.. code-block:: python
+    .. code-block:: python
 
-  request.set_range_filter(parameter="Latitude",
-                           minimum=0,
-                           maximum=90)
+      request.set_products(
+        measurements=["F", "B_NEC"],
+        models=["MCO_SHA_2C", "MMA_SHA_2C-Primary", "MMA_SHA_2C-Secondary"],
+        auxiliaries=["QDLat", "QDLon", "MLT", "OrbitNumber", "SunZenithAngle"],
+        residuals=False,
+        sampling_step="PT10S"
+      )
 
-  request.set_range_filter("Longitude", 0, 90)
+    Set a parameter range filter to apply. You can add multiple filters in sequence.
 
-Specify the time range from which to retrieve data, make the request to the server:
+    .. code-block:: python
 
-.. code-block:: python
+      request.set_range_filter(parameter="Latitude", minimum=0, maximum=90)
+      request.set_range_filter("Longitude", 0, 90)
 
-  data = request.get_between(start_time=dt.datetime(2016,1,1),
-                             end_time=dt.datetime(2016,1,2))
+    Specify the time range from which to retrieve data, make the request to the server:
 
-Transfer your data to a pandas.DataFrame_, or a xarray.Dataset_, or just save it as is:
+    .. code-block:: python
 
-.. _pandas.DataFrame: https://pandas.pydata.org/pandas-docs/stable/dsintro.html#dataframe
+      data = request.get_between(
+        start_time=dt.datetime(2016,1,1),
+        end_time=dt.datetime(2016,1,2)
+      )
 
-.. _xarray.Dataset: http://xarray.pydata.org/en/stable/data-structures.html#dataset
+    Transfer your data to a pandas.DataFrame_, or a xarray.Dataset_, or just save it as is:
 
-.. code-block:: python
+    .. _pandas.DataFrame: https://pandas.pydata.org/pandas-docs/stable/dsintro.html#dataframe
 
-  df = data.as_dataframe()
-  ds = data.as_xarray()
-  data.to_file('outfile.cdf', overwrite=False)
+    .. _xarray.Dataset: http://xarray.pydata.org/en/stable/data-structures.html#dataset
 
-The returned data has columns for:
+    .. code-block:: python
 
- - ``Spacecraft, Timestamp, Latitude, Longitude, Radius``
- - those specified by ``measurements`` and ``auxiliaries``
+      df = data.as_dataframe()
+      ds = data.as_xarray()
+      data.to_file('outfile.cdf', overwrite=False)
 
-... and model values and residuals, named as:
+    The returned data has columns for:
 
-   - ``F_<model_id>``           -- scalar field
-   - ``B_NEC_<model_id>``       -- vector field
-   - ``F_res_<model_id>``       -- scalar field residual (``F - F_<model_id>``)
-   - ``B_NEC_res_<model_id>``   -- vector field residual (``B_NEC - B_NEC_<model_id>``)
+    - ``Spacecraft, Timestamp, Latitude, Longitude, Radius``
+    - those specified by ``measurements`` and ``auxiliaries``
+
+    ... and model values and residuals, named as:
+
+    - ``F_<model_id>``           -- scalar field
+    - ``B_NEC_<model_id>``       -- vector field
+    - ``F_res_<model_id>``       -- scalar field residual (``F - F_<model_id>``)
+    - ``B_NEC_res_<model_id>``   -- vector field residual (``B_NEC - B_NEC_<model_id>``)
+
+  .. group-tab:: Aeolus
+
+    See `Aeolus access through VirES <https://notebooks.aeolus.services/notebooks/02a__intro-aeolus-viresclient>`_

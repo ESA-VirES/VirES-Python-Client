@@ -1,6 +1,10 @@
 Available parameters for Swarm
 ==============================
 
+.. tip::
+
+  Did you know? The *VirES for Swarm* service provides data not only from Swarm but also INTERMAGNET ground observatories (search below for ``AUX_OBS``), and recalibrated platform magnetometer data from selected LEO missions (search below for ``MAG_``).
+
 .. note::
 
   | `See also: Jupyter notebook about data and model availability <https://notebooks.vires.services/notebooks/02b__viresclient-available-data>`_ - check out the other demo notebooks there too.
@@ -43,6 +47,7 @@ SW_OPER_EFIx_LP_1B       EFI              Electric field instrument (Langmuir pr
 SW_OPER_EFIxTIE_2\_       EFI_TIE          Estimates of the ion temperatures
 SW_EXPT_EFIx_TCT02       EFI_TCT02        2Hz cross-track ion flows
 SW_EXPT_EFIx_TCT16       EFI_TCT16        16Hz cross-track ion flows
+SW_PREL_EFIxIDM_2\_      EFI_IDM          2Hz ion drift velocities and effective masses (SLIDEM project)
 SW_OPER_IPDxIRR_2F       IPD              Ionospheric plasma characteristics (derived quantities at 1Hz)
 SW_OPER_TECxTMS_2F       TEC              Total electron content
 SW_OPER_FACxTMS_2F       FAC              Field-aligned currents (single satellite)
@@ -113,15 +118,16 @@ SW_OPER_VOBS_1M_2\_:SecularVariation VOBS_SW_1M:SecularVariation Secular variati
 
 Each VOBS product (e.g. Swarm 1-monthly) is split into two collections (e.g. ``SW_OPER_VOBS_1M_2_`` (containing ``B_OB`` & ``B_CF``) and ``SW_OPER_VOBS_1M_2_:SecularVariation`` (containing ``B_SV``)) because of the different temporal sampling points (i.e. differing ``Timestamp``) of these measurements. Data can also be requested for a specific virtual observatory alone (distinguishable by the ``SiteCode`` variable) with special collection names like ``SW_OPER_VOBS_1M_2_:N65W051`` and ``SW_OPER_VOBS_1M_2_:SecularVariation:N65W051``.
 
-Calibrated magnetic data are also available from external missions: Cryosat-2, GRACE (A+B), GRACE-FO (1+2):
+Calibrated magnetic data are also available from external missions: Cryosat-2, GRACE (A+B), GRACE-FO (1+2), GOCE:
 
-=============================== ================ =========================================================================================================
+=============================== ================ ===================================================================================================================================
 Collection full name            Collection type  Available measurement names
-=============================== ================ =========================================================================================================
+=============================== ================ ===================================================================================================================================
 CS_OPER_MAG                     MAG_CS           ``F,B_NEC,B_mod_NEC,B_NEC1,B_NEC2,B_NEC3,B_FGM1,B_FGM2,B_FGM3,q_NEC_CRF,q_error``
 GRACE_x_MAG (x=A/B)             MAG_GRACE        ``F,B_NEC,B_NEC_raw,B_FGM,B_mod_NEC,q_NEC_CRF,q_error``
-GFx_OPER_FGM_ACAL_CORR (x=1/2)  MAG_GFO          ``B_NEC,B_FGM,dB_MTQ_FGM,dB_XI_FGM,dB_NY_FGM,dB_BT_FGM,dB_ST_FGM,dB_SA_FGM,dB_BAT_FGM,q_NEC_FGM,B_FLAG``
-=============================== ================ =========================================================================================================
+GFx_OPER_FGM_ACAL_CORR (x=1/2)  MAG_GFO          ``F,B_NEC,B_FGM,dB_MTQ_FGM,dB_XI_FGM,dB_NY_FGM,dB_BT_FGM,dB_ST_FGM,dB_SA_FGM,dB_BAT_FGM,q_NEC_FGM,B_FLAG``
+GO_MAG_ACAL_CORR                MAG_GOCE         ``F,B_MAG,B_NEC,dB_MTQ_SC,dB_XI_SC,dB_NY_SC,dB_BT_SC,dB_ST_SC,dB_SA_SC,dB_BAT_SC,dB_HK_SC,dB_BLOCK_CORR,q_SC_NEC,q_MAG_SC,B_FLAG``
+=============================== ================ ===================================================================================================================================
 
 The ``measurements``, ``models``, and ``auxiliaries`` chosen will match the cadence of the ``collection`` chosen.
 
@@ -140,6 +146,7 @@ MAG_HR          ``F,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_er
 EFI             ``U_orbit,Ne,Ne_error,Te,Te_error,Vs,Vs_error,Flags_LP,Flags_Ne,Flags_Te,Flags_Vs``
 EFI_TIE         ``Latitude_GD,Longitude_GD,Height_GD,Radius_GC,Latitude_QD,MLT_QD,Tn_msis,Te_adj_LP,Ti_meas_drift,Ti_model_drift,Flag_ti_meas,Flag_ti_model``
 EFI_TCTyy       ``VsatC,VsatE,VsatN,Bx,By,Bz,Ehx,Ehy,Ehz,Evx,Evy,Evz,Vicrx,Vicry,Vicrz,Vixv,Vixh,Viy,Viz,Vixv_error,Vixh_error,Viy_error,Viz_error,Latitude_QD,MLT_QD,Calibration_flags,Quality_flags``
+EFI_IDM         ``Latitude_GD,Longitude_GD,Height_GD,Radius_GC,Latitude_QD,MLT_QD,V_sat_nec,M_i_eff,M_i_eff_err,M_i_eff_Flags,M_i_eff_tbt_model,V_i,V_i_err,V_i_Flags,V_i_raw,N_i,N_i_err,N_i_Flags,A_fp,R_p,T_e,Phi_sc``
 IPD             ``Ne,Te,Background_Ne,Foreground_Ne,PCP_flag,Grad_Ne_at_100km,Grad_Ne_at_50km,Grad_Ne_at_20km,Grad_Ne_at_PCP_edge,ROD,RODI10s,RODI20s,delta_Ne10s,delta_Ne20s,delta_Ne40s,Num_GPS_satellites,mVTEC,mROT,mROTI10s,mROTI20s,IBI_flag,Ionosphere_region_flag,IPIR_index,Ne_quality_flag,TEC_STD``
 TEC             ``GPS_Position,LEO_Position,PRN,L1,L2,P1,P2,S1,S2,Elevation_Angle,Absolute_VTEC,Absolute_STEC,Relative_STEC,Relative_STEC_RMS,DCB,DCB_Error``
 FAC             ``IRC,IRC_Error,FAC,FAC_Error,Flags,Flags_F,Flags_B,Flags_q``

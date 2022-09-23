@@ -4,6 +4,7 @@ Introduction
 .. include:: ../README.rst
 
 .. toctree::
+  :hidden:
   :caption: Virtual Research Environments
 
   VirES for Swarm <https://vires.services>
@@ -13,6 +14,7 @@ Introduction
 
 
 .. toctree::
+  :hidden:
   :maxdepth: 2
   :caption: Information on viresclient
 
@@ -20,12 +22,14 @@ Introduction
   installation
   config_details
   access_token
+  capabilities
   available_parameters
   available_parameters_aeolus
   notebook_intro
   release_notes
 
 .. toctree::
+  :hidden:
   :maxdepth: 2
   :caption: API & CLI
 
@@ -33,6 +37,7 @@ Introduction
   cli
 
 .. toctree::
+  :hidden:
   :maxdepth: 2
   :caption: External Links
 

@@ -4,13 +4,39 @@ Release notes
 Change log
 ----------
 
+Changes from 0.10.3 to 0.11.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- **Breaking change:**
+
+  - :py:meth:`viresclient.ReturnedData` property ``.range_filters`` changed to ``.data_filters``
+  - Xarray datasets attributes (``.attrs`` property) have ``"RangeFilters"`` changed to ``"AppliedFilters"``
+
+- Added new arbitrary data filter functionality, with new methods:
+
+  - :py:meth:`viresclient.SwarmRequest.set_range_filter`
+  - :py:meth:`viresclient.SwarmRequest.set_choice_filter`
+  - :py:meth:`viresclient.SwarmRequest.set_bitmask_filter`
+  - :py:meth:`viresclient.SwarmRequest.add_filter`
+
+- Added new collections for Swarm:
+
+  - ``SW_PREL_EFIxIDM_2_`` (type ``EFI_IDM``: ion drift velocities & effective masses, SLIDEM project)
+  - ``GO_MAG_ACAL_CORR`` (type ``MAG_GOCE``: magnetic data from the GOCE mission)
+
+- Added new collections for Aeolus:
+
+  - ``ALD_U_N_1A``
+
+- Fixed bug in merging multi-file datasets when loading as xarray
+
 Changes from 0.10.2 to 0.10.3
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Added new collections:
 
-  - ``SW_OPER_EFIxTIE_2_`` (ion temperatrues)
-  - ``SW_EXPT_EFIx_TCT02`` & ``SW_EXPT_EFIx_TCT16`` (cross-track ion flows)
+  - ``SW_OPER_EFIxTIE_2_`` (type ``EFI_TIE``: ion temperatrues)
+  - ``SW_EXPT_EFIx_TCT02`` & ``SW_EXPT_EFIx_TCT16`` (types ``EFI_TCT02``, ``EFI_TCT16``: cross-track ion flows)
 
 Changes from 0.10.1 to 0.10.2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

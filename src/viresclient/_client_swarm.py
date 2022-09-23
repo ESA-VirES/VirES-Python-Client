@@ -218,6 +218,10 @@ COLLECTION_REFERENCES = {
     "MAG_CS": ("https://doi.org/10.1186/s40623-020-01171-9",),
     "MAG_GRACE": ("https://doi.org/10.1186/s40623-021-01373-9",),
     "MAG_GFO": ("https://doi.org/10.1186/s40623-021-01364-w",),
+    "EFI_IDM": (
+        "https://earth.esa.int/eogateway/documents/20142/2860886/SLIDEM_Product_Definition.pdf",
+    ),
+    "MAG_GOCE": ("https://doi.org/10.5880/GFZ.2.3.2022.001",),
     "EFI_TIE": (
         "https://earth.esa.int/eogateway/activities/swarm-ion-temperature-estimation",
     ),
@@ -421,37 +425,39 @@ class SwarmWPSInputs(WPSInputs):
 class SwarmRequest(ClientRequest):
     """Handles the requests to and downloads from the server.
 
-    Example usage::
+    Examples:
 
-        from viresclient import SwarmRequest
-        # Set up connection with server
-        request = SwarmRequest()
-        # Set collection to use
-        request.set_collection("SW_OPER_MAGA_LR_1B")
-        # Set mix of products to fetch:
-        #  measurements (variables from the given collection)
-        #  models (magnetic model predictions at spacecraft sampling points)
-        #  auxiliaries (variables available with any collection)
-        request.set_products(
-            measurements=["F", "B_NEC"],
-            models=["CHAOS-Core"],
-            auxiliaries=["QDLat", "QDLon"],
-            sampling_step="PT10S"
-        )
-        # Fetch data from a given time interval
-        data = request.get_between(
-            start_time="2014-01-01T00:00",
-            end_time="2014-01-01T01:00"
-        )
-        # Load the data as an xarray.Dataset
-        ds = data.as_xarray()
+        Retrieve data::
 
-    Check what data are available with::
+            from viresclient import SwarmRequest
+            # Set up connection with server
+            request = SwarmRequest("https://vires.services/ows")
+            # Set collection to use
+            request.set_collection("SW_OPER_MAGA_LR_1B")
+            # Set mix of products to fetch:
+            #  measurements (variables from the given collection)
+            #  models (magnetic model predictions at spacecraft sampling points)
+            #  auxiliaries (variables available with any collection)
+            request.set_products(
+                measurements=["F", "B_NEC"],
+                models=["CHAOS-Core"],
+                auxiliaries=["QDLat", "QDLon"],
+                sampling_step="PT10S"
+            )
+            # Fetch data from a given time interval
+            data = request.get_between(
+                start_time="2014-01-01T00:00",
+                end_time="2014-01-01T01:00"
+            )
+            # Load the data as an xarray.Dataset
+            ds = data.as_xarray()
 
-        request.available_collections(details=False)
-        request.available_measurements("MAG")
-        request.available_auxiliaries()
-        request.available_models(details=False)
+        Check what data are available::
+
+            request.available_collections(details=False)
+            request.available_measurements("MAG")
+            request.available_auxiliaries()
+            request.available_models(details=False)
 
     Args:
         url (str):
@@ -466,9 +472,10 @@ class SwarmRequest(ClientRequest):
         "GRACE": ["1", "2"],
         "GRACE-FO": ["1", "2"],
         "CryoSat-2": None,
+        "GOCE": None,
     }
 
-    CONJUNCTION_MISISON_SPACECRAFT_PAIRS = {
+    CONJUNCTION_MISSION_SPACECRAFT_PAIRS = {
         (("Swarm", "A"), ("Swarm", "B")),
     }
 
@@ -476,6 +483,7 @@ class SwarmRequest(ClientRequest):
         "MAG": [f"SW_OPER_MAG{x}_LR_1B" for x in "ABC"],
         "MAG_HR": [f"SW_OPER_MAG{x}_HR_1B" for x in "ABC"],
         "EFI": [f"SW_OPER_EFI{x}_LP_1B" for x in "ABC"],
+        "EFI_IDM": [f"SW_PREL_EFI{x}IDM_2_" for x in "ABC"],
         "EFI_TIE": [f"SW_OPER_EFI{x}TIE_2_" for x in "ABC"],
         "EFI_TCT02": [f"SW_EXPT_EFI{x}_TCT02" for x in "ABC"],
         "EFI_TCT16": [f"SW_EXPT_EFI{x}_TCT16" for x in "ABC"],
@@ -598,6 +606,7 @@ class SwarmRequest(ClientRequest):
         ],
         "MAG_GRACE": ["GRACE_A_MAG", "GRACE_B_MAG"],
         "MAG_GFO": ["GF1_OPER_FGM_ACAL_CORR", "GF2_OPER_FGM_ACAL_CORR"],
+        "MAG_GOCE": ["GO_MAG_ACAL_CORR"],
         # Swarm spacecraft positions
         "MOD_SC": [f"SW_OPER_MOD{x}_SC_1B" for x in "ABC"],
     }
@@ -633,6 +642,7 @@ class SwarmRequest(ClientRequest):
         "MAG": "PT1S",
         "MAG_HR": "PT0.019S",  # approx 50Hz (the sampling is not exactly 50Hz)
         "EFI": "PT0.5S",
+        "EFI_IDM": "PT0.5S",
         "EFI_TIE": "PT0.5S",
         "EFI_TCT02": "PT0.5S",
         "EFI_TCT16": "PT0.0625S",
@@ -720,6 +730,30 @@ class SwarmRequest(ClientRequest):
             "Flags_Ne",
             "Flags_Te",
             "Flags_Vs",
+        ],
+        "EFI_IDM": [
+            "Latitude_GD",
+            "Longitude_GD",
+            "Height_GD",
+            "Radius_GC",
+            "Latitude_QD",
+            "MLT_QD",
+            "V_sat_nec",
+            "M_i_eff",
+            "M_i_eff_err",
+            "M_i_eff_Flags",
+            "M_i_eff_tbt_model",
+            "V_i",
+            "V_i_err",
+            "V_i_Flags",
+            "V_i_raw",
+            "N_i",
+            "N_i_err",
+            "N_i_Flags",
+            "A_fp",
+            "R_p",
+            "T_e",
+            "Phi_sc",
         ],
         "EFI_TIE": [
             "Latitude_GD",
@@ -1029,6 +1063,23 @@ class SwarmRequest(ClientRequest):
             "dB_SA_FGM",
             "dB_BAT_FGM",
             "q_NEC_FGM",
+            "B_FLAG",
+        ],
+        "MAG_GOCE": [
+            "F",
+            "B_MAG",
+            "B_NEC",
+            "dB_MTQ_SC",
+            "dB_XI_SC",
+            "dB_NY_SC",
+            "dB_BT_SC",
+            "dB_ST_SC",
+            "dB_SA_SC",
+            "dB_BAT_SC",
+            "dB_HK_SC",
+            "dB_BLOCK_CORR",
+            "q_SC_NEC",
+            "q_MAG_SC",
             "B_FLAG",
         ],
         "MOD_SC": [],
@@ -1352,18 +1403,20 @@ class SwarmRequest(ClientRequest):
             "SW_OPER_AUX_OBSM2_"
             "SW_OPER_AUX_OBSS2_"
 
-        Example usage::
+        Examples:
 
-            from viresclient import SwarmRequest
-            request = SwarmRequest()
-            # For a list of observatories available:
-            request.available_observatories("SW_OPER_AUX_OBSM2_")
-            # For a DataFrame also containing availability start and end times:
-            request.available_observatories("SW_OPER_AUX_OBSM2_", details=True)
-            # For available observatories during a given time period:
-            request.available_observatories(
-                "SW_OPER_AUX_OBSM2_", "2013-01-01", "2013-02-01"
-            )
+            ::
+
+                from viresclient import SwarmRequest
+                request = SwarmRequest()
+                # For a list of observatories available:
+                request.available_observatories("SW_OPER_AUX_OBSM2_")
+                # For a DataFrame also containing availability start and end times:
+                request.available_observatories("SW_OPER_AUX_OBSM2_", details=True)
+                # For available observatories during a given time period:
+                request.available_observatories(
+                    "SW_OPER_AUX_OBSM2_", "2013-01-01", "2013-02-01"
+                )
 
         Args:
             collection (str): OBS collection name, e.g. "SW_OPER_AUX_OBSM2\\_"
@@ -1578,38 +1631,201 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.custom_shc = custom_shc
         return self
 
-    def set_range_filter(self, parameter=None, minimum=None, maximum=None):
-        """Set a filter to apply.
+    def set_range_filter(self, parameter, minimum=None, maximum=None, negate=False):
+        """Set a range filter to apply.
 
-        Filters data for minimum ≤ parameter ≤ maximum
+        Filters data for minimum ≤ parameter ≤ maximum,
+        or parameter < minimum OR parameter > maximum if negated.
 
         Note:
-            Apply multiple filters with successive calls to set_range_filter()
+            - Apply multiple filters with successive calls to ``.set_range_filter()``
+            - See :py:meth:`SwarmRequest.add_filter` for arbitrary filters.
 
         Args:
             parameter (str)
-            minimum (float)
-            maximum (float)
+            minimum (float or integer)
+            maximum (float or integer)
 
+        Examples:
+            ``request.set_range_filter("Latitude", 0, 90)``
+                to set "Latitude >= 0 AND Latitude <= 90"
+            ``request.set_range_filter("Latitude", 0, 90, negate=True)``
+                to set "(Latitude < 0 OR Latitude > 90)"
         """
         if not isinstance(parameter, str):
             raise TypeError("parameter must be a str")
-        # Update the list that contains the separate filters
-        self._filterlist += [parameter + ":" + str(minimum) + "," + str(maximum)]
-        # Convert the list into the string that gets passed to the xml template
-        if len(self._filterlist) == 1:
-            filters = self._filterlist[0]
-        else:
-            filters = ";".join(self._filterlist)
-        # Update the SwarmWPSInputs object
-        self._request_inputs.filters = filters
+
+        def _generate_filters(minop, maxop):
+            if minimum is not None:
+                yield f"{parameter} {minop} {minimum}"
+            if maximum is not None:
+                yield f"{parameter} {maxop} {maximum}"
+
+        nargs = 2 - (minimum is None) - (maximum is None)
+        if nargs == 0:
+            return
+
+        filter_ = (
+            " AND ".join(_generate_filters(">=", "<="))
+            if not negate
+            else " OR ".join(_generate_filters("<", ">"))
+        )
+
+        if nargs > 1:
+            filter_ = f"({filter_})"
+
+        self.add_filter(filter_)
+
         return self
 
-    def clear_range_filter(self):
+    def set_choice_filter(self, parameter, *values, negate=False):
+        """Set a choice filter to apply.
+
+        Filters data for *parameter in values*,
+        or *parameter not in values* if negated.
+
+        Note:
+            See :py:meth:`SwarmRequest.add_filter` for arbitrary filters.
+
+        Args:
+            parameter (str)
+            values (float or integer or string)
+
+        Examples:
+            ``request.set_choice_filter("Flags_F", 0, 1)``
+                to set "(Flags_F == 0 OR Flags_F == 1)"
+            ``request.set_choice_filter("Flags_F", 0, 1, negate=True)``
+                to set "(Flags_F != 0 AND Flags_F != 1)"
+        """
+        if not isinstance(parameter, str):
+            raise TypeError("parameter must be a str")
+
+        def _generate_filters(compop):
+            for value in values:
+                yield f"{parameter} {compop} {value!r}"
+
+        nargs = len(values)
+        if nargs == 0:
+            return
+
+        filter_ = (
+            " OR ".join(_generate_filters("=="))
+            if not negate
+            else " AND ".join(_generate_filters("!="))
+        )
+
+        if nargs > 1:
+            filter_ = f"({filter_})"
+
+        self.add_filter(filter_)
+
+        return self
+
+    def set_bitmask_filter(self, parameter, selection=0, mask=-1, negate=False):
+        """Set a bitmask filter to apply.
+
+        Filters data for *parameter & mask == selection & mask*,
+        or *parameter & mask != selection & mask* if negated.
+
+        Note:
+            See :py:meth:`SwarmRequest.add_filter` for arbitrary filters.
+
+        Args:
+            parameter (str)
+            mask (integer)
+            selection (integer)
+
+        Examples:
+            ``request.set_bitmask_filter("Flags_F", 0, 1)``
+                to set "Flags_F & 1 == 0" (i.e. bit 1 is set to 0)
+        """
+        if not isinstance(parameter, str):
+            raise TypeError("parameter must be a str")
+
+        def _get_filter(compop):
+            return (
+                f"{parameter} & {mask} {compop} {selection & mask}"
+                if mask != -1
+                else f"{parameter} {compop} {selection}"
+            )
+
+        if not negate:
+            if mask != 0:  # avoid pointless (0 == 0) filter
+                self.add_filter(_get_filter("=="))
+        else:
+            # mask == 0 leads to (0 != 0) filter and nothing is selected.
+            self.add_filter(_get_filter("!="))
+
+        return self
+
+    def add_filter(self, filter_):
+        """Add an arbitrary data filter.
+
+        Args:
+            filter_ (str): string defining the filter, as shown below
+
+        Filter grammar:
+
+        .. code-block:: text
+
+           filter: predicate
+           predicate:
+                variable == literal |
+                variable != literal |
+                variable < number |
+                variable > number |
+                variable <= number |
+                variable >= number |
+                variable & unsigned-integer == unsigned-integer |
+                variable & unsigned-integer != unsigned-integer |
+                (predicate AND predicate [AND predicate ...]) |
+                (predicate OR predicate [OR predicate ...]) |
+                NOT predicate
+           literal: boolean | integer | float | string
+           number: integer | float
+           variable: identifier | identifier[index]
+           index: integer[, integer ...]
+
+           Both single- and double quoted strings are allowed.
+           NaN values are matched by the ==/!= operators, i.e., the predicates
+           are internally converted to a proper "IS NaN" or "IS NOT NaN"
+           comparison.
+
+        Examples:
+             "Flags & 128 == 0"
+                 Match records with Flag bit 7 set to 0.
+
+             "Elevation >= 15"
+                 Match values with values greater than or equal to 15.
+
+             "(Label == "D" OR Label == "N" OR Label = "X")"
+                 Match records with Label set to D, N or X.
+
+             "(Type != 1 AND Type != 34) NOT (Type == 1 OR Type == 34)"
+                 Exclude records with Type set to 1 or 34.
+
+             "(Vector[2] <= -0.1 OR Vector[2] >= 0.5)"
+                 Match records with Vector[2] values outside of the (-0.1, 0.5)
+                 range.
+        """
+        if not isinstance(filter_, str):
+            raise TypeError("parameter must be a str")
+        self._filterlist.append(filter_)
+        # Update the SwarmWPSInputs object
+        self._request_inputs.filters = " AND ".join(self._filterlist)
+
+    def clear_filters(self):
         """Remove all applied filters."""
         self._filterlist = []
         self._request_inputs.filters = None
         return self
+
+    clear_range_filter = clear_filters  # alias for backward compatibility
+
+    def applied_filters(self):
+        """Print currently applied filters."""
+        for filter_ in self._filterlist:
+            print(filter_)
 
     def get_times_for_orbits(
         self, start_orbit, end_orbit, mission="Swarm", spacecraft=None
@@ -1908,7 +2124,7 @@ class SwarmRequest(ClientRequest):
             sorted([(mission1, spacecraft1), (mission2, spacecraft2)])
         )
 
-        if spacecraft_pair not in self.CONJUNCTION_MISISON_SPACECRAFT_PAIRS:
+        if spacecraft_pair not in self.CONJUNCTION_MISSION_SPACECRAFT_PAIRS:
             raise ValueError(
                 "Conjunctions not available for the requested "
                 "spacecraft pair {spacecraft_pair}!"
