@@ -60,14 +60,14 @@ Recommended setup if starting without Python already
   .. group-tab:: Swarm
 
     .. note::
-      
+
       *For Jupyter notebook users*, just try:
 
       .. code-block::
-      
+
         from viresclient import SwarmRequest
         request = SwarmRequest()
-      
+
       and you will automatically be prompted to set a token.
 
       A first usage guide is provided as a Jupyter notebook (`view <https://notebooks.vires.services/notebooks/02a__intro-swarm-viresclient>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/Swarm-DISC/Swarm_notebooks/master/notebooks/02a__Intro-Swarm-viresclient.ipynb>`_, or use git to get the whole example repository::
@@ -96,20 +96,20 @@ Recommended setup if starting without Python already
   .. group-tab:: Aeolus
 
     .. note::
-      
+
       *For Jupyter notebook users*, just try:
 
       .. code-block::
-      
+
         from viresclient import AeolusRequest
         request = AeolusRequest()
-      
+
       and you will automatically be prompted to set a token.
 
       A first usage guide is provided as a Jupyter notebook (`view <https://notebooks.aeolus.services/notebooks/02a__intro-aeolus-viresclient>`_). To run the notebook on your computer running Jupyter locally, `right click here to download <https://raw.githubusercontent.com/ESA-VirES/Aeolus-notebooks/main/notebooks/02a__Intro-Aeolus-viresclient.ipynb>`_, or use git to get the whole example repository::
 
         git clone https://github.com/ESA-VirES/Aeolus-notebooks.git
-      
+
     Access to the service is through the same user account as on the web interface (https://aeolus.services/) and is enabled through an access token (essentially a password). To get a token, log in to the website and click on your name on the top right to access the settings (`or follow this link <https://aeolus.services/accounts/tokens/>`_). From here, click on "Manage access tokens" and follow the instructions to create a new token.
 
     To set your token in the client, use either the Python interface:
