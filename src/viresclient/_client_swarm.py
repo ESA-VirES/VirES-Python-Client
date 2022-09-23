@@ -425,37 +425,39 @@ class SwarmWPSInputs(WPSInputs):
 class SwarmRequest(ClientRequest):
     """Handles the requests to and downloads from the server.
 
-    Example usage::
+    Examples:
 
-        from viresclient import SwarmRequest
-        # Set up connection with server
-        request = SwarmRequest()
-        # Set collection to use
-        request.set_collection("SW_OPER_MAGA_LR_1B")
-        # Set mix of products to fetch:
-        #  measurements (variables from the given collection)
-        #  models (magnetic model predictions at spacecraft sampling points)
-        #  auxiliaries (variables available with any collection)
-        request.set_products(
-            measurements=["F", "B_NEC"],
-            models=["CHAOS-Core"],
-            auxiliaries=["QDLat", "QDLon"],
-            sampling_step="PT10S"
-        )
-        # Fetch data from a given time interval
-        data = request.get_between(
-            start_time="2014-01-01T00:00",
-            end_time="2014-01-01T01:00"
-        )
-        # Load the data as an xarray.Dataset
-        ds = data.as_xarray()
+        Retrieve data::
 
-    Check what data are available with::
+            from viresclient import SwarmRequest
+            # Set up connection with server
+            request = SwarmRequest("https://vires.services/ows")
+            # Set collection to use
+            request.set_collection("SW_OPER_MAGA_LR_1B")
+            # Set mix of products to fetch:
+            #  measurements (variables from the given collection)
+            #  models (magnetic model predictions at spacecraft sampling points)
+            #  auxiliaries (variables available with any collection)
+            request.set_products(
+                measurements=["F", "B_NEC"],
+                models=["CHAOS-Core"],
+                auxiliaries=["QDLat", "QDLon"],
+                sampling_step="PT10S"
+            )
+            # Fetch data from a given time interval
+            data = request.get_between(
+                start_time="2014-01-01T00:00",
+                end_time="2014-01-01T01:00"
+            )
+            # Load the data as an xarray.Dataset
+            ds = data.as_xarray()
 
-        request.available_collections(details=False)
-        request.available_measurements("MAG")
-        request.available_auxiliaries()
-        request.available_models(details=False)
+        Check what data are available::
+
+            request.available_collections(details=False)
+            request.available_measurements("MAG")
+            request.available_auxiliaries()
+            request.available_models(details=False)
 
     Args:
         url (str):
@@ -473,7 +475,7 @@ class SwarmRequest(ClientRequest):
         "GOCE": None,
     }
 
-    CONJUNCTION_MISISON_SPACECRAFT_PAIRS = {
+    CONJUNCTION_MISSION_SPACECRAFT_PAIRS = {
         (("Swarm", "A"), ("Swarm", "B")),
     }
 
@@ -1401,18 +1403,20 @@ class SwarmRequest(ClientRequest):
             "SW_OPER_AUX_OBSM2_"
             "SW_OPER_AUX_OBSS2_"
 
-        Example usage::
+        Examples:
 
-            from viresclient import SwarmRequest
-            request = SwarmRequest()
-            # For a list of observatories available:
-            request.available_observatories("SW_OPER_AUX_OBSM2_")
-            # For a DataFrame also containing availability start and end times:
-            request.available_observatories("SW_OPER_AUX_OBSM2_", details=True)
-            # For available observatories during a given time period:
-            request.available_observatories(
-                "SW_OPER_AUX_OBSM2_", "2013-01-01", "2013-02-01"
-            )
+            ::
+
+                from viresclient import SwarmRequest
+                request = SwarmRequest()
+                # For a list of observatories available:
+                request.available_observatories("SW_OPER_AUX_OBSM2_")
+                # For a DataFrame also containing availability start and end times:
+                request.available_observatories("SW_OPER_AUX_OBSM2_", details=True)
+                # For available observatories during a given time period:
+                request.available_observatories(
+                    "SW_OPER_AUX_OBSM2_", "2013-01-01", "2013-02-01"
+                )
 
         Args:
             collection (str): OBS collection name, e.g. "SW_OPER_AUX_OBSM2\\_"
@@ -1757,6 +1761,9 @@ class SwarmRequest(ClientRequest):
     def add_filter(self, filter_):
         """Add an arbitrary data filter.
 
+        Args:
+            filter_ (str): string defining the filter, as shown below
+
         Filter grammar:
 
         .. code-block:: text
@@ -1791,7 +1798,7 @@ class SwarmRequest(ClientRequest):
              "Elevation >= 15"
                  Match values with values greater than or equal to 15.
 
-             "(Label == "D" OR Label == "N" OR LABEL = "X")"
+             "(Label == "D" OR Label == "N" OR Label = "X")"
                  Match records with Label set to D, N or X.
 
              "(Type != 1 AND Type != 34) NOT (Type == 1 OR Type == 34)"
@@ -2117,7 +2124,7 @@ class SwarmRequest(ClientRequest):
             sorted([(mission1, spacecraft1), (mission2, spacecraft2)])
         )
 
-        if spacecraft_pair not in self.CONJUNCTION_MISISON_SPACECRAFT_PAIRS:
+        if spacecraft_pair not in self.CONJUNCTION_MISSION_SPACECRAFT_PAIRS:
             raise ValueError(
                 "Conjunctions not available for the requested "
                 "spacecraft pair {spacecraft_pair}!"

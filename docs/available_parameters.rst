@@ -1,6 +1,10 @@
 Available parameters for Swarm
 ==============================
 
+.. tip::
+
+  Did you know? The *VirES for Swarm* service provides data not only from Swarm but also INTERMAGNET ground observatories (search below for `AUX_OBS`), and recalibrated platform magnetometer data from selected LEO missions (search below for `MAG_`).
+
 .. note::
 
   | `See also: Jupyter notebook about data and model availability <https://notebooks.vires.services/notebooks/02b__viresclient-available-data>`_ - check out the other demo notebooks there too.

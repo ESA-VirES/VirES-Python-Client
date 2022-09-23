@@ -22,7 +22,9 @@ Configuration Details
 
   ... then follow automatic instructions to configure token if not already set
 
-NB: URL's on this page assume using *VirES for Swarm*. If using *Aeolus* instead, replace ``https://vires.services/ows`` with ``https://aeolus.services/ows``.
+.. note::
+
+  URL's on this page assume using *VirES for Swarm*. If using *Aeolus* instead, replace {``https://vires.services/ows`` and ``SwarmRequest``} with {``https://aeolus.services/ows`` and ``AeolusRequest``}
 
 While it is possible to enter the server URL and access credentials (see :doc:`access_token`) each time a new request object is created,
 

@@ -6,10 +6,6 @@
     :target: http://viresclient.readthedocs.io/
     :alt: Documentation Status
 
-.. image:: https://requires.io/github/ESA-VirES/VirES-Python-Client/requirements.svg?branch=master
-    :target: https://requires.io/github/ESA-VirES/VirES-Python-Client/requirements/?branch=master
-    :alt: Requirements Status
-
 .. image:: https://zenodo.org/badge/138034133.svg
    :target: https://zenodo.org/badge/latestdoi/138034133
 

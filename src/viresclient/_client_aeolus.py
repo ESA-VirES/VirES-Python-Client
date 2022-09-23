@@ -304,9 +304,11 @@ class AeolusRequest(ClientRequest):
 
     def set_bbox(self, bbox=None):
         """Set a bounding box to apply as filter.
+
         Note:
             Dictionary argument has to contain n, e, s, w keys for
             north, east, south and west values as EPSG 4326 coordinates
+
         Args:
             bbox (dict)
         """

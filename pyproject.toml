@@ -56,8 +56,9 @@ dev = [
 ]
 docs = [
     "Sphinx == 4.5.0",
-    "sphinx-book-theme == 0.3.2",
+    "sphinx-book-theme == 0.3.3",
     "sphinx_copybutton == 0.5.0",
+    "sphinx-tabs == 3.4.0",
 ]
 
 [project.scripts]
