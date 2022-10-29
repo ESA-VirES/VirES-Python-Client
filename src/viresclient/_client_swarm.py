@@ -688,6 +688,7 @@ class SwarmRequest(ClientRequest):
         "MAG": [
             "F",
             "dF_AOCS",
+            "dF_Sun",
             "dF_other",
             "F_error",
             "B_VFM",
