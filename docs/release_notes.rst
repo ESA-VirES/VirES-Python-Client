@@ -4,6 +4,13 @@ Release notes
 Change log
 ----------
 
+Changes from 0.11.0 to 0.11.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``viresclient`` package now available through conda-forge
+- Added parameter to Swarm ``MAG`` collections: ``dF_Sun``
+- Added GOCE ML magnetic dataset: ``GO_MAG_ACAL_CORR_ML``
+
 Changes from 0.10.3 to 0.11.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

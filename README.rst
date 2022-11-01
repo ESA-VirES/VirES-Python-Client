@@ -1,6 +1,11 @@
 
-.. image:: https://badge.fury.io/py/viresclient.svg
-    :target: https://badge.fury.io/py/viresclient
+.. image:: https://img.shields.io/pypi/v/viresclient
+   :target: https://pypi.org/project/viresclient/
+   :alt: PyPI
+
+.. image:: https://img.shields.io/conda/vn/conda-forge/viresclient
+   :target: https://anaconda.org/conda-forge/viresclient
+   :alt: Conda
 
 .. image:: https://readthedocs.org/projects/viresclient/badge/?version=latest
     :target: http://viresclient.readthedocs.io/
@@ -12,6 +17,10 @@
 ::
 
   pip install viresclient
+
+::
+
+  conda install -c conda-forge viresclient
 
 viresclient_ is a Python package which connects to a VirES server, of which there are two: *VirES for Swarm* (https://vires.services) and *VirES for Aeolus* (https://aeolus.services), through the WPS_ interface. This package handles product requests and downloads, enabling easy access to data and models from ESA's Earth Explorer missions, Swarm_ and Aeolus_. This service is provided for ESA by EOX_. For enquiries about the service and problems with accessing your account, please email info@vires.services. For help with usage, please email ashley.smith@ed.ac.uk (for Swarm data) or `raise an issue on GitHub`_.
 

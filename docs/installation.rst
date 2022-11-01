@@ -6,50 +6,67 @@ Installation and First Usage
 1. Installation
 ---------------
 
-Python ≥ 3.6 is required. Testing is primarily on Linux, but macOS and Windows should also work.
+Python ≥ 3.6 is required. Testing is primarily on Linux, but macOS and Windows should also work. Available through both pip and conda (conda-forge).
 
-It can currently be installed with::
+.. tabs::
 
-  pip install viresclient
+  .. group-tab:: pip
 
-Dependencies::
+    .. code-block:: sh
 
-  requests
-  Jinja2
-  tables
-  tqdm
-  cdflib
-  pandas
-  xarray
-  netCDF4
+      pip install viresclient
 
-pip will fetch these automatically - if you are using conda, it may be better to install these first using conda instead (where available)::
+  .. group-tab:: conda
 
-    conda install requests jinja2 pytables tqdm pandas xarray netcdf4
-    pip install viresclient
+    .. code-block:: sh
+
+      conda install --channel conda-forge viresclient
+
+  .. group-tab:: mamba
+
+    .. code-block:: sh
+
+      mamba install --channel conda-forge viresclient
 
 Recommended setup if starting without Python already
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. Install Miniconda: https://docs.conda.io/en/latest/miniconda.html
+There are many ways to work with Python. We recommend using conda/mamba to manage your programming environment because of the availability of many data science packages through conda.
 
-2. Set the conda-forge channel as the priority to install packages from::
+.. tabs::
 
-    conda config --add channels conda-forge
-    conda config --set channel_priority strict
+  .. group-tab:: conda
 
-3. Create a new conda environment with some recommended packages::
+    1. Install Miniconda: https://docs.conda.io/en/latest/miniconda.html
 
-    conda create --name myenv scipy matplotlib pandas xarray cartopy jupyter jupyterlab flake8 dask h5py netCDF4 jinja2 pytables tqdm ipywidgets
+    2. Set the conda-forge channel as the priority to install packages from::
 
-  Activate the new environment (you do this each time you want to use it)::
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
 
-    conda activate myenv
+    You should do this to avoid mixing packages from the anaconda channel (which can result in broken environments), and try to get all packages from conda-forge where available for consistency.
 
-4. Use pip to install viresclient::
+    3. Create a new conda environment with some recommended packages, including viresclient::
 
-    pip install viresclient
+        conda create --name myenv python=3.10 jupyterlab scipy matplotlib pandas xarray cartopy h5py netCDF4 pytables ipywidgets viresclient
 
+    4. Activate the new environment (you do this each time you want to use it)::
+
+        conda activate myenv
+
+  .. group-tab:: mamba
+
+    `Mamba <https://mamba.readthedocs.io/>`_ is a drop-in replacement for conda. You can install it into an existing (base) conda environment (``conda install -c conda-forge mamba``) and then just use ``mamba`` in place of ``conda`` in any commands - mamba is significantly faster. You can also install *mambaforge* directly to get mamba and conda-forge immediately configured in the base environment.
+
+    1. Download and install the `mambaforge installer <https://github.com/conda-forge/miniforge#mambaforge>`_ or check the `mamba documentation <https://mamba.readthedocs.io/en/latest/installation.html>`_
+
+    2. Create a new environment for your development work::
+
+        mamba create --name myenv python=3.10 jupyterlab scipy matplotlib pandas xarray cartopy h5py netCDF4 pytables ipywidgets viresclient
+
+    3. Activate it to use it::
+
+        mamba activate myenv
 
 
 2. First usage / Configuration
