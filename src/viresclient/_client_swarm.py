@@ -687,6 +687,7 @@ class SwarmRequest(ClientRequest):
     PRODUCT_VARIABLES = {
         "MAG": [
             "F",
+            "dF_Sun",
             "dF_AOCS",
             "dF_other",
             "F_error",
