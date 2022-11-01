@@ -127,6 +127,7 @@ CS_OPER_MAG                     MAG_CS           ``F,B_NEC,B_mod_NEC,B_NEC1,B_NE
 GRACE_x_MAG (x=A/B)             MAG_GRACE        ``F,B_NEC,B_NEC_raw,B_FGM,B_mod_NEC,q_NEC_CRF,q_error``
 GFx_OPER_FGM_ACAL_CORR (x=1/2)  MAG_GFO          ``F,B_NEC,B_FGM,dB_MTQ_FGM,dB_XI_FGM,dB_NY_FGM,dB_BT_FGM,dB_ST_FGM,dB_SA_FGM,dB_BAT_FGM,q_NEC_FGM,B_FLAG``
 GO_MAG_ACAL_CORR                MAG_GOCE         ``F,B_MAG,B_NEC,dB_MTQ_SC,dB_XI_SC,dB_NY_SC,dB_BT_SC,dB_ST_SC,dB_SA_SC,dB_BAT_SC,dB_HK_SC,dB_BLOCK_CORR,q_SC_NEC,q_MAG_SC,B_FLAG``
+GO_MAG_ACAL_CORR_ML             MAG_GOCE_ML      ``B_MAG,B_NEC,q_FGM_NEC,B_FLAG,KP_DST_FLAG,NaN_FLAG,Latitude_QD,Longitude_QD``
 =============================== ================ ===================================================================================================================================
 
 The ``measurements``, ``models``, and ``auxiliaries`` chosen will match the cadence of the ``collection`` chosen.
