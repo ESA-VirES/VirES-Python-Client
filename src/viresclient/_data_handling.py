@@ -479,7 +479,9 @@ class ReturnedDataFile:
         if path.split(".")[-1].lower() != path_extension:
             raise TypeError(f"Filename extension should be {path_extension}")
         if os.path.isfile(path) and not overwrite:
-            raise Exception("File not written as it already exists and overwrite=False")
+            raise FileExistsError(
+                "File not written as it already exists and overwrite=False"
+            )
 
     def to_file(self, path, overwrite=False):
         """Saves the data to the specified file.

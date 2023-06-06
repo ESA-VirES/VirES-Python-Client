@@ -85,8 +85,7 @@ def test_ReturnedDataFile_saving(tmpfile):
         # Check that not overwriting and overwriting work right
         testfile = str(tmpfile(f"testfile.{filetype}"))
         retdata.to_file(testfile)
-        # with pytest.raises(FileExistsError):  # not in py27
-        with pytest.raises(Exception):
+        with pytest.raises(FileExistsError):
             retdata.to_file(testfile, overwrite=False)
         retdata.to_file(testfile, overwrite=True)
 
@@ -115,14 +114,13 @@ def test_ReturnedData_saving(tmpfile):
         # Check that not overwriting and overwriting work right
         testfile = str(tmpfile(f"testfile.{filetype}"))
         retdata.to_file(testfile)
-        # with pytest.raises(FileExistsError):  # not in py27
-        with pytest.raises(Exception):
+        with pytest.raises(FileExistsError):
             retdata.to_file(testfile, overwrite=False)
         retdata.to_file(testfile, overwrite=True)
         # repeat for .to_files()
         testfile = str(tmpfile(f"testfile2.{filetype}"))
         retdata.to_files([testfile])
-        with pytest.raises(Exception):
+        with pytest.raises(FileExistsError):
             retdata.to_files([testfile], overwrite=False)
         retdata.to_files([testfile], overwrite=True)
 
