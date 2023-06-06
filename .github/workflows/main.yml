@@ -12,7 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - run: pipx run pre-commit run --all
+    - uses: actions/setup-python@v4
+    - uses: pre-commit/action@v3.0.0
+      with:
+        extra_args: --hook-stage manual --all-files
 
   checks:
     name: Check Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
