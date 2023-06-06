@@ -100,7 +100,7 @@ class FileReader:
                 globalatts.get("MAGNETIC_MODELS", [])
             )
             self.data_filters = self._ensure_list(globalatts.get("DATA_FILTERS", []))
-            self.variables = self._cdf.cdf_info()["zVariables"]
+            self.variables = self._get_attr_or_key(self._cdf.cdf_info(), "zVariables")
             self._varatts = {var: self._cdf.varattsget(var) for var in self.variables}
             self._varinfo = {var: self._cdf.varinq(var) for var in self.variables}
         else:
@@ -110,7 +110,10 @@ class FileReader:
         return self
 
     def __exit__(self, *args):
-        self._cdf.close()
+        try:
+            self._cdf.close()
+        except AttributeError:
+            pass
 
     @staticmethod
     def _open_cdf(file):
@@ -129,6 +132,15 @@ class FileReader:
             return [attribute]
         else:
             return attribute
+
+    @staticmethod
+    def _get_attr_or_key(obj, attr):
+        # Used to work around cdflib<1 & >=1 support
+        # cdflib>=1 introduces dataclasses in place of some dicts
+        if isinstance(obj, dict):
+            return obj.get(attr, None)
+        else:
+            return getattr(obj, attr, None)
 
     def get_variable(self, var):
         try:
@@ -149,10 +161,10 @@ class FileReader:
         return desc if desc else catdesc
 
     def get_variable_numdims(self, var):
-        return self._varinfo[var].get("Num_Dims")
+        return self._get_attr_or_key(self._varinfo[var], "Num_Dims")
 
     def get_variable_dimsizes(self, var):
-        return self._varinfo[var].get("Dim_Sizes")
+        return self._get_attr_or_key(self._varinfo[var], "Dim_Sizes")
 
     @staticmethod
     def _cdftime_to_datetime(t):
