@@ -602,9 +602,7 @@ class SwarmRequest(ClientRequest):
         "PPI_FAC": [f"SW_OPER_PPI{x}FAC_2F" for x in "ABC"],
         "PPI_FAC:ID": [f"SW_OPER_PPI{x}FAC_2F:ID" for x in "ABC"],
         # Multi-mission magnetic products
-        "MAG_CS": [
-            "CS_OPER_MAG",
-        ],
+        "MAG_CS": ["CS_OPER_MAG"],
         "MAG_GRACE": ["GRACE_A_MAG", "GRACE_B_MAG"],
         "MAG_GFO": ["GF1_OPER_FGM_ACAL_CORR", "GF2_OPER_FGM_ACAL_CORR"],
         "MAG_GOCE": ["GO_MAG_ACAL_CORR"],
@@ -621,7 +619,8 @@ class SwarmRequest(ClientRequest):
         "SW_OPER_VOBS_4M_2_",
         "CH_OPER_VOBS_1M_2_",
         "CR_OPER_VOBS_1M_2_",
-        "OR_OPER_VOBS_1M_2_" "CO_OPER_VOBS_1M_2_",
+        "OR_OPER_VOBS_1M_2_",
+        "CO_OPER_VOBS_1M_2_",
         "OR_OPER_VOBS_4M_2_",
         "CH_OPER_VOBS_4M_2_",
         "CR_OPER_VOBS_4M_2_",
