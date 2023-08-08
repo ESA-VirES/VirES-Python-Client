@@ -481,9 +481,18 @@ class SwarmRequest(ClientRequest):
     }
 
     COLLECTIONS = {
-        "MAG": [f"SW_OPER_MAG{x}_LR_1B" for x in "ABC"],
-        "MAG_HR": [f"SW_OPER_MAG{x}_HR_1B" for x in "ABC"],
-        "EFI": [f"SW_OPER_EFI{x}_LP_1B" for x in "ABC"],
+        "MAG": [
+            *(f"SW_OPER_MAG{x}_LR_1B" for x in "ABC"),
+            *(f"SW_FAST_MAG{x}_LR_1B" for x in "ABC"),
+        ],
+        "MAG_HR": [
+            *(f"SW_OPER_MAG{x}_HR_1B" for x in "ABC"),
+            *(f"SW_FAST_MAG{x}_HR_1B" for x in "ABC"),
+        ],
+        "EFI": [
+            *(f"SW_OPER_EFI{x}_LP_1B" for x in "ABC"),
+            *(f"SW_FAST_EFI{x}_LP_1B" for x in "ABC"),
+        ],
         "EFI_IDM": [f"SW_PREL_EFI{x}IDM_2_" for x in "ABC"],
         "EFI_TIE": [f"SW_OPER_EFI{x}TIE_2_" for x in "ABC"],
         "EFI_TCT02": [f"SW_EXPT_EFI{x}_TCT02" for x in "ABC"],
@@ -608,7 +617,10 @@ class SwarmRequest(ClientRequest):
         "MAG_GOCE": ["GO_MAG_ACAL_CORR"],
         "MAG_GOCE_ML": ["GO_MAG_ACAL_CORR_ML"],
         # Swarm spacecraft positions
-        "MOD_SC": [f"SW_OPER_MOD{x}_SC_1B" for x in "ABC"],
+        "MOD_SC": [
+            *(f"SW_OPER_MOD{x}_SC_1B" for x in "ABC"),
+            *(f"SW_FAST_MOD{x}_SC_1B" for x in "ABC"),
+        ],
     }
 
     OBS_COLLECTIONS = [
