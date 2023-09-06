@@ -25,6 +25,7 @@ Introduction
   capabilities
   available_parameters
   available_parameters_aeolus
+  geomagnetic_models
   notebook_intro
   release_notes
 
