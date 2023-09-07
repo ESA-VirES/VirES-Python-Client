@@ -263,6 +263,7 @@ class SwarmWPSInputs(WPSInputs):
         "sampling_step",
         "response_type",
         "custom_shc",
+        "ignore_cached_models",
     ]
 
     def __init__(
@@ -276,6 +277,7 @@ class SwarmWPSInputs(WPSInputs):
         sampling_step=None,
         response_type=None,
         custom_shc=None,
+        ignore_cached_models=False,
     ):
         # Set up default values
         # Obligatory - these must be replaced before the request is made
@@ -290,6 +292,7 @@ class SwarmWPSInputs(WPSInputs):
         self.filters = None if filters is None else filters
         self.sampling_step = None if sampling_step is None else sampling_step
         self.custom_shc = None if custom_shc is None else custom_shc
+        self.ignore_cached_models = ignore_cached_models
 
     @property
     def collection_ids(self):
@@ -344,6 +347,17 @@ class SwarmWPSInputs(WPSInputs):
             self._model_expression = model_expression
         else:
             raise TypeError("model_expression must be a string")
+
+    @property
+    def ignore_cached_models(self):
+        return self._ignore_cached_models
+
+    @ignore_cached_models.setter
+    def ignore_cached_models(self, value):
+        if isinstance(value, bool):
+            self._ignore_cached_models = value
+        else:
+            raise TypeError
 
     @property
     def begin_time(self):
@@ -1532,6 +1546,7 @@ class SwarmRequest(ClientRequest):
         auxiliaries=None,
         residuals=False,
         sampling_step=None,
+        ignore_cached_models=False,
     ):
         """Set the combination of products to retrieve.
 
@@ -1545,6 +1560,7 @@ class SwarmRequest(ClientRequest):
             auxiliaries (list(str)): from .available_auxiliaries()
             residuals (bool): True if only returning measurement-model residual
             sampling_step (str): ISO_8601 duration, e.g. 10 seconds: PT10S, 1 minute: PT1M
+            ignore_cached_models (bool): True if cached models should be ignored and calculated on-the-fly
 
         """
         if self._collection_list is None:
@@ -1643,6 +1659,8 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.variables = list(variables)
         self._request_inputs.sampling_step = sampling_step
         self._request_inputs.custom_shc = custom_shc
+        self._request_inputs.ignore_cached_models = ignore_cached_models
+
         return self
 
     def set_range_filter(self, parameter, minimum=None, maximum=None, negate=False):
