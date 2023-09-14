@@ -1,3 +1,5 @@
+.. _Swarm parameters:
+
 Available parameters for Swarm
 ==============================
 
@@ -207,6 +209,8 @@ SW_OPER_VOBS_1M_2\_:SecularVariation ``SiteCode,B_SV,sigma_SV``
 
 
 ----
+
+.. _Swarm models:
 
 ``models``
 ----------

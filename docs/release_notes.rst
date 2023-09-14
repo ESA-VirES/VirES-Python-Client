@@ -4,6 +4,12 @@ Release notes
 Change log
 ----------
 
+Changes from 0.11.2 to 0.11.3
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added ``ignore_cached_models=True`` in :py:meth:`viresclient.SwarmRequest.set_products`
+- Added description of model handling in docs
+
 Changes from 0.11.1 to 0.11.2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
