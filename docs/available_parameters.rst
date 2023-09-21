@@ -38,6 +38,10 @@ See the `Swarm Data Handbook`_ for details about the products and `Swarm Product
 ``collections``
 ---------------
 
+.. note::
+
+  ``FAST`` data will soon be available for some products. These are processed and made available faster than the traditional operational (``OPER``) data, mainly for space weather monitoring. The collection names are the same as those below, but replace ``OPER`` with ``FAST``.
+
 Collections are grouped according to a type containing similar measurements (i.e. the same product from different spacecraft). The collection type can be given to :py:meth:`viresclient.SwarmRequest.available_collections` to retrieve the full collection names. These cover the Swarm data products as below (replace x with A, B, or C for Alpha, Bravo, or Charlie):
 
 ======================== ================ ==============================================================
