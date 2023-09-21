@@ -4,6 +4,11 @@ Release notes
 Change log
 ----------
 
+Changes from 0.11.3 to 0.11.4
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Beginning support for (L1B) FAST data
+
 Changes from 0.11.2 to 0.11.3
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
