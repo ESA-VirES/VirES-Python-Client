@@ -4,10 +4,11 @@ Release notes
 Change log
 ----------
 
-Changes from 0.11.3 to 0.11.4
+Changes from 0.11.3 to 0.12.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Beginning support for (L1B) FAST data
+- Added :py:meth:`viresclient.SwarmRequest.get_collection_info`
 
 Changes from 0.11.2 to 0.11.3
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
