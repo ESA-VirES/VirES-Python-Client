@@ -33,6 +33,14 @@
       </wps:Data>
     </wps:Input>
     {% endif -%}
+    {% if grade -%}
+    <wps:Input>
+      <ows:Identifier>grade</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>{{ grade }}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
     {% if begin_time -%}
     <wps:Input>
       <ows:Identifier>begin_time</ows:Identifier>
