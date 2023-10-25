@@ -2161,6 +2161,7 @@ class SwarmRequest(ClientRequest):
         spacecraft2="B",
         mission1="Swarm",
         mission2="Swarm",
+        grade="OPER",
     ):
         """Get times of the spacecraft conjunctions.
 
@@ -2176,6 +2177,7 @@ class SwarmRequest(ClientRequest):
             spacecraft2: identifier of the second spacecraft, default to 'B'
             mission1 (str): mission of the first spacecraft, defaults to 'Swarm'
             mission2 (str): mission of the first spacecraft, defaults to 'Swarm'
+            grade (str): products grade, possible values "OPER" or "FAST"
 
         Returns:
             ReturnedData:
@@ -2220,6 +2222,7 @@ class SwarmRequest(ClientRequest):
             spacecraft2=spacecraft2,
             mission1=mission1,
             mission2=mission2,
+            grade=(grade if grade and grade != "OPER" else None),
             threshold=threshold,
         ).encode("UTF-8")
 
