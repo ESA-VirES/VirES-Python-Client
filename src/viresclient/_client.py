@@ -671,6 +671,10 @@ class ClientRequest:
         response = self._get(request, asynchronous=False, show_progress=False)
         df = read_csv(StringIO(str(response, "utf-8")))
         # Convert to datetime objects
-        df["starttime"] = to_datetime(df["starttime"], format="ISO8601")
-        df["endtime"] = to_datetime(df["endtime"], format="ISO8601")
+        try:
+            df["starttime"] = to_datetime(df["starttime"], format="ISO8601")
+            df["endtime"] = to_datetime(df["endtime"], format="ISO8601")
+        except ValueError:
+            df["starttime"] = to_datetime(df["starttime"])
+            df["endtime"] = to_datetime(df["endtime"])
         return df
