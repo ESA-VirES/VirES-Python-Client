@@ -4,6 +4,11 @@ Release notes
 Change log
 ----------
 
+Changes from 0.11.4 to 0.11.5
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Fix :py:meth:`viresclient.SwarmRequest.available_times` usage with pandas 2.x
+
 Changes from 0.11.3 to 0.11.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
