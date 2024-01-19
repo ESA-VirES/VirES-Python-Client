@@ -310,7 +310,7 @@ class SwarmWPSInputs(WPSInputs):
         """Identify spacecraft (or ground observatory name) from collection name."""
         if "AUX_OBS" in collection or "VOBS" in collection:
             name = collection
-        elif (collection[:3] == "SW_"):
+        elif collection[:3] == "SW_":
             # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
             sc = collection[11]
             sc_to_name = {"A": "Alpha", "B": "Bravo", "C": "Charlie"}
