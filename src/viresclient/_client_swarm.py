@@ -308,10 +308,8 @@ class SwarmWPSInputs(WPSInputs):
     @staticmethod
     def _spacecraft_from_collection(collection):
         """Identify spacecraft (or ground observatory name) from collection name."""
-        if "AUX_OBS" in collection:
-            name = "AUX_OBS"
-            if ":" in collection:
-                name = f"{name}:{collection[19:22]}"
+        if "AUX_OBS" in collection or "VOBS" in collection:
+            name = collection
         elif collection[:3] == "SW_":
             # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
             sc = collection[11]
