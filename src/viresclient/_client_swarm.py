@@ -1135,6 +1135,8 @@ class SwarmRequest(ClientRequest):
         "Kp",
         "Dst",
         "F107",
+        "F107_avg81d",
+        "F107_avg81d_count",
         "IMF_BY_GSM",
         "IMF_BZ_GSM",
         "IMF_V",
