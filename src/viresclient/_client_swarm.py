@@ -1126,7 +1126,7 @@ class SwarmRequest(ClientRequest):
             "B_NEC",
             "q_FGM_NEC",
             "B_FLAG",
-            "KP_DST_FLAG",
+            "MAGNETIC_ACTIVITY_FLAG",
             "NaN_FLAG",
             "Latitude_QD",
             "Longitude_QD",
