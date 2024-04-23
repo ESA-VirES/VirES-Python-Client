@@ -1102,7 +1102,7 @@ class SwarmRequest(ClientRequest):
             "KP_DST_FLAG",
             "Latitude_QD",
             "Longitude_QD",
-        ]
+        ],
         "MAG_GOCE": [
             "F",
             "B_MAG",
