@@ -218,6 +218,7 @@ COLLECTION_REFERENCES = {
     "MAG_CS": ("https://doi.org/10.1186/s40623-020-01171-9",),
     "MAG_GRACE": ("https://doi.org/10.1186/s40623-021-01373-9",),
     "MAG_GFO": ("https://doi.org/10.1186/s40623-021-01364-w",),
+    "MAG_GFO_ML": ("https://doi.org/10.5880/GFZ.2.3.2023.001",),
     "EFI_IDM": (
         "https://earth.esa.int/eogateway/documents/20142/2860886/SLIDEM_Product_Definition.pdf",
     ),
@@ -626,6 +627,7 @@ class SwarmRequest(ClientRequest):
         "MAG_CS": ["CS_OPER_MAG"],
         "MAG_GRACE": ["GRACE_A_MAG", "GRACE_B_MAG"],
         "MAG_GFO": ["GF1_OPER_FGM_ACAL_CORR", "GF2_OPER_FGM_ACAL_CORR"],
+        "MAG_GFO_ML": ["GF1_MAG_ACAL_CORR_ML", "GF2_MAG_ACAL_CORR_ML"],
         "MAG_GOCE": ["GO_MAG_ACAL_CORR"],
         "MAG_GOCE_ML": ["GO_MAG_ACAL_CORR_ML"],
         # Swarm spacecraft positions
@@ -1091,6 +1093,16 @@ class SwarmRequest(ClientRequest):
             "q_NEC_FGM",
             "B_FLAG",
         ],
+        "MAG_GFO_ML": [
+            "F",
+            "B_FGM",
+            "B_NEC",
+            "q_NEC_FGM",
+            "B_FLAG",
+            "KP_DST_FLAG",
+            "Latitude_QD",
+            "Longitude_QD",
+        ]
         "MAG_GOCE": [
             "F",
             "B_MAG",
