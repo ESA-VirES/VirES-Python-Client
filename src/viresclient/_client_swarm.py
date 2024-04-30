@@ -1095,7 +1095,7 @@ class SwarmRequest(ClientRequest):
         ],
         "MAG_GFO_ML": [
             "F",
-            "B_FGM",
+            "B_MAG",
             "B_NEC",
             "q_NEC_FGM",
             "B_FLAG",
