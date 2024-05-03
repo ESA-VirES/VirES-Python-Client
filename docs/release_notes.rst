@@ -4,6 +4,17 @@ Release notes
 Change log
 ----------
 
+Changes from 0.11.6 to 0.11.7
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added auxiliaries ``["F107_avg81d", "F107_avg81d_count"]``
+- Updated and added ML-calibrated variants of GOCE & GRACE-FO magnetic datasets, ``GO_MAG_ACAL_CORR_ML`` & ``GFx_MAG_ACAL_CORR_ML``
+
+Changes from 0.11.5 to 0.11.6
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Fix to allow multiple VOBS to be fetched in one request
+
 Changes from 0.11.4 to 0.11.5
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
