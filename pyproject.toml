@@ -69,7 +69,10 @@ viresclient = "viresclient.commands.viresclient:start"
 minversion = "6.0"
 addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
 xfail_strict = true
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    "ignore:(\nPyarrow will become a required dependency of pandas):DeprecationWarning",
+]
 testpaths = [
     "tests",
 ]

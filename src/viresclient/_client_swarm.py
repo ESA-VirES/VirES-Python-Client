@@ -219,6 +219,7 @@ COLLECTION_REFERENCES = {
     "MAG_CS": ("https://doi.org/10.1186/s40623-020-01171-9",),
     "MAG_GRACE": ("https://doi.org/10.1186/s40623-021-01373-9",),
     "MAG_GFO": ("https://doi.org/10.1186/s40623-021-01364-w",),
+    "MAG_GFO_ML": ("https://doi.org/10.5880/GFZ.2.3.2023.001",),
     "EFI_IDM": (
         "https://earth.esa.int/eogateway/documents/20142/2860886/SLIDEM_Product_Definition.pdf",
     ),
@@ -309,10 +310,8 @@ class SwarmWPSInputs(WPSInputs):
     @staticmethod
     def _spacecraft_from_collection(collection):
         """Identify spacecraft (or ground observatory name) from collection name."""
-        if "AUX_OBS" in collection:
-            name = "AUX_OBS"
-            if ":" in collection:
-                name = f"{name}:{collection[19:22]}"
+        if "AUX_OBS" in collection or "VOBS" in collection:
+            name = collection
         elif collection[:3] == "SW_":
             # 12th character in name, e.g. SW_OPER_MAGx_LR_1B
             sc = collection[11]
@@ -629,6 +628,7 @@ class SwarmRequest(ClientRequest):
         "MAG_CS": ["CS_OPER_MAG"],
         "MAG_GRACE": ["GRACE_A_MAG", "GRACE_B_MAG"],
         "MAG_GFO": ["GF1_OPER_FGM_ACAL_CORR", "GF2_OPER_FGM_ACAL_CORR"],
+        "MAG_GFO_ML": ["GF1_MAG_ACAL_CORR_ML", "GF2_MAG_ACAL_CORR_ML"],
         "MAG_GOCE": ["GO_MAG_ACAL_CORR"],
         "MAG_GOCE_ML": ["GO_MAG_ACAL_CORR_ML"],
         # Swarm spacecraft positions
@@ -1094,6 +1094,16 @@ class SwarmRequest(ClientRequest):
             "q_NEC_FGM",
             "B_FLAG",
         ],
+        "MAG_GFO_ML": [
+            "F",
+            "B_MAG",
+            "B_NEC",
+            "q_NEC_FGM",
+            "B_FLAG",
+            "KP_DST_FLAG",
+            "Latitude_QD",
+            "Longitude_QD",
+        ],
         "MAG_GOCE": [
             "F",
             "B_MAG",
@@ -1117,7 +1127,7 @@ class SwarmRequest(ClientRequest):
             "B_NEC",
             "q_FGM_NEC",
             "B_FLAG",
-            "KP_DST_FLAG",
+            "MAGNETIC_ACTIVITY_FLAG",
             "NaN_FLAG",
             "Latitude_QD",
             "Longitude_QD",
@@ -1138,6 +1148,8 @@ class SwarmRequest(ClientRequest):
         "Kp",
         "Dst",
         "F107",
+        "F107_avg81d",
+        "F107_avg81d_count",
         "IMF_BY_GSM",
         "IMF_BZ_GSM",
         "IMF_V",

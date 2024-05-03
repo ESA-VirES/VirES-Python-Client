@@ -4,11 +4,31 @@ Release notes
 Change log
 ----------
 
-Changes from 0.11.3 to 0.12.0
+Changes from 0.11.7 to 0.12.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Beginning support for (L1B) FAST data
 - Added :py:meth:`viresclient.SwarmRequest.get_collection_info`
+
+Changes from 0.11.6 to 0.11.7
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added auxiliaries ``["F107_avg81d", "F107_avg81d_count"]``
+- Updated and added ML-calibrated variants of GOCE & GRACE-FO magnetic datasets, ``GO_MAG_ACAL_CORR_ML`` & ``GFx_MAG_ACAL_CORR_ML``
+
+Changes from 0.11.5 to 0.11.6
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Fix to allow multiple VOBS to be fetched in one request
+
+Changes from 0.11.4 to 0.11.5
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Fix :py:meth:`viresclient.SwarmRequest.available_times` usage with pandas 2.x
+
+Changes from 0.11.3 to 0.11.4
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Support for (L1B) FAST data
 
 Changes from 0.11.2 to 0.11.3
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
