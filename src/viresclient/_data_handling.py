@@ -84,7 +84,7 @@ FRAME_DESCRIPTIONS = {
 class FileReader:
     """Provides access to file contents (wrapper around cdflib)"""
 
-    def __init__(self, file, filetype="cdf"):
+    def __init__(self, file, filetype="cdf", time_variable="Timestamp"):
         """
 
         Args:
@@ -103,6 +103,7 @@ class FileReader:
             self.variables = self._get_attr_or_key(self._cdf.cdf_info(), "zVariables")
             self._varatts = {var: self._cdf.varattsget(var) for var in self.variables}
             self._varinfo = {var: self._cdf.varinq(var) for var in self.variables}
+            self._time_variable = time_variable
         else:
             raise NotImplementedError(f"{filetype} not supported")
 
@@ -177,7 +178,7 @@ class FileReader:
         # Use the variables in the file as columns to create in the dataframe.
         # Skip Timestamp as it will be used as the index.
         columns = set(self.variables)
-        columns.remove("Timestamp")
+        columns.remove(self._time_variable)
         # Split columns according to those to be expanded into multiple columns
         if expand:
             columns_to_expand = {
@@ -193,8 +194,8 @@ class FileReader:
             columns_to_expand = set()
         columns_standard = columns.difference(columns_to_expand)
         # Initialise dataframe with Timestamp as index
-        df = pandas.DataFrame(index=self.get_variable("Timestamp"))
-        df.index.name = "Timestamp"
+        df = pandas.DataFrame(index=self.get_variable(self._time_variable))
+        df.index.name = self._time_variable
         # Return empty dataframe, including column names
         #  when retrieval from server is empty
         if len(df.index) == 0:
@@ -230,18 +231,18 @@ class FileReader:
         # Initialise dataset with time coordinate
         ds = xarray.Dataset(
             coords={
-                "Timestamp": self._cdftime_to_datetime(self.get_variable("Timestamp"))
+                self._time_variable: self._cdftime_to_datetime(self.get_variable(self._time_variable))
             }
         )
         # Add Spacecraft variable as Categorical to save memory
         if "Spacecraft" in self.variables:
             ds["Spacecraft"] = (
-                ("Timestamp",),
+                (self._time_variable,),
                 pandas.Categorical(
                     self.get_variable("Spacecraft"), categories=ALLOWED_SPACECRFTS
                 ),
             )
-        datanames = set(self.variables) - {"Timestamp", "Spacecraft"}
+        datanames = set(self.variables) - {self._time_variable, "Spacecraft"}
         # Loop through each variable available and append them to the Dataset,
         #  attaching the Timestamp coordinate to each.
         # Attach dimension names based on the name of the variable,
@@ -252,7 +253,7 @@ class FileReader:
             numdims = self.get_variable_numdims(dataname)
             # 1D case (scalar series)
             if numdims == 0:
-                ds[dataname] = (("Timestamp",), data)
+                ds[dataname] = ((self._time_variable,), data)
             # 2D case (vector series)
             elif numdims == 1:
                 if "B_NEC" in dataname:
@@ -263,13 +264,13 @@ class FileReader:
                     dims_used.add(dimname)
                 else:
                     dimname = "%s_dim1" % dataname
-                ds[dataname] = (("Timestamp", dimname), self.get_variable(dataname))
+                ds[dataname] = ((self._time_variable, dimname), self.get_variable(dataname))
             # 3D case (matrix series), e.g. QDBasis
             elif numdims == 2:
                 dimname1 = "%s_dim1" % dataname
                 dimname2 = "%s_dim2" % dataname
                 ds[dataname] = (
-                    ("Timestamp", dimname1, dimname2),
+                    (self._time_variable, dimname1, dimname2),
                     self.get_variable(dataname),
                 )
             else:
@@ -299,11 +300,10 @@ class FileReader:
                 ds[var].attrs["description"] = FRAME_DESCRIPTIONS.get(var, "")
         # Remove unused Timestamp unit (-)
         # for xarray 0.17 compatibility when writing to netcdf
-        ds["Timestamp"].attrs.pop("units", None)
+        ds[self._time_variable].attrs.pop("units", None)
         return ds
 
-    @staticmethod
-    def reshape_dataset(ds):
+    def reshape_dataset(self, ds):
         if "SiteCode" in ds.data_vars:
             codevar = "SiteCode"
         elif "IAGA_code" in ds.data_vars:
@@ -323,21 +323,21 @@ class FileReader:
         else:
             # Identify (V)OBS locations and mapping from integer "Site" identifier
             pos_vars = ["Longitude", "Latitude", "Radius", codevar]
-            _ds_locs = next(iter(ds[pos_vars].groupby("Timestamp")))[1]
+            _ds_locs = next(iter(ds[pos_vars].groupby(self._time_variable)))[1]
             if len(sites) > 1:
-                _ds_locs = _ds_locs.drop("Timestamp").rename({"Timestamp": "Site"})
+                _ds_locs = _ds_locs.drop(self._time_variable).rename({self._time_variable: "Site"})
             else:
-                _ds_locs = _ds_locs.drop("Timestamp").expand_dims("Site")
+                _ds_locs = _ds_locs.drop(self._time_variable).expand_dims("Site")
             _ds_locs["Site"] = [
                 sites_inv.get(code) for code in _ds_locs[codevar].values
             ]
             _ds_locs = _ds_locs.sortby("Site")
         # Create dataset initialised with the (V)OBS positional info as coords
         # and datavars (empty) reshaped to (Site, Timestamp, ...)
-        t = numpy.unique(ds["Timestamp"])
+        t = numpy.unique(ds[self._time_variable])
         ds2 = xarray.Dataset(
             coords={
-                "Timestamp": t,
+                self._time_variable: t,
                 codevar: (("Site"), _ds_locs[codevar].data),
                 "Latitude": ("Site", _ds_locs["Latitude"].data),
                 "Longitude": ("Site", _ds_locs["Longitude"].data),
@@ -371,7 +371,7 @@ class FileReader:
         return ds2
 
 
-def make_pandas_DataFrame_from_csv(csv_filename):
+def make_pandas_DataFrame_from_csv(csv_filename, time_variable="Timestamp"):
     """Load a csv file into a pandas.DataFrame
 
     Set the Timestamp as a datetime index.
@@ -388,7 +388,7 @@ def make_pandas_DataFrame_from_csv(csv_filename):
     except Exception:
         raise Exception("Bad or empty csv.")
     # Convert to datetime objects
-    df["Timestamp"] = df["Timestamp"].apply(time_util.parse_datetime)
+    df[time_variable] = df[time_variable].apply(time_util.parse_datetime)
     # Convert the columns of vectors from strings to lists
     # Returns empty dataframe when retrieval from server is empty
     if len(df) != 0:
@@ -399,7 +399,7 @@ def make_pandas_DataFrame_from_csv(csv_filename):
                     df[col] = df[col].apply(
                         lambda x: [float(y) for y in x.strip("{}").split(";")]
                     )
-    df.set_index("Timestamp", inplace=True)
+    df.set_index(time_variable, inplace=True)
     return df
 
 
@@ -413,7 +413,8 @@ class ReturnedDataFile:
 
     """
 
-    def __init__(self, filetype=None, tmpdir=None):
+    def __init__(self, filetype=None, tmpdir=None, file_options=None):
+        self._file_options = file_options or {}
         self._supported_filetypes = ("csv", "cdf", "nc")
         self.filetype = "" if filetype is None else filetype
         if tmpdir is not None:
@@ -524,7 +525,7 @@ class ReturnedDataFile:
         elif self.filetype == "nc":
             df = self.as_xarray().to_dataframe()
         elif self.filetype == "cdf":
-            with FileReader(self._file) as f:
+            with FileReader(self._file, **self._file_options) as f:
                 df = f.as_pandas_dataframe(expand=expand)
         return df
 
@@ -543,7 +544,7 @@ class ReturnedDataFile:
         if self.filetype == "csv":
             raise NotImplementedError("csv to xarray is not supported")
         elif self.filetype == "cdf":
-            with FileReader(self._file) as f:
+            with FileReader(self._file, **self._file_options) as f:
                 ds = f.as_xarray_dataset(reshape=reshape)
         elif self.filetype == "nc":
             # xarrays open_dataset does not retrieve data in groups
@@ -632,19 +633,19 @@ class ReturnedDataFile:
                 )
             ]
         else:
-            with FileReader(self._file) as f:
+            with FileReader(self._file, **self._file_options) as f:
                 sources = f.sources
         return sources
 
     @property
     def magnetic_models(self):
-        with FileReader(self._file) as f:
+        with FileReader(self._file, **self._file_options) as f:
             magnetic_models = f.magnetic_models
         return magnetic_models
 
     @property
     def data_filters(self):
-        with FileReader(self._file) as f:
+        with FileReader(self._file, **self._file_options) as f:
             data_filters = f.data_filters
         return data_filters
 
@@ -668,9 +669,16 @@ class ReturnedData:
 
     """
 
-    def __init__(self, filetype=None, N=1, tmpdir=None):
+    def __init__(self, filetype=None, N=1, tmpdir=None, file_options=None):
+        self._time_variable = (file_options or {}).get("time_variable", "Timestamp")
+
         self.contents = [
-            ReturnedDataFile(filetype=filetype, tmpdir=tmpdir) for i in range(N)
+            ReturnedDataFile(
+                filetype=filetype,
+                tmpdir=tmpdir,
+                file_options=file_options,
+            )
+            for i in range(N)
         ]
         # filetype checking / conversion has been done in ReturnedDataFile
         self.filetype = self.contents[0].filetype
@@ -787,10 +795,10 @@ class ReturnedData:
             return None
         elif len(ds_list) == 1:
             ds = ds_list[0]
-        elif "Timestamp" in ds_list[0].dims:
+        elif self._time_variable in ds_list[0].dims:
             # Address simpler concatenation case for VirES for Swarm
-            # "Timestamp" always exists for Swarm, but is not present in Aeolus
-            ds = xarray.concat(ds_list, dim="Timestamp")
+            # Timestamp always exists for Swarm, but is not present in Aeolus
+            ds = xarray.concat(ds_list, dim=self._time_variable)
         else:
             # Address complex concatenation case for VirES for Aeolus
             dims = [d for d in list(ds_list[0].dims) if "array" not in d]

@@ -493,6 +493,8 @@ class SwarmRequest(ClientRequest):
         (("Swarm", "A"), ("Swarm", "B")),
     }
 
+    FILE_OPTIONS = {}
+
     COLLECTIONS = {
         "MAG": [
             *(f"SW_OPER_MAG{x}_LR_1B" for x in "ABC"),
@@ -1559,6 +1561,12 @@ class SwarmRequest(ClientRequest):
             self._detect_AUX_OBS(collections)
         self._collection_list = collections
         self._request_inputs.set_collections(collections)
+
+        # type specific file options
+        self._file_options = self.FILE_OPTIONS.get(
+            self._available["collections_to_keys"][collection]
+        ) or {}
+
         return self
 
     def set_products(
