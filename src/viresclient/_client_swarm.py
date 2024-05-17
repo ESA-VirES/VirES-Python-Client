@@ -236,6 +236,12 @@ COLLECTION_REFERENCES = {
     "MM_CON_SPH_2_": (
         "https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",
     ),
+    "DNS_POD": (
+        "https://swarmhandbook.earth.esa.int/catalogue/SW_DNSxPOD_2_",
+    ),
+    "DNS_ACC": (
+        "https://swarmhandbook.earth.esa.int/catalogue/SW_DNSxACC_2_",
+    ),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
@@ -646,6 +652,9 @@ class SwarmRequest(ClientRequest):
         # TOLEOS conjunctions
         "MM_CON_SPH_2_:crossover": ["MM_OPER_CON_EPH_2_:crossover"],
         "MM_CON_SPH_2_:plane_alignment": ["MM_OPER_CON_EPH_2_:plane_alignment"],
+        # Swarm thermospheric density products:
+        "DNS_POD": [f"SW_OPER_DNS{spacecraft}POD_2_" for spacecraft in "ABC"],
+        "DNS_ACC": [f"SW_OPER_DNS{spacecraft}ACC_2_" for spacecraft in "ABC"],
     }
 
     OBS_COLLECTIONS = [
@@ -722,6 +731,8 @@ class SwarmRequest(ClientRequest):
         "PPI_FAC:ID": "PT20M",
         "MM_CON_SPH_2_:crossover": "PT20M",
         "MM_CON_SPH_2_:plane_alignment": "P1D",
+        "DNS_POD": "PT30S",
+        "DNS_ACC": "PT10S",
     }
 
     PRODUCT_VARIABLES = {
@@ -1170,6 +1181,24 @@ class SwarmRequest(ClientRequest):
             "ltan_rate_2",
             "satellite_1",
             "satellite_2",
+        ],
+        "DNS_POD": [
+            "Height_GD",
+            "Latitude_GD",
+            "Longitude_GD",
+            "Height_GD",
+            "local_solar_time",
+            "density",
+            "density_orbitmean",
+            "validity_flag",
+        ],
+        "DNS_ACC": [
+            "Height_GD",
+            "Latitude_GD",
+            "Longitude_GD",
+            "Height_GD",
+            "local_solar_time",
+            "density",
         ],
     }
 
