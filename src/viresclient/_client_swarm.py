@@ -233,6 +233,9 @@ COLLECTION_REFERENCES = {
     "EFI_TCT16": (
         "https://earth.esa.int/eogateway/documents/20142/37627/swarm-EFI-TII-cross-track-flow-dataset-release-notes.pdf",
     ),
+    "MM_CON_SPH_2_": (
+        "https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",
+    ),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
@@ -493,7 +496,10 @@ class SwarmRequest(ClientRequest):
         (("Swarm", "A"), ("Swarm", "B")),
     }
 
-    FILE_OPTIONS = {}
+    FILE_OPTIONS = {
+        "MM_CON_SPH_2_:crossover": {"time_variable": "time_1"},
+        "MM_CON_SPH_2_:plane_alignment": {"time_variable": "time"},
+    }
 
     COLLECTIONS = {
         "MAG": [
@@ -637,6 +643,9 @@ class SwarmRequest(ClientRequest):
             *(f"SW_OPER_MOD{x}_SC_1B" for x in "ABC"),
             *(f"SW_FAST_MOD{x}_SC_1B" for x in "ABC"),
         ],
+        # TOLEOS conjunctions
+        "MM_CON_SPH_2_:crossover": ["MM_OPER_CON_EPH_2_:crossover"],
+        "MM_CON_SPH_2_:plane_alignment": ["MM_OPER_CON_EPH_2_:plane_alignment"],
     }
 
     OBS_COLLECTIONS = [
@@ -711,6 +720,8 @@ class SwarmRequest(ClientRequest):
         "MIT_TEC:ID": "PT20M",
         "PPI_FAC": "PT20M",
         "PPI_FAC:ID": "PT20M",
+        "MM_CON_SPH_2_:crossover": "PT20M",
+        "MM_CON_SPH_2_:plane_alignment": "P1D",
     }
 
     PRODUCT_VARIABLES = {
@@ -1134,6 +1145,32 @@ class SwarmRequest(ClientRequest):
             "Longitude_QD",
         ],
         "MOD_SC": [],
+        "MM_CON_SPH_2_:crossover": [
+            "time_1",
+            "time_2",
+            "time_difference",
+            "satellite_1",
+            "satellite_2",
+            "latitude",
+            "longitude",
+            "altitude_1",
+            "altitude_2",
+            "magnetic_latitude",
+            "magnetic_longitude",
+            "local_solar_time_1",
+            "local_solar_time_2"
+        ],
+        "MM_CON_SPH_2_:plane_alignment": [
+            "time",
+            "altitude_1",
+            "altitude_2",
+            "ltan_1",
+            "ltan_2",
+            "ltan_rate_1",
+            "ltan_rate_2",
+            "satellite_1",
+            "satellite_2",
+        ],
     }
 
     AUXILIARY_VARIABLES = [
