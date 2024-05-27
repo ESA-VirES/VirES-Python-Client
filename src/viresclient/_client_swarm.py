@@ -257,7 +257,7 @@ COLLECTION_REFERENCES = {
     "WND_ACC_GFO": (
         "https://earth.esa.int/eogateway/documents/20142/37627/Swarm-TOLEOS-product-description.pdf",
     ),
-    "MM_CON_SPH_2_": (
+    "MM_CON_EPH_2_": (
         "https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",
     ),
 }
@@ -521,8 +521,8 @@ class SwarmRequest(ClientRequest):
     }
 
     FILE_OPTIONS = {
-        "MM_CON_SPH_2_:crossover": {"time_variable": "time_1"},
-        "MM_CON_SPH_2_:plane_alignment": {"time_variable": "time"},
+        "MM_CON_EPH_2_:crossover": {"time_variable": "time_1"},
+        "MM_CON_EPH_2_:plane_alignment": {"time_variable": "time"},
     }
 
     COLLECTIONS = {
@@ -678,8 +678,8 @@ class SwarmRequest(ClientRequest):
         "WND_ACC_GRACE": ["GR_OPER_WND1ACC_2_", "GR_OPER_WND2ACC_2_"],
         "WND_ACC_GFO": ["GF_OPER_WND1ACC_2_"], # empty GF_OPER_WND2ACC_2_ exists
         # TOLEOS conjunctions
-        "MM_CON_SPH_2_:crossover": ["MM_OPER_CON_EPH_2_:crossover"],
-        "MM_CON_SPH_2_:plane_alignment": ["MM_OPER_CON_EPH_2_:plane_alignment"],
+        "MM_CON_EPH_2_:crossover": ["MM_OPER_CON_EPH_2_:crossover"],
+        "MM_CON_EPH_2_:plane_alignment": ["MM_OPER_CON_EPH_2_:plane_alignment"],
     }
 
     OBS_COLLECTIONS = [
@@ -762,8 +762,8 @@ class SwarmRequest(ClientRequest):
         "WND_ACC_CHAMP": "PT10S",
         "WND_ACC_GRACE": "PT10S",
         "WND_ACC_GFO": "PT10S",
-        "MM_CON_SPH_2_:crossover": "PT20M",
-        "MM_CON_SPH_2_:plane_alignment": "P1D",
+        "MM_CON_EPH_2_:crossover": "PT20M",
+        "MM_CON_EPH_2_:plane_alignment": "P1D",
     }
 
     PRODUCT_VARIABLES = {
@@ -1262,7 +1262,7 @@ class SwarmRequest(ClientRequest):
             "local_solar_time",
             "validity_flag",
         ],
-        "MM_CON_SPH_2_:crossover": [
+        "MM_CON_EPH_2_:crossover": [
             "time_1",
             "time_2",
             "time_difference",
@@ -1277,7 +1277,7 @@ class SwarmRequest(ClientRequest):
             "local_solar_time_1",
             "local_solar_time_2"
         ],
-        "MM_CON_SPH_2_:plane_alignment": [
+        "MM_CON_EPH_2_:plane_alignment": [
             "time",
             "altitude_1",
             "altitude_2",
