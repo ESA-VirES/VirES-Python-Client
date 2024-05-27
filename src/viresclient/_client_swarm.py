@@ -521,7 +521,7 @@ class SwarmRequest(ClientRequest):
     }
 
     FILE_OPTIONS = {
-        "MM_CON_EPH_2_:crossover": {"time_variable": "time_1"},
+        "MM_CON_EPH_2_:crossover": {"time_variable": "time_1", "secondary_time_variables": ["time_2"]},
         "MM_CON_EPH_2_:plane_alignment": {"time_variable": "time"},
     }
 

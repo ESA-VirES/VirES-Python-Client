@@ -84,7 +84,7 @@ FRAME_DESCRIPTIONS = {
 class FileReader:
     """Provides access to file contents (wrapper around cdflib)"""
 
-    def __init__(self, file, filetype="cdf", time_variable="Timestamp"):
+    def __init__(self, file, filetype="cdf", time_variable="Timestamp", secondary_time_variables=None):
         """
 
         Args:
@@ -104,6 +104,7 @@ class FileReader:
             self._varatts = {var: self._cdf.varattsget(var) for var in self.variables}
             self._varinfo = {var: self._cdf.varinq(var) for var in self.variables}
             self._time_variable = time_variable
+            self._secondary_time_variables = secondary_time_variables if secondary_time_variables else []
         else:
             raise NotImplementedError(f"{filetype} not supported")
 
@@ -144,8 +145,9 @@ class FileReader:
             return getattr(obj, attr, None)
 
     def get_variable(self, var):
+        parser = self._get_data_parser(var)
         try:
-            data = self._cdf.varget(var)
+            data = parser(self._cdf.varget(var))
         except ValueError:
             data = None
         if data is None:
@@ -173,6 +175,18 @@ class FileReader:
             return pandas.to_datetime((t - CDF_EPOCH_1970) / 1e3, unit="s")
         except TypeError:
             return []
+    
+    def _get_data_parser(self, var):
+        def default_parser(data):
+            return data
+        
+        def time_parser(data):
+            return self._cdftime_to_datetime(data)
+
+        if var == self._time_variable or var in self._secondary_time_variables:
+            return time_parser
+        else:
+            return default_parser
 
     def as_pandas_dataframe(self, expand=False):
         # Use the variables in the file as columns to create in the dataframe.
@@ -207,8 +221,6 @@ class FileReader:
                 for suffix in suffixes:
                     df[column + "_" + str(suffix)] = None
             return df
-        # Convert timestamps to datetime objects
-        df.index = self._cdftime_to_datetime(df.index)
         # Separately add non-expanded and expanded columns
         for column in columns_standard:
             df[column] = list(self.get_variable(column))
@@ -231,7 +243,7 @@ class FileReader:
         # Initialise dataset with time coordinate
         ds = xarray.Dataset(
             coords={
-                self._time_variable: self._cdftime_to_datetime(self.get_variable(self._time_variable))
+                self._time_variable: self.get_variable(self._time_variable)
             }
         )
         # Add Spacecraft variable as Categorical to save memory
