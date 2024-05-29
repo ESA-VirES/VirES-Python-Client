@@ -255,7 +255,7 @@ COLLECTION_REFERENCES = {
         "https://swarmhandbook.earth.esa.int/catalogue/GR_WNDxACC_2_",
     ),
     "WND_ACC_GFO": (
-        "https://earth.esa.int/eogateway/documents/20142/37627/Swarm-TOLEOS-product-description.pdf",
+        "https://swarmhandbook.earth.esa.int/catalogue/GF_WNDxACC_2_",
     ),
     "MM_CON_EPH_2_": (
         "https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",
