@@ -4,7 +4,7 @@ Release notes
 Change log
 ----------
 
-Changes from 0.11.6 to 0.11.7
+Changes from 0.11.6 to 0.12.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Added auxiliaries ``["F107_avg81d", "F107_avg81d_count"]``
