@@ -261,7 +261,6 @@ class ClientRequest:
         logging_level="NO_LOGGING",
         server_type=None,
     ):
-
         self._server_type = server_type
 
         # Check and prompt for token if not already set, then store in config
@@ -278,6 +277,7 @@ class ClientRequest:
 
         self._available = {}
         self._collection = None
+        self._file_options = {}  # type-specific file options (e.g., time variable)
         self._request_inputs = None
         self._request = None
         self._templatefiles = {}
@@ -546,7 +546,10 @@ class ClientRequest:
             raise TypeError("asynchronous must be set to either True or False")
 
         # Initialise the ReturnedData so that filetype checking is done there
-        retdatagroup = ReturnedData(filetype=filetype)
+        retdatagroup = ReturnedData(
+            filetype=filetype,
+            file_options=self._file_options,
+        )
 
         if retdatagroup.filetype not in self._supported_filetypes:
             raise TypeError(f"filetype: {filetype} not supported by server")
@@ -588,7 +591,12 @@ class ClientRequest:
         )
         nchunks = len(intervals)
         # Recreate the ReturnedData with the right number of chunks
-        retdatagroup = ReturnedData(filetype=filetype, N=nchunks, tmpdir=tmpdir)
+        retdatagroup = ReturnedData(
+            filetype=filetype,
+            N=nchunks,
+            tmpdir=tmpdir,
+            file_options=self._file_options,
+        )
 
         def _get_chunk(i, start_time_i, end_time_i, leave_progress_bar=False):
             """Process an individual chunk and update retdatagroup"""

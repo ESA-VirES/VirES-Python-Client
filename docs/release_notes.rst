@@ -9,6 +9,10 @@ Changes from 0.11.6 to 0.11.7
 
 - Added auxiliaries ``["F107_avg81d", "F107_avg81d_count"]``
 - Updated and added ML-calibrated variants of GOCE & GRACE-FO magnetic datasets, ``GO_MAG_ACAL_CORR_ML`` & ``GFx_MAG_ACAL_CORR_ML``
+- Added TOLEOS thermosphere products:
+
+  - e.g. ``"CH_OPER_DNS_ACC_2_"`` and ``"CH_OPER_WND_ACC_2_"`` from CHAMP and equivalents from GRACE and GRACE-FO
+  - conjunction information within ``"MM_CON_SPH_2_:crossover"`` and ``"MM_CON_SPH_2_:plane_alignment"``
 
 Changes from 0.11.5 to 0.11.6
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

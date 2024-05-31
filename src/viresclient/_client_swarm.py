@@ -233,6 +233,15 @@ COLLECTION_REFERENCES = {
     "EFI_TCT16": (
         "https://earth.esa.int/eogateway/documents/20142/37627/swarm-EFI-TII-cross-track-flow-dataset-release-notes.pdf",
     ),
+    "DNS_POD": ("https://swarmhandbook.earth.esa.int/catalogue/SW_DNSxPOD_2_",),
+    "DNS_ACC": ("https://swarmhandbook.earth.esa.int/catalogue/SW_DNSxACC_2_",),
+    "DNS_ACC_CHAMP": ("https://swarmhandbook.earth.esa.int/catalogue/CH_DNS_ACC_2_",),
+    "DNS_ACC_GRACE": ("https://swarmhandbook.earth.esa.int/catalogue/GR_DNSxACC_2_",),
+    "DNS_ACC_GFO": ("https://swarmhandbook.earth.esa.int/catalogue/GF_DNSxACC_2_",),
+    "WND_ACC_CHAMP": ("https://swarmhandbook.earth.esa.int/catalogue/CH_WND_ACC_2_",),
+    "WND_ACC_GRACE": ("https://swarmhandbook.earth.esa.int/catalogue/GR_WNDxACC_2_",),
+    "WND_ACC_GFO": ("https://swarmhandbook.earth.esa.int/catalogue/GF_WNDxACC_2_",),
+    "MM_CON_EPH_2_": ("https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
@@ -493,6 +502,14 @@ class SwarmRequest(ClientRequest):
         (("Swarm", "A"), ("Swarm", "B")),
     }
 
+    FILE_OPTIONS = {
+        "MM_CON_EPH_2_:crossover": {
+            "time_variable": "time_1",
+            "secondary_time_variables": ["time_2"],
+        },
+        "MM_CON_EPH_2_:plane_alignment": {"time_variable": "time"},
+    }
+
     COLLECTIONS = {
         "MAG": [
             *(f"SW_OPER_MAG{x}_LR_1B" for x in "ABC"),
@@ -635,6 +652,19 @@ class SwarmRequest(ClientRequest):
             *(f"SW_OPER_MOD{x}_SC_1B" for x in "ABC"),
             *(f"SW_FAST_MOD{x}_SC_1B" for x in "ABC"),
         ],
+        # Swarm thermospheric density products:
+        "DNS_POD": [f"SW_OPER_DNS{spacecraft}POD_2_" for spacecraft in "ABC"],
+        "DNS_ACC": [f"SW_OPER_DNS{spacecraft}ACC_2_" for spacecraft in "ABC"],
+        # TOLEOS thermospheric density and crosswind products:
+        "DNS_ACC_CHAMP": ["CH_OPER_DNS_ACC_2_"],
+        "DNS_ACC_GRACE": ["GR_OPER_DNS1ACC_2_", "GR_OPER_DNS2ACC_2_"],
+        "DNS_ACC_GFO": ["GF_OPER_DNS1ACC_2_"],  # empty GF_OPER_DNS2ACC_2_ exists
+        "WND_ACC_CHAMP": ["CH_OPER_WND_ACC_2_"],
+        "WND_ACC_GRACE": ["GR_OPER_WND1ACC_2_", "GR_OPER_WND2ACC_2_"],
+        "WND_ACC_GFO": ["GF_OPER_WND1ACC_2_"],  # empty GF_OPER_WND2ACC_2_ exists
+        # TOLEOS conjunctions
+        "MM_CON_EPH_2_:crossover": ["MM_OPER_CON_EPH_2_:crossover"],
+        "MM_CON_EPH_2_:plane_alignment": ["MM_OPER_CON_EPH_2_:plane_alignment"],
     }
 
     OBS_COLLECTIONS = [
@@ -709,6 +739,16 @@ class SwarmRequest(ClientRequest):
         "MIT_TEC:ID": "PT20M",
         "PPI_FAC": "PT20M",
         "PPI_FAC:ID": "PT20M",
+        "DNS_POD": "PT30S",
+        "DNS_ACC": "PT10S",
+        "DNS_ACC_CHAMP": "PT10S",
+        "DNS_ACC_GRACE": "PT10S",
+        "DNS_ACC_GFO": "PT10S",
+        "WND_ACC_CHAMP": "PT10S",
+        "WND_ACC_GRACE": "PT10S",
+        "WND_ACC_GFO": "PT10S",
+        "MM_CON_EPH_2_:crossover": "PT20M",
+        "MM_CON_EPH_2_:plane_alignment": "P1D",
     }
 
     PRODUCT_VARIABLES = {
@@ -1132,6 +1172,107 @@ class SwarmRequest(ClientRequest):
             "Longitude_QD",
         ],
         "MOD_SC": [],
+        "DNS_POD": [
+            "Height_GD",
+            "Latitude_GD",
+            "Longitude_GD",
+            "Height_GD",
+            "local_solar_time",
+            "density",
+            "density_orbitmean",
+            "validity_flag",
+        ],
+        "DNS_ACC": [
+            "Height_GD",
+            "Latitude_GD",
+            "Longitude_GD",
+            "Height_GD",
+            "density",
+            "local_solar_time",
+        ],
+        "DNS_ACC_CHAMP": [
+            "Height_GD",
+            "Latitude_GD",
+            "Longitude_GD",
+            "density",
+            "density_orbitmean",
+            "local_solar_time",
+            "validity_flag",
+            "validity_flag_orbitmean",
+        ],
+        "DNS_ACC_GRACE": [
+            "Height_GD",
+            "Latitude_GD",
+            "Longitude_GD",
+            "density",
+            "density_orbitmean",
+            "local_solar_time",
+            "validity_flag",
+            "validity_flag_orbitmean",
+        ],
+        "DNS_ACC_GFO": [
+            "Height_GD",
+            "Latitude_GD",
+            "Longitude_GD",
+            "density",
+            "density_orbitmean",
+            "local_solar_time",
+            "validity_flag",
+            "validity_flag_orbitmean",
+        ],
+        "WND_ACC_CHAMP": [
+            "Height_GD",
+            "Latitude_GD",
+            "Longitude_GD",
+            "crosswind",
+            "crosswind_direction",
+            "local_solar_time",
+            "validity_flag",
+        ],
+        "WND_ACC_GRACE": [
+            "Height_GD",
+            "Latitude_GD",
+            "Longitude_GD",
+            "crosswind",
+            "crosswind_direction",
+            "local_solar_time",
+            "validity_flag",
+        ],
+        "WND_ACC_GFO": [
+            "Height_GD",
+            "Latitude_GD",
+            "Longitude_GD",
+            "crosswind",
+            "crosswind_direction",
+            "local_solar_time",
+            "validity_flag",
+        ],
+        "MM_CON_EPH_2_:crossover": [
+            "time_1",
+            "time_2",
+            "time_difference",
+            "satellite_1",
+            "satellite_2",
+            "latitude",
+            "longitude",
+            "altitude_1",
+            "altitude_2",
+            "magnetic_latitude",
+            "magnetic_longitude",
+            "local_solar_time_1",
+            "local_solar_time_2",
+        ],
+        "MM_CON_EPH_2_:plane_alignment": [
+            "time",
+            "altitude_1",
+            "altitude_2",
+            "ltan_1",
+            "ltan_2",
+            "ltan_rate_1",
+            "ltan_rate_2",
+            "satellite_1",
+            "satellite_2",
+        ],
     }
 
     AUXILIARY_VARIABLES = [
@@ -1559,6 +1700,13 @@ class SwarmRequest(ClientRequest):
             self._detect_AUX_OBS(collections)
         self._collection_list = collections
         self._request_inputs.set_collections(collections)
+
+        # type specific file options
+        self._file_options = (
+            self.FILE_OPTIONS.get(self._available["collections_to_keys"][collection])
+            or {}
+        )
+
         return self
 
     def set_products(
