@@ -233,33 +233,15 @@ COLLECTION_REFERENCES = {
     "EFI_TCT16": (
         "https://earth.esa.int/eogateway/documents/20142/37627/swarm-EFI-TII-cross-track-flow-dataset-release-notes.pdf",
     ),
-    "DNS_POD": (
-        "https://swarmhandbook.earth.esa.int/catalogue/SW_DNSxPOD_2_",
-    ),
-    "DNS_ACC": (
-        "https://swarmhandbook.earth.esa.int/catalogue/SW_DNSxACC_2_",
-    ),
-    "DNS_ACC_CHAMP": (
-        "https://swarmhandbook.earth.esa.int/catalogue/CH_DNS_ACC_2_",
-    ),
-    "DNS_ACC_GRACE": (
-        "https://swarmhandbook.earth.esa.int/catalogue/GR_DNSxACC_2_",
-    ),
-    "DNS_ACC_GFO": (
-        "https://swarmhandbook.earth.esa.int/catalogue/GF_DNSxACC_2_",
-    ),
-    "WND_ACC_CHAMP": (
-        "https://swarmhandbook.earth.esa.int/catalogue/CH_WND_ACC_2_",
-    ),
-    "WND_ACC_GRACE": (
-        "https://swarmhandbook.earth.esa.int/catalogue/GR_WNDxACC_2_",
-    ),
-    "WND_ACC_GFO": (
-        "https://swarmhandbook.earth.esa.int/catalogue/GF_WNDxACC_2_",
-    ),
-    "MM_CON_EPH_2_": (
-        "https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",
-    ),
+    "DNS_POD": ("https://swarmhandbook.earth.esa.int/catalogue/SW_DNSxPOD_2_",),
+    "DNS_ACC": ("https://swarmhandbook.earth.esa.int/catalogue/SW_DNSxACC_2_",),
+    "DNS_ACC_CHAMP": ("https://swarmhandbook.earth.esa.int/catalogue/CH_DNS_ACC_2_",),
+    "DNS_ACC_GRACE": ("https://swarmhandbook.earth.esa.int/catalogue/GR_DNSxACC_2_",),
+    "DNS_ACC_GFO": ("https://swarmhandbook.earth.esa.int/catalogue/GF_DNSxACC_2_",),
+    "WND_ACC_CHAMP": ("https://swarmhandbook.earth.esa.int/catalogue/CH_WND_ACC_2_",),
+    "WND_ACC_GRACE": ("https://swarmhandbook.earth.esa.int/catalogue/GR_WNDxACC_2_",),
+    "WND_ACC_GFO": ("https://swarmhandbook.earth.esa.int/catalogue/GF_WNDxACC_2_",),
+    "MM_CON_EPH_2_": ("https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
@@ -521,7 +503,10 @@ class SwarmRequest(ClientRequest):
     }
 
     FILE_OPTIONS = {
-        "MM_CON_EPH_2_:crossover": {"time_variable": "time_1", "secondary_time_variables": ["time_2"]},
+        "MM_CON_EPH_2_:crossover": {
+            "time_variable": "time_1",
+            "secondary_time_variables": ["time_2"],
+        },
         "MM_CON_EPH_2_:plane_alignment": {"time_variable": "time"},
     }
 
@@ -673,10 +658,10 @@ class SwarmRequest(ClientRequest):
         # TOLEOS thermospheric density and crosswind products:
         "DNS_ACC_CHAMP": ["CH_OPER_DNS_ACC_2_"],
         "DNS_ACC_GRACE": ["GR_OPER_DNS1ACC_2_", "GR_OPER_DNS2ACC_2_"],
-        "DNS_ACC_GFO": ["GF_OPER_DNS1ACC_2_"], # empty GF_OPER_DNS2ACC_2_ exists
+        "DNS_ACC_GFO": ["GF_OPER_DNS1ACC_2_"],  # empty GF_OPER_DNS2ACC_2_ exists
         "WND_ACC_CHAMP": ["CH_OPER_WND_ACC_2_"],
         "WND_ACC_GRACE": ["GR_OPER_WND1ACC_2_", "GR_OPER_WND2ACC_2_"],
-        "WND_ACC_GFO": ["GF_OPER_WND1ACC_2_"], # empty GF_OPER_WND2ACC_2_ exists
+        "WND_ACC_GFO": ["GF_OPER_WND1ACC_2_"],  # empty GF_OPER_WND2ACC_2_ exists
         # TOLEOS conjunctions
         "MM_CON_EPH_2_:crossover": ["MM_OPER_CON_EPH_2_:crossover"],
         "MM_CON_EPH_2_:plane_alignment": ["MM_OPER_CON_EPH_2_:plane_alignment"],
@@ -1275,7 +1260,7 @@ class SwarmRequest(ClientRequest):
             "magnetic_latitude",
             "magnetic_longitude",
             "local_solar_time_1",
-            "local_solar_time_2"
+            "local_solar_time_2",
         ],
         "MM_CON_EPH_2_:plane_alignment": [
             "time",
@@ -1717,9 +1702,10 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.set_collections(collections)
 
         # type specific file options
-        self._file_options = self.FILE_OPTIONS.get(
-            self._available["collections_to_keys"][collection]
-        ) or {}
+        self._file_options = (
+            self.FILE_OPTIONS.get(self._available["collections_to_keys"][collection])
+            or {}
+        )
 
         return self
 

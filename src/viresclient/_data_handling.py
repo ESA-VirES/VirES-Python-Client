@@ -84,7 +84,13 @@ FRAME_DESCRIPTIONS = {
 class FileReader:
     """Provides access to file contents (wrapper around cdflib)"""
 
-    def __init__(self, file, filetype="cdf", time_variable="Timestamp", secondary_time_variables=None):
+    def __init__(
+        self,
+        file,
+        filetype="cdf",
+        time_variable="Timestamp",
+        secondary_time_variables=None,
+    ):
         """
 
         Args:
@@ -104,7 +110,9 @@ class FileReader:
             self._varatts = {var: self._cdf.varattsget(var) for var in self.variables}
             self._varinfo = {var: self._cdf.varinq(var) for var in self.variables}
             self._time_variable = time_variable
-            self._secondary_time_variables = secondary_time_variables if secondary_time_variables else []
+            self._secondary_time_variables = (
+                secondary_time_variables if secondary_time_variables else []
+            )
         else:
             raise NotImplementedError(f"{filetype} not supported")
 
@@ -175,11 +183,11 @@ class FileReader:
             return pandas.to_datetime((t - CDF_EPOCH_1970) / 1e3, unit="s")
         except TypeError:
             return []
-    
+
     def _get_data_parser(self, var):
         def default_parser(data):
             return data
-        
+
         def time_parser(data):
             return self._cdftime_to_datetime(data)
 
@@ -242,9 +250,7 @@ class FileReader:
         #  (this is done in ReturnedData)
         # Initialise dataset with time coordinate
         ds = xarray.Dataset(
-            coords={
-                self._time_variable: self.get_variable(self._time_variable)
-            }
+            coords={self._time_variable: self.get_variable(self._time_variable)}
         )
         # Add Spacecraft variable as Categorical to save memory
         if "Spacecraft" in self.variables:
@@ -276,7 +282,10 @@ class FileReader:
                     dims_used.add(dimname)
                 else:
                     dimname = "%s_dim1" % dataname
-                ds[dataname] = ((self._time_variable, dimname), self.get_variable(dataname))
+                ds[dataname] = (
+                    (self._time_variable, dimname),
+                    self.get_variable(dataname),
+                )
             # 3D case (matrix series), e.g. QDBasis
             elif numdims == 2:
                 dimname1 = "%s_dim1" % dataname
@@ -337,7 +346,9 @@ class FileReader:
             pos_vars = ["Longitude", "Latitude", "Radius", codevar]
             _ds_locs = next(iter(ds[pos_vars].groupby(self._time_variable)))[1]
             if len(sites) > 1:
-                _ds_locs = _ds_locs.drop(self._time_variable).rename({self._time_variable: "Site"})
+                _ds_locs = _ds_locs.drop(self._time_variable).rename(
+                    {self._time_variable: "Site"}
+                )
             else:
                 _ds_locs = _ds_locs.drop(self._time_variable).expand_dims("Site")
             _ds_locs["Site"] = [

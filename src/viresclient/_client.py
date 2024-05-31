@@ -277,7 +277,7 @@ class ClientRequest:
 
         self._available = {}
         self._collection = None
-        self._file_options = {} # type-specific file options (e.g., time variable)
+        self._file_options = {}  # type-specific file options (e.g., time variable)
         self._request_inputs = None
         self._request = None
         self._templatefiles = {}
