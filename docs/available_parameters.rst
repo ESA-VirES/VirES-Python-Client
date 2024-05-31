@@ -149,6 +149,7 @@ Calibrated magnetic data are also available from external missions: Cryosat-2, G
 =============================== ================ ===================================================================================================================================
 Collection full name            Collection type  Available measurement names
 =============================== ================ ===================================================================================================================================
+CH_ME_MAG_LR_3                  MAG_CHAMP        ``F,B_VFM,B_NEC,Flags_Position,Flags_B,Flags_q,Mode_q,q_ICRF_CRF``
 CS_OPER_MAG                     MAG_CS           ``F,B_NEC,B_mod_NEC,B_NEC1,B_NEC2,B_NEC3,B_FGM1,B_FGM2,B_FGM3,q_NEC_CRF,q_error``
 GRACE_x_MAG (x=A/B)             MAG_GRACE        ``F,B_NEC,B_NEC_raw,B_FGM,B_mod_NEC,q_NEC_CRF,q_error``
 GFx_OPER_FGM_ACAL_CORR (x=1/2)  MAG_GFO          ``F,B_NEC,B_FGM,dB_MTQ_FGM,dB_XI_FGM,dB_NY_FGM,dB_BT_FGM,dB_ST_FGM,dB_SA_FGM,dB_BAT_FGM,q_NEC_FGM,B_FLAG``

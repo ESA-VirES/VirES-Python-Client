@@ -215,6 +215,7 @@ COLLECTION_REFERENCES = {
     "PPI_FAC": (
         "https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",
     ),
+    "MAG_CHAMP": ("https://doi.org/10.5880/GFZ.2.3.2019.004",),
     "MAG_CS": ("https://doi.org/10.1186/s40623-020-01171-9",),
     "MAG_GRACE": ("https://doi.org/10.1186/s40623-021-01373-9",),
     "MAG_GFO": ("https://doi.org/10.1186/s40623-021-01364-w",),
@@ -641,6 +642,7 @@ class SwarmRequest(ClientRequest):
         "PPI_FAC": [f"SW_OPER_PPI{x}FAC_2F" for x in "ABC"],
         "PPI_FAC:ID": [f"SW_OPER_PPI{x}FAC_2F:ID" for x in "ABC"],
         # Multi-mission magnetic products
+        "MAG_CHAMP": ["CH_ME_MAG_LR_3"],
         "MAG_CS": ["CS_OPER_MAG"],
         "MAG_GRACE": ["GRACE_A_MAG", "GRACE_B_MAG"],
         "MAG_GFO": ["GF1_OPER_FGM_ACAL_CORR", "GF2_OPER_FGM_ACAL_CORR"],
@@ -1097,6 +1099,16 @@ class SwarmRequest(ClientRequest):
             "SZA",
             "Position_Quality",
             "PointType",
+        ],
+        "MAG_CHAMP": [
+            "F",
+            "B_VFM",
+            "B_NEC",
+            "Flags_Position",
+            "Flags_B",
+            "Flags_q",
+            "Mode_q",
+            "q_ICRF_CRF",
         ],
         "MAG_CS": [
             "F",

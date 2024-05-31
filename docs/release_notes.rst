@@ -4,7 +4,7 @@ Release notes
 Change log
 ----------
 
-Changes from 0.11.6 to 0.11.7
+Changes from 0.11.6 to 0.12.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Added auxiliaries ``["F107_avg81d", "F107_avg81d_count"]``
@@ -13,6 +13,8 @@ Changes from 0.11.6 to 0.11.7
 
   - e.g. ``"CH_OPER_DNS_ACC_2_"`` and ``"CH_OPER_WND_ACC_2_"`` from CHAMP and equivalents from GRACE and GRACE-FO
   - conjunction information within ``"MM_CON_SPH_2_:crossover"`` and ``"MM_CON_SPH_2_:plane_alignment"``
+
+- Added CHAMP magnetic dataset, ``CH_ME_MAG_LR_3``
 
 Changes from 0.11.5 to 0.11.6
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
