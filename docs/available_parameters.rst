@@ -96,6 +96,21 @@ SW_OPER_PPIxFAC_2F     PPI_FAC          Midnight Plasmapause Index (PPI)
 SW_OPER_PPIxFAC_2F:ID  PPI_FAC:ID       -> Boundaries of the Small-Scale Field Aligned Currents (SSFAC)
 ====================== ================ ===================================================================================================
 
+`TOLEOS (Thermosphere Observations from Low-Earth Orbiting Satellites) <https://earth.esa.int/eogateway/activities/toleos>`_ products are provided as follows.
+
+============================== ================ ===================================================================================================
+Collection full name           Collection type  Description
+============================== ================ ===================================================================================================
+CH_OPER_DNS_ACC_2_             DNS_ACC_CHAMP    Thermosphere mass density (CHAMP)
+GR_OPER_DNSxACC_2_             DNS_ACC_GRACE    Thermosphere mass density (GRACE)
+GF_OPER_DNSxACC_2_             DNS_ACC_GFO      Thermosphere mass density (GRACE-FO)
+CH_OPER_WND_ACC_2_             WND_ACC_CHAMP    Thermosphere crosswind (CHAMP)
+GR_OPER_WNDxACC_2_             WND_ACC_GRACE    Thermosphere crosswind (GRACE)
+GF_OPER_WNDxACC_2_             WND_ACC_GFO      Thermosphere crosswind (GRACE-FO)
+MM_CON_SPH_2_:crossover                         Conjunction information (times when ground-tracks intersect)
+MM_CON_SPH_2_:plane_alignment                   Conjunction information (times when orbital planes align)
+============================== ================ ===================================================================================================
+
 The AUX_OBS collections contain ground magnetic observatory data from `INTERMAGNET <https://intermagnet.github.io/data_conditions.html>`_ and `WDC <http://www.wdc.bgs.ac.uk/>`_. Please note that these data are provided under different usage terms than the ESA data, and must be acknowledged accordingly.
 
 ======================== ================ ==============================================================
@@ -134,6 +149,7 @@ Calibrated magnetic data are also available from external missions: Cryosat-2, G
 =============================== ================ ===================================================================================================================================
 Collection full name            Collection type  Available measurement names
 =============================== ================ ===================================================================================================================================
+CH_ME_MAG_LR_3                  MAG_CHAMP        ``F,B_VFM,B_NEC,Flags_Position,Flags_B,Flags_q,Mode_q,q_ICRF_CRF``
 CS_OPER_MAG                     MAG_CS           ``F,B_NEC,B_mod_NEC,B_NEC1,B_NEC2,B_NEC3,B_FGM1,B_FGM2,B_FGM3,q_NEC_CRF,q_error``
 GRACE_x_MAG (x=A/B)             MAG_GRACE        ``F,B_NEC,B_NEC_raw,B_FGM,B_mod_NEC,q_NEC_CRF,q_error``
 GFx_OPER_FGM_ACAL_CORR (x=1/2)  MAG_GFO          ``F,B_NEC,B_FGM,dB_MTQ_FGM,dB_XI_FGM,dB_NY_FGM,dB_BT_FGM,dB_ST_FGM,dB_SA_FGM,dB_BAT_FGM,q_NEC_FGM,B_FLAG``
