@@ -4,6 +4,11 @@ Release notes
 Change log
 ----------
 
+Changes from 0.11.7 to 0.11.8
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added FAC FAST dataset ``SW_FAST_FACxTMS_2F``
+
 Changes from 0.11.6 to 0.11.7
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
