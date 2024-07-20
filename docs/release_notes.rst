@@ -4,17 +4,26 @@ Release notes
 Change log
 ----------
 
-Changes from 0.11.6 to 0.12.0
+Changes from 0.11.8 to 0.12.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Added auxiliaries ``["F107_avg81d", "F107_avg81d_count"]``
-- Updated and added ML-calibrated variants of GOCE & GRACE-FO magnetic datasets, ``GO_MAG_ACAL_CORR_ML`` & ``GFx_MAG_ACAL_CORR_ML``
 - Added TOLEOS thermosphere products:
 
   - e.g. ``"CH_OPER_DNS_ACC_2_"`` and ``"CH_OPER_WND_ACC_2_"`` from CHAMP and equivalents from GRACE and GRACE-FO
   - conjunction information within ``"MM_CON_SPH_2_:crossover"`` and ``"MM_CON_SPH_2_:plane_alignment"``
 
 - Added CHAMP magnetic dataset, ``CH_ME_MAG_LR_3``
+
+Changes from 0.11.7 to 0.11.8
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added FAC FAST dataset ``SW_FAST_FACxTMS_2F``
+
+Changes from 0.11.6 to 0.11.7
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added auxiliaries ``["F107_avg81d", "F107_avg81d_count"]``
+- Updated and added ML-calibrated variants of GOCE & GRACE-FO magnetic datasets, ``GO_MAG_ACAL_CORR_ML`` & ``GFx_MAG_ACAL_CORR_ML``
 
 Changes from 0.11.5 to 0.11.6
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
