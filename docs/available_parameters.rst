@@ -46,6 +46,7 @@ See the `Swarm Data Handbook`_ for details about the products and `Swarm Product
   - ``SW_FAST_MAGx_HR_1B``
   - ``SW_FAST_EFIx_LP_1B``
   - ``SW_FAST_MODx_SC_1B``
+  - ``SW_FAST_FACxTMS_2F``
 
 Collections are grouped according to a type containing similar measurements (i.e. the same product from different spacecraft). The collection type can be given to :py:meth:`viresclient.SwarmRequest.available_collections` to retrieve the full collection names. These cover the Swarm data products as below (replace x with A, B, or C for Alpha, Bravo, or Charlie):
 
