@@ -102,14 +102,14 @@ SW_OPER_PPIxFAC_2F:ID  PPI_FAC:ID       -> Boundaries of the Small-Scale Field A
 ============================== ================ ===================================================================================================
 Collection full name           Collection type  Description
 ============================== ================ ===================================================================================================
-CH_OPER_DNS_ACC_2_             DNS_ACC_CHAMP    Thermosphere mass density (CHAMP)
-GR_OPER_DNSxACC_2_             DNS_ACC_GRACE    Thermosphere mass density (GRACE)
-GF_OPER_DNSxACC_2_             DNS_ACC_GFO      Thermosphere mass density (GRACE-FO)
-CH_OPER_WND_ACC_2_             WND_ACC_CHAMP    Thermosphere crosswind (CHAMP)
-GR_OPER_WNDxACC_2_             WND_ACC_GRACE    Thermosphere crosswind (GRACE)
-GF_OPER_WNDxACC_2_             WND_ACC_GFO      Thermosphere crosswind (GRACE-FO)
-MM_CON_SPH_2_:crossover                         Conjunction information (times when ground-tracks intersect)
-MM_CON_SPH_2_:plane_alignment                   Conjunction information (times when orbital planes align)
+CH_OPER_DNS_ACC_2\_            DNS_ACC_CHAMP    Thermosphere mass density (CHAMP)
+GR_OPER_DNSxACC_2\_            DNS_ACC_GRACE    Thermosphere mass density (GRACE)
+GF_OPER_DNSxACC_2\_            DNS_ACC_GFO      Thermosphere mass density (GRACE-FO)
+CH_OPER_WND_ACC_2\_            WND_ACC_CHAMP    Thermosphere crosswind (CHAMP)
+GR_OPER_WNDxACC_2\_            WND_ACC_GRACE    Thermosphere crosswind (GRACE)
+GF_OPER_WNDxACC_2\_            WND_ACC_GFO      Thermosphere crosswind (GRACE-FO)
+MM_CON_SPH_2\_:crossover                        Conjunction information (times when ground-tracks intersect)
+MM_CON_SPH_2\_:plane_alignment                  Conjunction information (times when orbital planes align)
 ============================== ================ ===================================================================================================
 
 The AUX_OBS collections contain ground magnetic observatory data from `INTERMAGNET <https://intermagnet.github.io/data_conditions.html>`_ and `WDC <http://www.wdc.bgs.ac.uk/>`_. Please note that these data are provided under different usage terms than the ESA data, and must be acknowledged accordingly.
@@ -145,12 +145,19 @@ SW_OPER_VOBS_1M_2\_:SecularVariation VOBS_SW_1M:SecularVariation Secular variati
 
 Each VOBS product (e.g. Swarm 1-monthly) is split into two collections (e.g. ``SW_OPER_VOBS_1M_2_`` (containing ``B_OB`` & ``B_CF``) and ``SW_OPER_VOBS_1M_2_:SecularVariation`` (containing ``B_SV``)) because of the different temporal sampling points (i.e. differing ``Timestamp``) of these measurements. Data can also be requested for a specific virtual observatory alone (distinguishable by the ``SiteCode`` variable) with special collection names like ``SW_OPER_VOBS_1M_2_:N65W051`` and ``SW_OPER_VOBS_1M_2_:SecularVariation:N65W051``.
 
-Calibrated magnetic data are also available from external missions: Cryosat-2, GRACE (A+B), GRACE-FO (1+2), GOCE:
+`CHAMP magnetic products <https://doi.org/10.5880/GFZ.2.3.2019.004>`_ are available:
 
 =============================== ================ ===================================================================================================================================
 Collection full name            Collection type  Available measurement names
 =============================== ================ ===================================================================================================================================
 CH_ME_MAG_LR_3                  MAG_CHAMP        ``F,B_VFM,B_NEC,Flags_Position,Flags_B,Flags_q,Mode_q,q_ICRF_CRF``
+=============================== ================ ===================================================================================================================================
+
+Calibrated magnetic data are also available from external missions: Cryosat-2, GRACE (A+B), GRACE-FO (1+2), GOCE:
+
+=============================== ================ ===================================================================================================================================
+Collection full name            Collection type  Available measurement names
+=============================== ================ ===================================================================================================================================
 CS_OPER_MAG                     MAG_CS           ``F,B_NEC,B_mod_NEC,B_NEC1,B_NEC2,B_NEC3,B_FGM1,B_FGM2,B_FGM3,q_NEC_CRF,q_error``
 GRACE_x_MAG (x=A/B)             MAG_GRACE        ``F,B_NEC,B_NEC_raw,B_FGM,B_mod_NEC,q_NEC_CRF,q_error``
 GFx_OPER_FGM_ACAL_CORR (x=1/2)  MAG_GFO          ``F,B_NEC,B_FGM,dB_MTQ_FGM,dB_XI_FGM,dB_NY_FGM,dB_BT_FGM,dB_ST_FGM,dB_SA_FGM,dB_BAT_FGM,q_NEC_FGM,B_FLAG``
