@@ -49,20 +49,20 @@ MODEL_REFERENCES = {
         " deprecated model identifier, use IGRF instead",
     ),
     "CHAOS-Core": (
-        "CHAOS-7 Core field (SH degrees 1-20)",
-        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ ",
+        "CHAOS-8 Core field (SH degrees 1-20)",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "CHAOS-Static": (
-        "CHAOS-7 crust field (SH degrees 21-185)",
-        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ ",
+        "CHAOS-8 crust field (SH degrees 21-185)",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "CHAOS-MMA-Primary": (
-        "CHAOS-7 Primary (external) magnetospheric field",
-        " hhttp://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ ",
+        "CHAOS-8 Primary (external) magnetospheric field",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "CHAOS-MMA-Secondary": (
-        "CHAOS-7 Secondary (internal) magnetospheric field",
-        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ ",
+        "CHAOS-8 Secondary (internal) magnetospheric field",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "CHAOS-6-Core": (
         "CHAOS Core field",
