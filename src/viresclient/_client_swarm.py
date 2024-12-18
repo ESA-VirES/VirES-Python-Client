@@ -40,13 +40,8 @@ REFERENCES = {
 
 MODEL_REFERENCES = {
     "IGRF": (
-        " International Geomagnetic Reference Field: the thirteenth generation, (https://doi.org/10.1186/s40623-020-01288-x) ",
-        " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html ",
-    ),
-    "IGRF12": (
-        " International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
-        " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "
-        " deprecated model identifier, use IGRF instead",
+        " International Geomagnetic Reference Field 14 (https://doi.org/10.5281/zenodo.14012302) ",
+        " https://www.ncei.noaa.gov/products/international-geomagnetic-reference-field ",
     ),
     "CHAOS-Core": (
         "CHAOS-8 Core field (SH degrees 1-20)",
@@ -63,22 +58,6 @@ MODEL_REFERENCES = {
     "CHAOS-MMA-Secondary": (
         "CHAOS-8 Secondary (internal) magnetospheric field",
         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
-    ),
-    "CHAOS-6-Core": (
-        "CHAOS Core field",
-        " deprecated model identifier, use CHAOS-Core instead",
-    ),
-    "CHAOS-6-Static": (
-        "CHAOS crust field",
-        " deprecated model identifier, use CHAOS-Static instead",
-    ),
-    "CHAOS-6-MMA-Primary": (
-        "CHAOS Primary (external) magnetospheric field",
-        " deprecated model identifier, use CHAOS-MMA-Primary instead",
-    ),
-    "CHAOS-6-MMA-Secondary": (
-        "CHAOS-Secondary (internal) magnetospheric field",
-        " deprecated model identifier, use CHAOS-MMA-Secondary instead",
     ),
     "MF7": (
         "MF7 crustal field model, derived from CHAMP satellite observations",
@@ -158,13 +137,7 @@ MODEL_REFERENCES = {
     ),
 }
 
-DEPRECATED_MODELS = {
-    "IGRF12": "Use IGRF instead.",
-    "CHAOS-6-Core": "Use CHAOS-Core instead.",
-    "CHAOS-6-Static": "Use CHAOS-Static instead.",
-    "CHAOS-6-MMA-Primary": "Use CHAOS-MMA-Primary instead.",
-    "CHAOS-6-MMA-Secondary": "Use CHAOS-MMA-Secondary instead.",
-}
+DEPRECATED_MODELS = {}
 
 COLLECTION_REFERENCES = {
     "MAG": (
@@ -1341,17 +1314,12 @@ class SwarmRequest(ClientRequest):
 
     MAGNETIC_MODELS = [
         "IGRF",
-        "IGRF12",
         "LCS-1",
         "MF7",
         "CHAOS-Core",
         "CHAOS-Static",
         "CHAOS-MMA-Primary",
         "CHAOS-MMA-Secondary",
-        "CHAOS-6-Core",
-        "CHAOS-6-Static",
-        "CHAOS-6-MMA-Primary",
-        "CHAOS-6-MMA-Secondary",
         "MCO_SHA_2C",
         "MCO_SHA_2D",
         "MLI_SHA_2C",

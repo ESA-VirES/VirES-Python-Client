@@ -4,6 +4,11 @@ Release notes
 Change log
 ----------
 
+Changes from 0.12.0 to 0.12.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- VirES now uses CHAOS-8 and IGRF-14 magnetic models. These models are referred to as ``"CHAOS"`` and ``"IGRF"`` - older versions are not available.
+
 Changes from 0.11.8 to 0.12.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
