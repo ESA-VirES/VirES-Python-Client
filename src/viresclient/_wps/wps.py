@@ -28,7 +28,7 @@
 # -------------------------------------------------------------------------------
 
 try:
-    from urllib.error import HTTPError
+    from urllib.error import HTTPError, URLError
     from urllib.request import Request, urlopen
 except ImportError:
     # Python 2 backward compatibility
@@ -40,6 +40,7 @@ from time import sleep
 from xml.etree import ElementTree
 
 from .time_util import Timer
+from ..utils import retry_on_exception
 
 NS_OWS11 = "http://www.opengis.net/ows/1.1"
 NS_OWS20 = "http://www.opengis.net/ows/2.0"
@@ -308,6 +309,7 @@ class WPS10Service:
         else:
             raise ElementTree.ParseError
 
+    @retry_on_exception(retries=5, delay=1, exceptions=(ElementTree.ParseError, URLError, HTTPError))
     def _retrieve(self, request, response_handler=None, error_handler=None):
         """Retrieve and parse HTTP response."""
         method = request.get_method()
