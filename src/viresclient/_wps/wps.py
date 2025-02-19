@@ -103,6 +103,7 @@ class WPS10Service:
         headers - optional dictionary of the HTTP headers sent with each
                   request
     """
+    DEFAULT_CONTENT_TYPE = "application/xml; charset=utf-8"
 
     STATUS = {
         "{http://www.opengis.net/wps/1.0.0}ProcessAccepted": "ACCEPTED",
@@ -120,12 +121,17 @@ class WPS10Service:
         self.headers = headers or {}
         self.logger = self._LoggerAdapter(logger or getLogger(__name__), {})
 
-    def retrieve(self, request, handler=None):
+    def retrieve(self, request, handler=None, content_type=None):
         """Send a synchronous POST WPS request to a server and retrieve
         the output.
         """
+        headers = {
+            **self.headers,
+            "Content-Type": content_type or self.DEFAULT_CONTENT_TYPE,
+        }
+
         return self._retrieve(
-            Request(self.url, request, self.headers), handler, self.error_handler
+            Request(self.url, request, headers), handler, self.error_handler
         )
 
     def retrieve_async(
@@ -136,13 +142,14 @@ class WPS10Service:
         cleanup_handler=None,
         polling_interval=1,
         output_name="output",
+        content_type=None,
     ):
         """Send an asynchronous POST WPS request to a server and retrieve
         the output.
         """
         timer = Timer()
         status, percentCompleted, status_url, execute_response = self.submit_async(
-            request
+            request, content_type=content_type,
         )
         wpsstatus = WPSStatus()
         wpsstatus.update(status, percentCompleted, status_url, execute_response)
@@ -212,13 +219,17 @@ class WPS10Service:
                 )
                 return elm_reference.attrib["href"]
 
-    def submit_async(self, request):
+    def submit_async(self, request, content_type=None):
         """Send a POST WPS asynchronous request to a server and retrieve
         the status URL.
         """
         self.logger.debug("Submitting asynchronous job.")
+        headers = {
+            **self.headers,
+            "Content-Type": content_type or self.DEFAULT_CONTENT_TYPE,
+        }
         return self._retrieve(
-            Request(self.url, request, self.headers),
+            Request(self.url, request, headers),
             self.parse_status,
             self.error_handler,
         )
