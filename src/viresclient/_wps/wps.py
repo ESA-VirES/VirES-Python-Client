@@ -27,12 +27,9 @@
 # THE SOFTWARE.
 # -------------------------------------------------------------------------------
 
-try:
-    from urllib.error import HTTPError
-    from urllib.request import Request, urlopen
-except ImportError:
-    # Python 2 backward compatibility
-    from urllib2 import urlopen, Request, HTTPError
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
+from urllib.parse import urljoin
 
 from contextlib import closing
 from logging import LoggerAdapter, getLogger
@@ -152,7 +149,10 @@ class WPS10Service:
             request, content_type=content_type,
         )
         wpsstatus = WPSStatus()
-        wpsstatus.update(status, percentCompleted, status_url, execute_response)
+        wpsstatus.update(
+            status, percentCompleted, urljoin(self.url, status_url),
+            execute_response
+        )
 
         def log_wpsstatus(wpsstatus):
             self.logger.info(
@@ -176,7 +176,9 @@ class WPS10Service:
 
                 last_status = wpsstatus.status
                 last_percentCompleted = wpsstatus.percentCompleted
-                wpsstatus.update(*self.poll_status(wpsstatus.url))
+                wpsstatus.update(
+                    *self.poll_status(urljoin(self.url, wpsstatus.url))
+                )
 
                 if wpsstatus.status != last_status:
                     log_wpsstatus(wpsstatus)
@@ -204,7 +206,9 @@ class WPS10Service:
         """Retrieve asynchronous job output reference."""
         self.logger.debug("Retrieving asynchronous job output '%s'.", output_name)
         output_url = self.parse_output_reference(status_url, output_name)
-        return self._retrieve(Request(output_url, None, self.headers), handler)
+        return self._retrieve(
+            Request(urljoin(self.url, output_url), None, self.headers), handler
+        )
 
     @staticmethod
     def parse_output_reference(xml, identifier):
