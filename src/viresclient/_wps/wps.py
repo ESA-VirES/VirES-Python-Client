@@ -221,7 +221,10 @@ class WPS10Service:
                 elm_reference = elm.find(
                     "./{http://www.opengis.net/wps/1.0.0}Reference"
                 )
-                return elm_reference.attrib["href"]
+                return (
+                    elm_reference.attrib.get("{http://www.w3.org/1999/xlink}href") or
+                    elm_reference.attrib["href"]
+                )
 
     def submit_async(self, request, content_type=None):
         """Send a POST WPS asynchronous request to a server and retrieve
