@@ -70,6 +70,8 @@ LEVELS = {
     "NO_LOGGING": CRITICAL + 1,
 }
 
+DEFAULT_LOGGING_LEVEL = "ERROR"
+
 # File type to WPS output name
 RESPONSE_TYPES = {
     "csv": "text/csv",
@@ -258,7 +260,7 @@ class ClientRequest:
         url=None,
         token=None,
         config=None,
-        logging_level="NO_LOGGING",
+        logging_level=DEFAULT_LOGGING_LEVEL,
         server_type=None,
     ):
         self._server_type = server_type

@@ -30,12 +30,10 @@
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 from urllib.parse import urljoin
-
 from contextlib import closing
 from logging import LoggerAdapter, getLogger
 from time import sleep
 from xml.etree import ElementTree
-
 from .time_util import Timer
 
 NS_OWS11 = "http://www.opengis.net/ows/1.1"
@@ -101,6 +99,8 @@ class WPS10Service:
                   request
     """
     DEFAULT_CONTENT_TYPE = "application/xml; charset=utf-8"
+    RETRY_TIME = 20 # seconds
+    STATUS_POLL_RETRIES = 3 # re-try attempts
 
     STATUS = {
         "{http://www.opengis.net/wps/1.0.0}ProcessAccepted": "ACCEPTED",
@@ -244,9 +244,32 @@ class WPS10Service:
     def poll_status(self, status_url):
         """Poll status of an asynchronous WPS job."""
         self.logger.debug("Polling asynchronous job status.")
-        return self._retrieve(
-            Request(status_url, None, self.headers), self.parse_status
-        )
+
+        for index in range(self.STATUS_POLL_RETRIES + 1):
+
+            if index == 0:
+                self.logger.debug("Polling asynchronous job status.")
+            else:
+                self.logger.debug("Polling asynchronous job status. Retry attempt #%s.", index)
+
+            try:
+                return self._retrieve(
+                    Request(status_url, None, self.headers), self.parse_status
+                )
+            except Exception as error:
+                if index < self.STATUS_POLL_RETRIES:
+                    self.logger.error(
+                        "Status poll failed. Retrying in %s seconds. %s: %s",
+                        self.RETRY_TIME, error.__class__.__name__, error
+                    )
+                else:
+                    self.logger.error(
+                        "Status poll failed. No more retries. %s: %s",
+                        error.__class__.__name__, error
+                    )
+                    raise
+
+            sleep(self.RETRY_TIME)
 
     @classmethod
     def parse_status(cls, response):

@@ -3,7 +3,7 @@ import json
 
 import pandas as pd
 
-from ._client import ClientRequest, WPSInputs
+from ._client import ClientRequest, WPSInputs, DEFAULT_LOGGING_LEVEL
 from ._data import CONFIG_AEOLUS
 from ._data_handling import ReturnedDataFile
 
@@ -222,7 +222,7 @@ class AeolusRequest(ClientRequest):
 
     """
 
-    def __init__(self, url=None, token=None, config=None, logging_level="NO_LOGGING"):
+    def __init__(self, url=None, token=None, config=None, logging_level=DEFAULT_LOGGING_LEVEL):
         super().__init__(url, token, config, logging_level, server_type="Aeolus")
         # self._available = self._set_available_data()
         self._request_inputs = AeolusWPSInputs()
