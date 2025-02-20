@@ -4,6 +4,14 @@ Release notes
 Change log
 ----------
 
+Changes from 0.12.1 to 0.12.2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- **Internal WPS fixes which may be required to access the server in the future**
+- Improved robustness during asynchronous requests (the client now repeats the failed job status polling 3 times with 20 seconds interval)
+
+See `PR#121 <https://github.com/ESA-VirES/VirES-Python-Client/pull/121>`_ for details
+
 Changes from 0.12.0 to 0.12.1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
