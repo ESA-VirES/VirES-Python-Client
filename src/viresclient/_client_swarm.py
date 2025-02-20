@@ -12,7 +12,7 @@ from warnings import warn
 from pandas import read_csv
 from tqdm import tqdm
 
-from ._client import TEMPLATE_FILES, ClientRequest, WPSInputs, DEFAULT_LOGGING_LEVEL
+from ._client import DEFAULT_LOGGING_LEVEL, TEMPLATE_FILES, ClientRequest, WPSInputs
 from ._data import CONFIG_SWARM
 from ._data_handling import ReturnedDataFile
 from ._wps.environment import JINJA2_ENVIRONMENT
@@ -1344,7 +1344,9 @@ class SwarmRequest(ClientRequest):
         "SwarmCI",
     ]
 
-    def __init__(self, url=None, token=None, config=None, logging_level=DEFAULT_LOGGING_LEVEL):
+    def __init__(
+        self, url=None, token=None, config=None, logging_level=DEFAULT_LOGGING_LEVEL
+    ):
         super().__init__(url, token, config, logging_level, server_type="Swarm")
 
         self._available = self._get_available_data()

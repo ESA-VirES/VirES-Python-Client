@@ -27,13 +27,14 @@
 # THE SOFTWARE.
 # -------------------------------------------------------------------------------
 
-from urllib.error import HTTPError
-from urllib.request import Request, urlopen
-from urllib.parse import urljoin
 from contextlib import closing
 from logging import LoggerAdapter, getLogger
 from time import sleep
+from urllib.error import HTTPError
+from urllib.parse import urljoin
+from urllib.request import Request, urlopen
 from xml.etree import ElementTree
+
 from .time_util import Timer
 
 NS_OWS11 = "http://www.opengis.net/ows/1.1"
@@ -98,9 +99,10 @@ class WPS10Service:
         headers - optional dictionary of the HTTP headers sent with each
                   request
     """
+
     DEFAULT_CONTENT_TYPE = "application/xml; charset=utf-8"
-    RETRY_TIME = 20 # seconds
-    STATUS_POLL_RETRIES = 3 # re-try attempts
+    RETRY_TIME = 20  # seconds
+    STATUS_POLL_RETRIES = 3  # re-try attempts
 
     STATUS = {
         "{http://www.opengis.net/wps/1.0.0}ProcessAccepted": "ACCEPTED",
@@ -146,12 +148,12 @@ class WPS10Service:
         """
         timer = Timer()
         status, percentCompleted, status_url, execute_response = self.submit_async(
-            request, content_type=content_type,
+            request,
+            content_type=content_type,
         )
         wpsstatus = WPSStatus()
         wpsstatus.update(
-            status, percentCompleted, urljoin(self.url, status_url),
-            execute_response
+            status, percentCompleted, urljoin(self.url, status_url), execute_response
         )
 
         def log_wpsstatus(wpsstatus):
@@ -176,9 +178,7 @@ class WPS10Service:
 
                 last_status = wpsstatus.status
                 last_percentCompleted = wpsstatus.percentCompleted
-                wpsstatus.update(
-                    *self.poll_status(urljoin(self.url, wpsstatus.url))
-                )
+                wpsstatus.update(*self.poll_status(urljoin(self.url, wpsstatus.url)))
 
                 if wpsstatus.status != last_status:
                     log_wpsstatus(wpsstatus)
@@ -222,8 +222,8 @@ class WPS10Service:
                     "./{http://www.opengis.net/wps/1.0.0}Reference"
                 )
                 return (
-                    elm_reference.attrib.get("{http://www.w3.org/1999/xlink}href") or
-                    elm_reference.attrib["href"]
+                    elm_reference.attrib.get("{http://www.w3.org/1999/xlink}href")
+                    or elm_reference.attrib["href"]
                 )
 
     def submit_async(self, request, content_type=None):
@@ -250,7 +250,9 @@ class WPS10Service:
             if index == 0:
                 self.logger.debug("Polling asynchronous job status.")
             else:
-                self.logger.debug("Polling asynchronous job status. Retry attempt #%s.", index)
+                self.logger.debug(
+                    "Polling asynchronous job status. Retry attempt #%s.", index
+                )
 
             try:
                 return self._retrieve(
@@ -260,12 +262,15 @@ class WPS10Service:
                 if index < self.STATUS_POLL_RETRIES:
                     self.logger.error(
                         "Status poll failed. Retrying in %s seconds. %s: %s",
-                        self.RETRY_TIME, error.__class__.__name__, error
+                        self.RETRY_TIME,
+                        error.__class__.__name__,
+                        error,
                     )
                 else:
                     self.logger.error(
                         "Status poll failed. No more retries. %s: %s",
-                        error.__class__.__name__, error
+                        error.__class__.__name__,
+                        error,
                     )
                     raise
 
