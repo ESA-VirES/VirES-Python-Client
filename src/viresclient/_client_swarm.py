@@ -502,7 +502,10 @@ class SwarmRequest(ClientRequest):
         "EFI_TCT02": [f"SW_EXPT_EFI{x}_TCT02" for x in "ABC"],
         "EFI_TCT16": [f"SW_EXPT_EFI{x}_TCT16" for x in "ABC"],
         "IBI": [f"SW_OPER_IBI{x}TMS_2F" for x in "ABC"],
-        "TEC": [f"SW_OPER_TEC{x}TMS_2F" for x in "ABC"],
+        "TEC": [
+            *(f"SW_OPER_TEC{x}TMS_2F" for x in "ABC"),
+            *(f"SW_FAST_TEC{x}TMS_2F" for x in "ABC"),
+        ],
         "FAC": [
             *(f"SW_OPER_FAC{x}TMS_2F" for x in "ABC_"),
             *(f"SW_FAST_FAC{x}TMS_2F" for x in "ABC"),
