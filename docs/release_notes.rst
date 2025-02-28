@@ -4,6 +4,12 @@ Release notes
 Change log
 ----------
 
+Changes from 0.12.2 to 0.12.3
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added support for Swarm FAST TEC ``SW_FAST_TECxTMS_2F`` products.
+- Fixed error when loading some chunked data with xarray, when one of the chunks has zero length
+
 Changes from 0.12.1 to 0.12.2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
