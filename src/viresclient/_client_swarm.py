@@ -216,6 +216,8 @@ COLLECTION_REFERENCES = {
     "WND_ACC_GRACE": ("https://swarmhandbook.earth.esa.int/catalogue/GR_WNDxACC_2_",),
     "WND_ACC_GFO": ("https://swarmhandbook.earth.esa.int/catalogue/GF_WNDxACC_2_",),
     "MM_CON_EPH_2_": ("https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",),
+    "NIX_TMS": ("https://swarmhandbook.earth.esa.int/catalogue/SW_NIX_TMS_2F",),
+    "TIX_TMS": ("https://swarmhandbook.earth.esa.int/catalogue/SW_TIX_TMS_2F",),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
@@ -646,6 +648,8 @@ class SwarmRequest(ClientRequest):
         # TOLEOS conjunctions
         "MM_CON_EPH_2_:crossover": ["MM_OPER_CON_EPH_2_:crossover"],
         "MM_CON_EPH_2_:plane_alignment": ["MM_OPER_CON_EPH_2_:plane_alignment"],
+        "NIX_TMS": ["SW_OPER_NIX_TMS_2F"],
+        "TIX_TMS": ["SW_OPER_TIX_TMS_2F"],
     }
 
     OBS_COLLECTIONS = [
@@ -730,6 +734,8 @@ class SwarmRequest(ClientRequest):
         "WND_ACC_GFO": "PT10S",
         "MM_CON_EPH_2_:crossover": "PT20M",
         "MM_CON_EPH_2_:plane_alignment": "P1D",
+        "NIX_TMS": "PT8S",
+        "TIX_TMS": "PT8S",
     }
 
     PRODUCT_VARIABLES = {
@@ -1263,6 +1269,40 @@ class SwarmRequest(ClientRequest):
             "ltan_rate_2",
             "satellite_1",
             "satellite_2",
+        ],
+        "NIX_TMS": [
+            "Distance",
+            "Azimuth",
+            "Negix_X",
+            "Negix_X_Sigma",
+            "Negix_X_P95",
+            "Negix_Y",
+            "Negix_Y_Sigma",
+            "Negix_Y_P95",
+            "Negix_Total",
+            "Negix_Sigma",
+            "Negix_P95",
+            "N_Measurements",
+            "Flag_Negix",
+            "Orbit_Label",
+        ],
+        "TIX_TMS": [
+            "Longitude_Swarm",
+            "Latitude_Swarm",
+            "Distance",
+            "Azimuth",
+            "Tegix_X",
+            "Tegix_X_Sigma",
+            "Tegix_X_P95",
+            "Tegix_Y",
+            "Tegix_Y_Sigma",
+            "Tegix_Y_P95",
+            "Tegix_Total",
+            "Tegix_Sigma",
+            "Tegix_P95",
+            "N_Measurements",
+            "Flag_Tegix",
+            "Orbit_Label",
         ],
     }
 
