@@ -5,7 +5,11 @@ Available parameters for Swarm
 
 .. tip::
 
-  Did you know? The *VirES for Swarm* service provides data not only from Swarm but also INTERMAGNET ground observatories (search below for ``AUX_OBS``), and recalibrated platform magnetometer data from selected LEO missions (search below for ``MAG_``).
+  Try the new `Query builder interactive tool <https://dev.swarmdisc.org/dashboards/>`_ to explore the available parameters and create your own queries. This is a great way to get started with the data and see what is available.
+
+.. tip::
+
+  Did you know? The *VirES for Swarm* service provides data not only from Swarm but also INTERMAGNET ground observatories (search below for ``AUX_OBS``), and recalibrated platform magnetometer data from selected LEO missions (search below for ``MAG_``) and other "multi-mission" data.
 
 .. note::
 
