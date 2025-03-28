@@ -10,14 +10,14 @@ def lint(session):
     session.run("pre-commit", "run", "--all-files", *session.posargs)
 
 
-@nox.session(python=["3.6", "3.7", "3.8", "3.9", "3.10"])
+@nox.session(python=["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13"])
 def tests(session):
     session.install(".")
     session.install("pytest")
     session.run("pytest")
 
 
-@nox.session
+@nox.session(python="3.12")
 def docs(session: nox.Session) -> None:
     """
     Build the docs. Pass "serve" to serve.

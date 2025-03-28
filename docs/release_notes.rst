@@ -4,6 +4,31 @@ Release notes
 Change log
 ----------
 
+Changes from 0.12.3 to 0.13.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added support for new products:
+
+  - Swarm `ULF wave project <https://earth.esa.int/eogateway/activities/swarm-ulf-ionosphere>`_:
+
+    - ``SW_OPER_ULFxMAG_2F``
+    - ``SW_OPER_PC1xMAG_2F``
+
+  - `MIGRAS project <https://earth.esa.int/eogateway/activities/migras>`_ providing ionospheric gradients of TEC and electron density:
+
+    - ``SW_OPER_NIX_TMS_2F``
+    - ``SW_OPER_TIX_TMS_2F``
+
+  - `TIRO project <https://earth.esa.int/eogateway/activities/tiro>`_ providing TEC and electron density derived from CHAMP, GRACE, and GRACE-FO:
+  
+    - ``CH_OPER_TEC_TMS_2F``
+    - ``GR_OPER_TECxTMS_2F``
+    - ``GF_OPER_TECxTMS_2F``
+    - ``GR_OPER_NE__KBR_2F``
+    - ``GF_OPER_NE__KBR_2F``
+
+- Added :py:meth:`viresclient.SwarmRequest.get_collection_info` to query collection details from server (e.g. time extent)
+
 Changes from 0.12.2 to 0.12.3
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
