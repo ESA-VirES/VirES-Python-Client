@@ -225,6 +225,8 @@ COLLECTION_REFERENCES = {
         "https://swarmhandbook.earth.esa.int/catalogue/GR_NE__KBR_2F",
         "https://swarmhandbook.earth.esa.int/catalogue/GF_NE__KBR_2F",
     ),
+    "ULF_MAG": ("https://swarmhandbook.earth.esa.int/catalogue/SW_ULFxMAG_2F",),
+    "PC1_MAG": ("https://swarmhandbook.earth.esa.int/catalogue/SW_PC1xMAG_2F",),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
@@ -667,6 +669,24 @@ class SwarmRequest(ClientRequest):
         # TOLEOS conjunctions
         "MM_CON_EPH_2_:crossover": ["MM_OPER_CON_EPH_2_:crossover"],
         "MM_CON_EPH_2_:plane_alignment": ["MM_OPER_CON_EPH_2_:plane_alignment"],
+        # ULF and PC1 products
+        "ULF_MAG": [f"SW_OPER_ULF{spacecraft}MAG_2F" for spacecraft in "ABC"],
+        "ULF_MAG:event": [
+            f"SW_OPER_ULF{spacecraft}MAG_2F:event" for spacecraft in "ABC"
+        ],
+        "ULF_MAG:event_mean": [
+            f"SW_OPER_ULF{spacecraft}MAG_2F:event_mean" for spacecraft in "ABC"
+        ],
+        "PC1_MAG:event": [
+            *(f"SW_OPER_PC1{spacecraft}MAG_2F:Bp_event" for spacecraft in "ABC"),
+            *(f"SW_OPER_PC1{spacecraft}MAG_2F:Br_event" for spacecraft in "ABC"),
+            *(f"SW_OPER_PC1{spacecraft}MAG_2F:Ba_event" for spacecraft in "ABC"),
+        ],
+        "PC1_MAG:event_mean": [
+            *(f"SW_OPER_PC1{spacecraft}MAG_2F:Bp_event_mean" for spacecraft in "ABC"),
+            *(f"SW_OPER_PC1{spacecraft}MAG_2F:Br_event_mean" for spacecraft in "ABC"),
+            *(f"SW_OPER_PC1{spacecraft}MAG_2F:Ba_event_mean" for spacecraft in "ABC"),
+        ],
     }
 
     OBS_COLLECTIONS = [
@@ -696,7 +716,9 @@ class SwarmRequest(ClientRequest):
     ]
 
     # These are not necessarily real sampling steps, but are good enough to use
-    # for splitting long requests into chunks
+    # for splitting long requests into chunks.
+    # The time step set here should be equal to or shorter than the real sampling
+    # (defaults to PT1S if not set)
     COLLECTION_SAMPLING_STEPS = {
         "MAG": "PT1S",
         "MAG_HR": "PT0.019S",  # approx 50Hz (the sampling is not exactly 50Hz)
@@ -753,6 +775,11 @@ class SwarmRequest(ClientRequest):
         "MM_CON_EPH_2_:plane_alignment": "P1D",
         "TEC_TIRO": "PT1S",  # Actually more complicated - non-unique samples
         "NE_TIRO": "PT5S",
+        "ULF_MAG": "PT1M",
+        "ULF_MAG:event": "PT1S",  # irregular sampling
+        "ULF_MAG:event_mean": "PT1M",  # irregular sampling
+        "PC1_MAG:event": "PT1S",  # irregular sampling
+        "PC1_MAG:event_mean": "PT1M",  # irregular sampling
     }
 
     PRODUCT_VARIABLES = {
@@ -1311,6 +1338,116 @@ class SwarmRequest(ClientRequest):
             "ltan_rate_2",
             "satellite_1",
             "satellite_2",
+        ],
+        "ULF_MAG": [
+            "Timestamp",
+            "Latitude",
+            "Longitude",
+            "Radius",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "UT",
+            "SZA",
+            "Frequency_dominant",
+            "Halfwidth",
+            "Power",
+            "Prominence",
+            "Pc2_act",
+            "Pc3_act",
+            "Pc4_act",
+            "Pi2_act",
+            "Flag_Pc2",
+            "Flag_Pc3",
+            "Flag_Pc4",
+            "Flag_Pi2",
+            "Flag_EPB",
+            "Flag_FAC",
+        ],
+        "ULF_MAG:event": [
+            "Timestamp",
+            "Latitude",
+            "Longitude",
+            "Radius",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "SZA",
+            "ID",
+            "ORB",
+            "DIR",
+            "Frequency",
+            "Halfwidth",
+            "Power",
+            "Prominence",
+            "EPB",
+            "FAC",
+            "Flag_B",
+            "Quality",
+        ],
+        "ULF_MAG:event_mean": [
+            "Timestamp",
+            "Latitude",
+            "Longitude",
+            "Radius",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "SZA",
+            "ID",
+            "ORB",
+            "DIR",
+            "Duration",
+            "Frequency",
+            "Freq_std",
+            "Halfwidth",
+            "Power",
+            "Prominence",
+            "EPB",
+            "FAC",
+            "Flag_B",
+            "Quality",
+        ],
+        "PC1_MAG:event": [
+            "ID",
+            "Timestamp",
+            "Latitude",
+            "Longitude",
+            "Radius",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "SZA",
+            "ORB",
+            "DIR",
+            "Frequency",
+            "Halfwidth",
+            "Power",
+            "Prominence",
+            "Quality_B",
+            "Quality_p",
+            "Quality_n",
+        ],
+        "PC1_MAG:event_mean": [
+            "Timestamp",
+            "Latitude",
+            "Longitude",
+            "Radius",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "SZA",
+            "ID",
+            "ORB",
+            "DIR",
+            "Duration",
+            "Frequency",
+            "Freq_std",
+            "Halfwidth",
+            "Power",
+            "Prominence",
+            "ROFC",
+            "Quality",
         ],
     }
 

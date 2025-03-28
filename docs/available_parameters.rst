@@ -124,6 +124,22 @@ GR_OPER_NE__KBR_2F             NE_TIRO
 GF_OPER_NE__KBR_2F             NE_TIRO
 ============================== ================
 
+`ULF wave products <https://earth.esa.int/eogateway/activities/swarm-ulf-ionosphere>`_ are provided as:
+
+================================= ===================
+Collection full name              Collection type
+================================= ===================
+SW_OPER_ULFxMAG_2F                ULF_MAG
+SW_OPER_ULFxMAG_2F:event          ULF_MAG:event
+SW_OPER_ULFxMAG_2F:event_mean     ULF_MAG:event_mean
+SW_OPER_PC1xMAG_2F:Bp_event       PC1_MAG:event
+SW_OPER_PC1xMAG_2F:Br_event       PC1_MAG:event
+SW_OPER_PC1xMAG_2F:Ba_event       PC1_MAG:event
+SW_OPER_PC1xMAG_2F:Bp_event_mean  PC1_MAG:event_mean
+SW_OPER_PC1xMAG_2F:Br_event_mean  PC1_MAG:event_mean
+SW_OPER_PC1xMAG_2F:Ba_event_mean  PC1_MAG:event_mean
+================================= ===================
+
 The AUX_OBS collections contain ground magnetic observatory data from `INTERMAGNET <https://intermagnet.github.io/data_conditions.html>`_ and `WDC <http://www.wdc.bgs.ac.uk/>`_. Please note that these data are provided under different usage terms than the ESA data, and must be acknowledged accordingly.
 
 ======================== ================ ==============================================================
