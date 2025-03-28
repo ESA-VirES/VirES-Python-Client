@@ -20,7 +20,7 @@ Changes from 0.12.3 to 0.13.0
     - ``SW_OPER_TIX_TMS_2F``
 
   - `TIRO project <https://earth.esa.int/eogateway/activities/tiro>`_ providing TEC and electron density derived from CHAMP, GRACE, and GRACE-FO:
-  
+
     - ``CH_OPER_TEC_TMS_2F``
     - ``GR_OPER_TECxTMS_2F``
     - ``GF_OPER_TECxTMS_2F``
