@@ -217,10 +217,10 @@ COLLECTION_REFERENCES = {
     "WND_ACC_GFO": ("https://swarmhandbook.earth.esa.int/catalogue/GF_WNDxACC_2_",),
     "MM_CON_EPH_2_": ("https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",),
     "ULF_MAG": (
-        "https://earth.esa.int/eogateway/activities/swarm-ulf-ionosphere",
+        "https://swarmhandbook.earth.esa.int/catalogue/SW_ULFxMAG_2F",
     ),
     "PC1_MAG": (
-        "https://earth.esa.int/eogateway/activities/swarm-ulf-ionosphere",
+        "https://swarmhandbook.earth.esa.int/catalogue/SW_PC1xMAG_2F",
     ),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
@@ -700,7 +700,9 @@ class SwarmRequest(ClientRequest):
     ]
 
     # These are not necessarily real sampling steps, but are good enough to use
-    # for splitting long requests into chunks
+    # for splitting long requests into chunks.
+    # The time step set here should be equal to or shorter than the real sampling
+    # (defaults to PT1S if not set)
     COLLECTION_SAMPLING_STEPS = {
         "MAG": "PT1S",
         "MAG_HR": "PT0.019S",  # approx 50Hz (the sampling is not exactly 50Hz)
@@ -756,10 +758,10 @@ class SwarmRequest(ClientRequest):
         "MM_CON_EPH_2_:crossover": "PT20M",
         "MM_CON_EPH_2_:plane_alignment": "P1D",
         "ULF_MAG": "PT1M",
-        #"ULF_MAG:event": ??? # irregular sampling
-        #"ULF_MAG:event_mean": ??? # irregular sampling
-        #"PC1_MAG:event": ??? # irregular sampling
-        #"PC1_MAG:event_mean": ??? # irregular sampling
+        "ULF_MAG:event": "PT1S",  # irregular sampling
+        "ULF_MAG:event_mean": "PT1M",  # irregular sampling
+        "PC1_MAG:event": "PT1S",  # irregular sampling
+        "PC1_MAG:event_mean": "PT1M",  # irregular sampling
     }
 
     PRODUCT_VARIABLES = {
