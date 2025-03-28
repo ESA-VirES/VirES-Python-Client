@@ -2047,7 +2047,7 @@ class SwarmRequest(ClientRequest):
         """Get information about a list of collections
 
         Args:
-            collections (list[str]): List of collections to get information for
+            collections (str | list[str]): Collection or list of collections
 
         Returns:
             list[dict]: A list of dictionaries containing information about each collection
@@ -2058,7 +2058,7 @@ class SwarmRequest(ClientRequest):
 
                 from viresclient import SwarmRequest
                 request = SwarmRequest("https://vires.services/ows")
-                info = request.get_collection_info(["SW_OPER_MAGA_LR_1B"])
+                info = request.get_collection_info("SW_OPER_MAGA_LR_1B")
 
             gives::
 
@@ -2068,8 +2068,10 @@ class SwarmRequest(ClientRequest):
                 'timeExtent': {'start': '2013-11-25T11:02:52Z',
                 'end': '2023-09-28T23:59:59Z'}}]
         """
+        if isinstance(collections, str):
+            collections = [collections]
         if not isinstance(collections, list):
-            raise TypeError("collections must be a list")
+            raise TypeError("collections must be a string or list")
         templatefile = TEMPLATE_FILES["get_collection_info"]
         template = JINJA2_ENVIRONMENT.get_template(templatefile)
         request = template.render(
