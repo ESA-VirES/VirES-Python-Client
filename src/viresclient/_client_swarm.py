@@ -216,7 +216,6 @@ COLLECTION_REFERENCES = {
     "WND_ACC_GRACE": ("https://swarmhandbook.earth.esa.int/catalogue/GR_WNDxACC_2_",),
     "WND_ACC_GFO": ("https://swarmhandbook.earth.esa.int/catalogue/GF_WNDxACC_2_",),
     "MM_CON_EPH_2_": ("https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",),
-    # TODO: Add references to TIRO products
     "TEC_TIRO": (
         "https://swarmhandbook.earth.esa.int/catalogue/CH_TEC_TMS_2F",
         "https://swarmhandbook.earth.esa.int/catalogue/GR_TECxTMS_2F",
