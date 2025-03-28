@@ -12,7 +12,7 @@ from warnings import warn
 from pandas import read_csv
 from tqdm import tqdm
 
-from ._client import TEMPLATE_FILES, ClientRequest, WPSInputs
+from ._client import DEFAULT_LOGGING_LEVEL, TEMPLATE_FILES, ClientRequest, WPSInputs
 from ._data import CONFIG_SWARM
 from ._data_handling import ReturnedDataFile
 from ._wps.environment import JINJA2_ENVIRONMENT
@@ -41,45 +41,24 @@ REFERENCES = {
 
 MODEL_REFERENCES = {
     "IGRF": (
-        " International Geomagnetic Reference Field: the thirteenth generation, (https://doi.org/10.1186/s40623-020-01288-x) ",
-        " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html ",
-    ),
-    "IGRF12": (
-        " International Geomagnetic Reference Field: the 12th generation, https://doi.org/10.1186/s40623-015-0228-9 ",
-        " https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html "
-        " deprecated model identifier, use IGRF instead",
+        " International Geomagnetic Reference Field 14 (https://doi.org/10.5281/zenodo.14012302) ",
+        " https://www.ncei.noaa.gov/products/international-geomagnetic-reference-field ",
     ),
     "CHAOS-Core": (
-        "CHAOS-7 Core field (SH degrees 1-20)",
-        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ ",
+        "CHAOS-8 Core field (SH degrees 1-20)",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "CHAOS-Static": (
-        "CHAOS-7 crust field (SH degrees 21-185)",
-        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ ",
+        "CHAOS-8 crust field (SH degrees 21-185)",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "CHAOS-MMA-Primary": (
-        "CHAOS-7 Primary (external) magnetospheric field",
-        " hhttp://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ ",
+        "CHAOS-8 Primary (external) magnetospheric field",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "CHAOS-MMA-Secondary": (
-        "CHAOS-7 Secondary (internal) magnetospheric field",
-        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/ ",
-    ),
-    "CHAOS-6-Core": (
-        "CHAOS Core field",
-        " deprecated model identifier, use CHAOS-Core instead",
-    ),
-    "CHAOS-6-Static": (
-        "CHAOS crust field",
-        " deprecated model identifier, use CHAOS-Static instead",
-    ),
-    "CHAOS-6-MMA-Primary": (
-        "CHAOS Primary (external) magnetospheric field",
-        " deprecated model identifier, use CHAOS-MMA-Primary instead",
-    ),
-    "CHAOS-6-MMA-Secondary": (
-        "CHAOS-Secondary (internal) magnetospheric field",
-        " deprecated model identifier, use CHAOS-MMA-Secondary instead",
+        "CHAOS-8 Secondary (internal) magnetospheric field",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "MF7": (
         "MF7 crustal field model, derived from CHAMP satellite observations",
@@ -159,13 +138,7 @@ MODEL_REFERENCES = {
     ),
 }
 
-DEPRECATED_MODELS = {
-    "IGRF12": "Use IGRF instead.",
-    "CHAOS-6-Core": "Use CHAOS-Core instead.",
-    "CHAOS-6-Static": "Use CHAOS-Static instead.",
-    "CHAOS-6-MMA-Primary": "Use CHAOS-MMA-Primary instead.",
-    "CHAOS-6-MMA-Secondary": "Use CHAOS-MMA-Secondary instead.",
-}
+DEPRECATED_MODELS = {}
 
 COLLECTION_REFERENCES = {
     "MAG": (
@@ -244,6 +217,19 @@ COLLECTION_REFERENCES = {
     "WND_ACC_GRACE": ("https://swarmhandbook.earth.esa.int/catalogue/GR_WNDxACC_2_",),
     "WND_ACC_GFO": ("https://swarmhandbook.earth.esa.int/catalogue/GF_WNDxACC_2_",),
     "MM_CON_EPH_2_": ("https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",),
+    "NIX_TMS": ("https://swarmhandbook.earth.esa.int/catalogue/SW_NIX_TMS_2F",),
+    "TIX_TMS": ("https://swarmhandbook.earth.esa.int/catalogue/SW_TIX_TMS_2F",),
+    "TEC_TIRO": (
+        "https://swarmhandbook.earth.esa.int/catalogue/CH_TEC_TMS_2F",
+        "https://swarmhandbook.earth.esa.int/catalogue/GR_TECxTMS_2F",
+        "https://swarmhandbook.earth.esa.int/catalogue/GR_TECxTMS_2F",
+    ),
+    "NE_TIRO": (
+        "https://swarmhandbook.earth.esa.int/catalogue/GR_NE__KBR_2F",
+        "https://swarmhandbook.earth.esa.int/catalogue/GF_NE__KBR_2F",
+    ),
+    "ULF_MAG": ("https://swarmhandbook.earth.esa.int/catalogue/SW_ULFxMAG_2F",),
+    "PC1_MAG": ("https://swarmhandbook.earth.esa.int/catalogue/SW_PC1xMAG_2F",),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
@@ -530,8 +516,14 @@ class SwarmRequest(ClientRequest):
         "EFI_TCT02": [f"SW_EXPT_EFI{x}_TCT02" for x in "ABC"],
         "EFI_TCT16": [f"SW_EXPT_EFI{x}_TCT16" for x in "ABC"],
         "IBI": [f"SW_OPER_IBI{x}TMS_2F" for x in "ABC"],
-        "TEC": [f"SW_OPER_TEC{x}TMS_2F" for x in "ABC"],
-        "FAC": [f"SW_OPER_FAC{x}TMS_2F" for x in "ABC_"],
+        "TEC": [
+            *(f"SW_OPER_TEC{x}TMS_2F" for x in "ABC"),
+            *(f"SW_FAST_TEC{x}TMS_2F" for x in "ABC"),
+        ],
+        "FAC": [
+            *(f"SW_OPER_FAC{x}TMS_2F" for x in "ABC_"),
+            *(f"SW_FAST_FAC{x}TMS_2F" for x in "ABC"),
+        ],
         "EEF": [f"SW_OPER_EEF{x}TMS_2F" for x in "ABC"],
         "IPD": [f"SW_OPER_IPD{x}IRR_2F" for x in "ABC"],
         "AEJ_LPL": [f"SW_OPER_AEJ{x}LPL_2F" for x in "ABC"],
@@ -650,6 +642,18 @@ class SwarmRequest(ClientRequest):
         "MAG_GFO_ML": ["GF1_MAG_ACAL_CORR_ML", "GF2_MAG_ACAL_CORR_ML"],
         "MAG_GOCE": ["GO_MAG_ACAL_CORR"],
         "MAG_GOCE_ML": ["GO_MAG_ACAL_CORR_ML"],
+        # Multi-mission TEC and NE products
+        "TEC_TIRO": [
+            "CH_OPER_TEC_TMS_2F",
+            "GR_OPER_TEC1TMS_2F",
+            "GR_OPER_TEC2TMS_2F",
+            "GF_OPER_TEC1TMS_2F",
+            "GF_OPER_TEC2TMS_2F",
+        ],
+        "NE_TIRO": [
+            "GR_OPER_NE__KBR_2F",
+            "GF_OPER_NE__KBR_2F",
+        ],
         # Swarm spacecraft positions
         "MOD_SC": [
             *(f"SW_OPER_MOD{x}_SC_1B" for x in "ABC"),
@@ -668,6 +672,26 @@ class SwarmRequest(ClientRequest):
         # TOLEOS conjunctions
         "MM_CON_EPH_2_:crossover": ["MM_OPER_CON_EPH_2_:crossover"],
         "MM_CON_EPH_2_:plane_alignment": ["MM_OPER_CON_EPH_2_:plane_alignment"],
+        "NIX_TMS": ["SW_OPER_NIX_TMS_2F"],
+        "TIX_TMS": ["SW_OPER_TIX_TMS_2F"],
+        # ULF and PC1 products
+        "ULF_MAG": [f"SW_OPER_ULF{spacecraft}MAG_2F" for spacecraft in "ABC"],
+        "ULF_MAG:event": [
+            f"SW_OPER_ULF{spacecraft}MAG_2F:event" for spacecraft in "ABC"
+        ],
+        "ULF_MAG:event_mean": [
+            f"SW_OPER_ULF{spacecraft}MAG_2F:event_mean" for spacecraft in "ABC"
+        ],
+        "PC1_MAG:event": [
+            *(f"SW_OPER_PC1{spacecraft}MAG_2F:Bp_event" for spacecraft in "ABC"),
+            *(f"SW_OPER_PC1{spacecraft}MAG_2F:Br_event" for spacecraft in "ABC"),
+            *(f"SW_OPER_PC1{spacecraft}MAG_2F:Ba_event" for spacecraft in "ABC"),
+        ],
+        "PC1_MAG:event_mean": [
+            *(f"SW_OPER_PC1{spacecraft}MAG_2F:Bp_event_mean" for spacecraft in "ABC"),
+            *(f"SW_OPER_PC1{spacecraft}MAG_2F:Br_event_mean" for spacecraft in "ABC"),
+            *(f"SW_OPER_PC1{spacecraft}MAG_2F:Ba_event_mean" for spacecraft in "ABC"),
+        ],
     }
 
     OBS_COLLECTIONS = [
@@ -697,7 +721,9 @@ class SwarmRequest(ClientRequest):
     ]
 
     # These are not necessarily real sampling steps, but are good enough to use
-    # for splitting long requests into chunks
+    # for splitting long requests into chunks.
+    # The time step set here should be equal to or shorter than the real sampling
+    # (defaults to PT1S if not set)
     COLLECTION_SAMPLING_STEPS = {
         "MAG": "PT1S",
         "MAG_HR": "PT0.019S",  # approx 50Hz (the sampling is not exactly 50Hz)
@@ -707,7 +733,7 @@ class SwarmRequest(ClientRequest):
         "EFI_TCT02": "PT0.5S",
         "EFI_TCT16": "PT0.0625S",
         "IBI": "PT1S",
-        "TEC": "PT1S",  # Actually more complicated
+        "TEC": "PT1S",  # Actually more complicated - non-unique samples
         "FAC": "PT1S",
         "EEF": "PT90M",
         "IPD": "PT1S",
@@ -752,6 +778,15 @@ class SwarmRequest(ClientRequest):
         "WND_ACC_GFO": "PT10S",
         "MM_CON_EPH_2_:crossover": "PT20M",
         "MM_CON_EPH_2_:plane_alignment": "P1D",
+        "NIX_TMS": "PT8S",
+        "TIX_TMS": "PT8S",
+        "TEC_TIRO": "PT1S",  # Actually more complicated - non-unique samples
+        "NE_TIRO": "PT5S",
+        "ULF_MAG": "PT1M",
+        "ULF_MAG:event": "PT1S",  # irregular sampling
+        "ULF_MAG:event_mean": "PT1M",  # irregular sampling
+        "PC1_MAG:event": "PT1S",  # irregular sampling
+        "PC1_MAG:event_mean": "PT1M",  # irregular sampling
     }
 
     PRODUCT_VARIABLES = {
@@ -923,6 +958,31 @@ class SwarmRequest(ClientRequest):
             "Relative_STEC_RMS",
             "DCB",
             "DCB_Error",
+        ],
+        "TEC_TIRO": [
+            "GPS_Position",
+            "LEO_Position",
+            "PRN",
+            "L1",
+            "L2",
+            "P1",
+            "P2",
+            "S1_C_N0",
+            "S2_C_N0",
+            "Elevation_Angle",
+            "Absolute_VTEC",
+            "Absolute_STEC",
+            "Relative_STEC",
+            "Relative_STEC_RMS",
+            "DCB",
+            "DCB_Error",
+        ],
+        "NE_TIRO": [
+            "LEO_Position",
+            "Distance",
+            "Relative_Hor_TEC",
+            "Relative_Ne",
+            "Absolute_Ne",
         ],
         "FAC": [
             "IRC",
@@ -1286,6 +1346,150 @@ class SwarmRequest(ClientRequest):
             "satellite_1",
             "satellite_2",
         ],
+        "NIX_TMS": [
+            "Distance",
+            "Azimuth",
+            "Negix_X",
+            "Negix_X_Sigma",
+            "Negix_X_P95",
+            "Negix_Y",
+            "Negix_Y_Sigma",
+            "Negix_Y_P95",
+            "Negix_Total",
+            "Negix_Sigma",
+            "Negix_P95",
+            "N_Measurements",
+            "Flag_Negix",
+            "Orbit_Label",
+        ],
+        "TIX_TMS": [
+            "Longitude_Swarm",
+            "Latitude_Swarm",
+            "Distance",
+            "Azimuth",
+            "Tegix_X",
+            "Tegix_X_Sigma",
+            "Tegix_X_P95",
+            "Tegix_Y",
+            "Tegix_Y_Sigma",
+            "Tegix_Y_P95",
+            "Tegix_Total",
+            "Tegix_Sigma",
+            "Tegix_P95",
+            "N_Measurements",
+            "Flag_Tegix",
+            "Orbit_Label",
+        ],
+        "ULF_MAG": [
+            "Timestamp",
+            "Latitude",
+            "Longitude",
+            "Radius",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "UT",
+            "SZA",
+            "Frequency_dominant",
+            "Halfwidth",
+            "Power",
+            "Prominence",
+            "Pc2_act",
+            "Pc3_act",
+            "Pc4_act",
+            "Pi2_act",
+            "Flag_Pc2",
+            "Flag_Pc3",
+            "Flag_Pc4",
+            "Flag_Pi2",
+            "Flag_EPB",
+            "Flag_FAC",
+        ],
+        "ULF_MAG:event": [
+            "Timestamp",
+            "Latitude",
+            "Longitude",
+            "Radius",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "SZA",
+            "ID",
+            "ORB",
+            "DIR",
+            "Frequency",
+            "Halfwidth",
+            "Power",
+            "Prominence",
+            "EPB",
+            "FAC",
+            "Flag_B",
+            "Quality",
+        ],
+        "ULF_MAG:event_mean": [
+            "Timestamp",
+            "Latitude",
+            "Longitude",
+            "Radius",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "SZA",
+            "ID",
+            "ORB",
+            "DIR",
+            "Duration",
+            "Frequency",
+            "Freq_std",
+            "Halfwidth",
+            "Power",
+            "Prominence",
+            "EPB",
+            "FAC",
+            "Flag_B",
+            "Quality",
+        ],
+        "PC1_MAG:event": [
+            "ID",
+            "Timestamp",
+            "Latitude",
+            "Longitude",
+            "Radius",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "SZA",
+            "ORB",
+            "DIR",
+            "Frequency",
+            "Halfwidth",
+            "Power",
+            "Prominence",
+            "Quality_B",
+            "Quality_p",
+            "Quality_n",
+        ],
+        "PC1_MAG:event_mean": [
+            "Timestamp",
+            "Latitude",
+            "Longitude",
+            "Radius",
+            "Latitude_QD",
+            "Longitude_QD",
+            "MLT_QD",
+            "SZA",
+            "ID",
+            "ORB",
+            "DIR",
+            "Duration",
+            "Frequency",
+            "Freq_std",
+            "Halfwidth",
+            "Power",
+            "Prominence",
+            "ROFC",
+            "Quality",
+        ],
     }
 
     AUXILIARY_VARIABLES = [
@@ -1339,17 +1543,12 @@ class SwarmRequest(ClientRequest):
 
     MAGNETIC_MODELS = [
         "IGRF",
-        "IGRF12",
         "LCS-1",
         "MF7",
         "CHAOS-Core",
         "CHAOS-Static",
         "CHAOS-MMA-Primary",
         "CHAOS-MMA-Secondary",
-        "CHAOS-6-Core",
-        "CHAOS-6-Static",
-        "CHAOS-6-MMA-Primary",
-        "CHAOS-6-MMA-Secondary",
         "MCO_SHA_2C",
         "MCO_SHA_2D",
         "MLI_SHA_2C",
@@ -1374,7 +1573,9 @@ class SwarmRequest(ClientRequest):
         "SwarmCI",
     ]
 
-    def __init__(self, url=None, token=None, config=None, logging_level="NO_LOGGING"):
+    def __init__(
+        self, url=None, token=None, config=None, logging_level=DEFAULT_LOGGING_LEVEL
+    ):
         super().__init__(url, token, config, logging_level, server_type="Swarm")
 
         self._available = self._get_available_data()

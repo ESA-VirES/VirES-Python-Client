@@ -27,16 +27,12 @@
 # THE SOFTWARE.
 # -------------------------------------------------------------------------------
 
-try:
-    from urllib.error import HTTPError
-    from urllib.request import Request, urlopen
-except ImportError:
-    # Python 2 backward compatibility
-    from urllib2 import urlopen, Request, HTTPError
-
 from contextlib import closing
 from logging import LoggerAdapter, getLogger
 from time import sleep
+from urllib.error import HTTPError
+from urllib.parse import urljoin
+from urllib.request import Request, urlopen
 from xml.etree import ElementTree
 
 from .time_util import Timer
@@ -104,6 +100,10 @@ class WPS10Service:
                   request
     """
 
+    DEFAULT_CONTENT_TYPE = "application/xml; charset=utf-8"
+    RETRY_TIME = 20  # seconds
+    STATUS_POLL_RETRIES = 3  # re-try attempts
+
     STATUS = {
         "{http://www.opengis.net/wps/1.0.0}ProcessAccepted": "ACCEPTED",
         "{http://www.opengis.net/wps/1.0.0}ProcessFailed": "FAILED",
@@ -120,12 +120,17 @@ class WPS10Service:
         self.headers = headers or {}
         self.logger = self._LoggerAdapter(logger or getLogger(__name__), {})
 
-    def retrieve(self, request, handler=None):
+    def retrieve(self, request, handler=None, content_type=None):
         """Send a synchronous POST WPS request to a server and retrieve
         the output.
         """
+        headers = {
+            **self.headers,
+            "Content-Type": content_type or self.DEFAULT_CONTENT_TYPE,
+        }
+
         return self._retrieve(
-            Request(self.url, request, self.headers), handler, self.error_handler
+            Request(self.url, request, headers), handler, self.error_handler
         )
 
     def retrieve_async(
@@ -136,16 +141,20 @@ class WPS10Service:
         cleanup_handler=None,
         polling_interval=1,
         output_name="output",
+        content_type=None,
     ):
         """Send an asynchronous POST WPS request to a server and retrieve
         the output.
         """
         timer = Timer()
         status, percentCompleted, status_url, execute_response = self.submit_async(
-            request
+            request,
+            content_type=content_type,
         )
         wpsstatus = WPSStatus()
-        wpsstatus.update(status, percentCompleted, status_url, execute_response)
+        wpsstatus.update(
+            status, percentCompleted, urljoin(self.url, status_url), execute_response
+        )
 
         def log_wpsstatus(wpsstatus):
             self.logger.info(
@@ -169,7 +178,7 @@ class WPS10Service:
 
                 last_status = wpsstatus.status
                 last_percentCompleted = wpsstatus.percentCompleted
-                wpsstatus.update(*self.poll_status(wpsstatus.url))
+                wpsstatus.update(*self.poll_status(urljoin(self.url, wpsstatus.url)))
 
                 if wpsstatus.status != last_status:
                     log_wpsstatus(wpsstatus)
@@ -197,7 +206,9 @@ class WPS10Service:
         """Retrieve asynchronous job output reference."""
         self.logger.debug("Retrieving asynchronous job output '%s'.", output_name)
         output_url = self.parse_output_reference(status_url, output_name)
-        return self._retrieve(Request(output_url, None, self.headers), handler)
+        return self._retrieve(
+            Request(urljoin(self.url, output_url), None, self.headers), handler
+        )
 
     @staticmethod
     def parse_output_reference(xml, identifier):
@@ -210,15 +221,22 @@ class WPS10Service:
                 elm_reference = elm.find(
                     "./{http://www.opengis.net/wps/1.0.0}Reference"
                 )
-                return elm_reference.attrib["href"]
+                return (
+                    elm_reference.attrib.get("{http://www.w3.org/1999/xlink}href")
+                    or elm_reference.attrib["href"]
+                )
 
-    def submit_async(self, request):
+    def submit_async(self, request, content_type=None):
         """Send a POST WPS asynchronous request to a server and retrieve
         the status URL.
         """
         self.logger.debug("Submitting asynchronous job.")
+        headers = {
+            **self.headers,
+            "Content-Type": content_type or self.DEFAULT_CONTENT_TYPE,
+        }
         return self._retrieve(
-            Request(self.url, request, self.headers),
+            Request(self.url, request, headers),
             self.parse_status,
             self.error_handler,
         )
@@ -226,9 +244,37 @@ class WPS10Service:
     def poll_status(self, status_url):
         """Poll status of an asynchronous WPS job."""
         self.logger.debug("Polling asynchronous job status.")
-        return self._retrieve(
-            Request(status_url, None, self.headers), self.parse_status
-        )
+
+        for index in range(self.STATUS_POLL_RETRIES + 1):
+
+            if index == 0:
+                self.logger.debug("Polling asynchronous job status.")
+            else:
+                self.logger.debug(
+                    "Polling asynchronous job status. Retry attempt #%s.", index
+                )
+
+            try:
+                return self._retrieve(
+                    Request(status_url, None, self.headers), self.parse_status
+                )
+            except Exception as error:
+                if index < self.STATUS_POLL_RETRIES:
+                    self.logger.error(
+                        "Status poll failed. Retrying in %s seconds. %s: %s",
+                        self.RETRY_TIME,
+                        error.__class__.__name__,
+                        error,
+                    )
+                else:
+                    self.logger.error(
+                        "Status poll failed. No more retries. %s: %s",
+                        error.__class__.__name__,
+                        error,
+                    )
+                    raise
+
+            sleep(self.RETRY_TIME)
 
     @classmethod
     def parse_status(cls, response):

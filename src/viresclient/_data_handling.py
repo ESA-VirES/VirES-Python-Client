@@ -164,7 +164,9 @@ class FileReader:
         return data
 
     def get_variable_units(self, var):
-        return self._varatts[var].get("UNITS", "")
+        units = self._varatts[var].get("UNITS", "")
+        unit = self._varatts[var].get("UNIT", "")
+        return unit or units
 
     def get_variable_description(self, var):
         desc = self._varatts[var].get("DESCRIPTION", "")
@@ -783,7 +785,11 @@ class ReturnedData:
             pandas.DataFrame
 
         """
-        return pandas.concat([d.as_dataframe(expand=expand) for d in self.contents])
+        dataframes = [data.as_dataframe(expand=expand) for data in self.contents]
+        if len(dataframes) > 1:
+            return pandas.concat([df for df in dataframes if not df.empty])
+        else:
+            return dataframes[0]
 
     def as_xarray(self, reshape=False):
         """Convert the data to an xarray Dataset.
@@ -821,6 +827,8 @@ class ReturnedData:
         elif self._time_variable in ds_list[0].dims:
             # Address simpler concatenation case for VirES for Swarm
             # Timestamp always exists for Swarm, but is not present in Aeolus
+            # Remove datasets of length 0 so that concatenation works
+            ds_list = [ds for ds in ds_list if ds[self._time_variable].size != 0]
             ds = xarray.concat(ds_list, dim=self._time_variable)
         else:
             # Address complex concatenation case for VirES for Aeolus
