@@ -640,11 +640,14 @@ class SwarmRequest(ClientRequest):
         # Multi-mission TEC and NE products
         "TEC_TIRO": [
             "CH_OPER_TEC_TMS_2F",
-            "GR_OPER_TEC1TMS_2F", "GR_OPER_TEC2TMS_2F",
-            "GF_OPER_TEC1TMS_2F", "GF_OPER_TEC2TMS_2F",
+            "GR_OPER_TEC1TMS_2F",
+            "GR_OPER_TEC2TMS_2F",
+            "GF_OPER_TEC1TMS_2F",
+            "GF_OPER_TEC2TMS_2F",
         ],
         "NE_TIRO": [
-            "GR_OPER_NE__KBR_2F", "GF_OPER_NE__KBR_2F",
+            "GR_OPER_NE__KBR_2F",
+            "GF_OPER_NE__KBR_2F",
         ],
         # Swarm spacecraft positions
         "MOD_SC": [
@@ -748,7 +751,7 @@ class SwarmRequest(ClientRequest):
         "WND_ACC_GFO": "PT10S",
         "MM_CON_EPH_2_:crossover": "PT20M",
         "MM_CON_EPH_2_:plane_alignment": "P1D",
-        "TEC_TIRO": "PT10S", # Actually more complicated - non-unique samples
+        "TEC_TIRO": "PT1S",  # Actually more complicated - non-unique samples
         "NE_TIRO": "PT5S",
     }
 
@@ -941,11 +944,11 @@ class SwarmRequest(ClientRequest):
             "DCB_Error",
         ],
         "NE_TIRO": [
-             "LEO_Position",
-             "Distance",
-             "Relative_Hor_TEC",
-             "Relative_Ne",
-             "Absolute_Ne",
+            "LEO_Position",
+            "Distance",
+            "Relative_Hor_TEC",
+            "Relative_Ne",
+            "Absolute_Ne",
         ],
         "FAC": [
             "IRC",
