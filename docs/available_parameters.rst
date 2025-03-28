@@ -113,6 +113,17 @@ MM_CON_SPH_2\_:crossover                        Conjunction information (times w
 MM_CON_SPH_2\_:plane_alignment                  Conjunction information (times when orbital planes align)
 ============================== ================ ===================================================================================================
 
+The `TIRO project <https://earth.esa.int/eogateway/activities/tiro>`_ provides products for TEC and Ne derived from CHAMP, GRACE, and GRACE-FO:
+============================== ================
+Collection full name           Collection type
+============================== ================
+CH_OPER_TEC_TMS_2F             TEC_TIRO
+GR_OPER_TECxTMS_2F             TEC_TIRO
+GF_OPER_TECxTMS_2F             TEC_TIRO
+GR_OPER_NE__KBR_2F             NE_TIRO
+GF_OPER_NE__KBR_2F             NE_TIRO
+============================== ================
+
 `ULF wave products <https://earth.esa.int/eogateway/activities/swarm-ulf-ionosphere>`_ are provided as:
 
 ================================= ===================

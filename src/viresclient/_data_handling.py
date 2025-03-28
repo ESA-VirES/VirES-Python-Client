@@ -164,7 +164,9 @@ class FileReader:
         return data
 
     def get_variable_units(self, var):
-        return self._varatts[var].get("UNITS", "")
+        units = self._varatts[var].get("UNITS", "")
+        unit = self._varatts[var].get("UNIT", "")
+        return unit or units
 
     def get_variable_description(self, var):
         desc = self._varatts[var].get("DESCRIPTION", "")
