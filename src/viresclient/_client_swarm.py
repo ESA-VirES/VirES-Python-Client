@@ -216,6 +216,16 @@ COLLECTION_REFERENCES = {
     "WND_ACC_GRACE": ("https://swarmhandbook.earth.esa.int/catalogue/GR_WNDxACC_2_",),
     "WND_ACC_GFO": ("https://swarmhandbook.earth.esa.int/catalogue/GF_WNDxACC_2_",),
     "MM_CON_EPH_2_": ("https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",),
+    # TODO: Add references to TIRO products
+    "TEC_TIRO": (
+        "https://swarmhandbook.earth.esa.int/catalogue/CH_TEC_TMS_2F",
+        "https://swarmhandbook.earth.esa.int/catalogue/GR_TECxTMS_2F",
+        "https://swarmhandbook.earth.esa.int/catalogue/GR_TECxTMS_2F",
+    ),
+    "NE_TIRO": (
+        "https://swarmhandbook.earth.esa.int/catalogue/GR_NE__KBR_2F",
+        "https://swarmhandbook.earth.esa.int/catalogue/GF_NE__KBR_2F",
+    ),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
@@ -628,6 +638,15 @@ class SwarmRequest(ClientRequest):
         "MAG_GFO_ML": ["GF1_MAG_ACAL_CORR_ML", "GF2_MAG_ACAL_CORR_ML"],
         "MAG_GOCE": ["GO_MAG_ACAL_CORR"],
         "MAG_GOCE_ML": ["GO_MAG_ACAL_CORR_ML"],
+        # Multi-mission TEC and NE products
+        "TEC_TIRO": [
+            "CH_OPER_TEC_TMS_2F",
+            "GR_OPER_TEC1TMS_2F", "GR_OPER_TEC2TMS_2F",
+            "GF_OPER_TEC1TMS_2F", "GF_OPER_TEC2TMS_2F",
+        ],
+        "NE_TIRO": [
+            "GR_OPER_NE__KBR_2F", "GF_OPER_NE__KBR_2F",
+        ],
         # Swarm spacecraft positions
         "MOD_SC": [
             *(f"SW_OPER_MOD{x}_SC_1B" for x in "ABC"),
@@ -685,7 +704,7 @@ class SwarmRequest(ClientRequest):
         "EFI_TCT02": "PT0.5S",
         "EFI_TCT16": "PT0.0625S",
         "IBI": "PT1S",
-        "TEC": "PT1S",  # Actually more complicated
+        "TEC": "PT1S",  # Actually more complicated - non-unique samples
         "FAC": "PT1S",
         "EEF": "PT90M",
         "IPD": "PT1S",
@@ -730,6 +749,8 @@ class SwarmRequest(ClientRequest):
         "WND_ACC_GFO": "PT10S",
         "MM_CON_EPH_2_:crossover": "PT20M",
         "MM_CON_EPH_2_:plane_alignment": "P1D",
+        "TEC_TIRO": "PT10S", # Actually more complicated - non-unique samples
+        "NE_TIRO": "PT5S",
     }
 
     PRODUCT_VARIABLES = {
@@ -901,6 +922,31 @@ class SwarmRequest(ClientRequest):
             "Relative_STEC_RMS",
             "DCB",
             "DCB_Error",
+        ],
+        "TEC_TIRO": [
+            "GPS_Position",
+            "LEO_Position",
+            "PRN",
+            "L1",
+            "L2",
+            "P1",
+            "P2",
+            "S1_C_N0",
+            "S2_C_N0",
+            "Elevation_Angle",
+            "Absolute_VTEC",
+            "Absolute_STEC",
+            "Relative_STEC",
+            "Relative_STEC_RMS",
+            "DCB",
+            "DCB_Error",
+        ],
+        "NE_TIRO": [
+             "LEO_Position",
+             "Distance",
+             "Relative_Hor_TEC",
+             "Relative_Ne",
+             "Absolute_Ne",
         ],
         "FAC": [
             "IRC",
