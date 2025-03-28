@@ -113,6 +113,15 @@ MM_CON_SPH_2\_:crossover                        Conjunction information (times w
 MM_CON_SPH_2\_:plane_alignment                  Conjunction information (times when orbital planes align)
 ============================== ================ ===================================================================================================
 
+The `MIGRAS project (Monitoring of Ionospheric Gradients At Swarm) <https://earth.esa.int/eogateway/activities/migras>`_ contributes the `NEGIX <https://swarmhandbook.earth.esa.int/catalogue/SW_NIX_TMS_2F>`_ and `TEGIX <https://swarmhandbook.earth.esa.int/catalogue/SW_TIX_TMS_2F>`_ products:
+
+============================== ================
+Collection full name           Collection type
+============================== ================
+SW_OPER_NIX_TMS_2F             NIX_TMS
+SW_OPER_TIX_TMS_2F             TIX_TMS
+============================== ================
+
 The `TIRO project <https://earth.esa.int/eogateway/activities/tiro>`_ provides products for TEC and Ne derived from CHAMP, GRACE, and GRACE-FO:
 ============================== ================
 Collection full name           Collection type
