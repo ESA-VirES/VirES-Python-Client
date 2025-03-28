@@ -216,12 +216,8 @@ COLLECTION_REFERENCES = {
     "WND_ACC_GRACE": ("https://swarmhandbook.earth.esa.int/catalogue/GR_WNDxACC_2_",),
     "WND_ACC_GFO": ("https://swarmhandbook.earth.esa.int/catalogue/GF_WNDxACC_2_",),
     "MM_CON_EPH_2_": ("https://swarmhandbook.earth.esa.int/catalogue/MM_CON_EPH_2_",),
-    "ULF_MAG": (
-        "https://swarmhandbook.earth.esa.int/catalogue/SW_ULFxMAG_2F",
-    ),
-    "PC1_MAG": (
-        "https://swarmhandbook.earth.esa.int/catalogue/SW_PC1xMAG_2F",
-    ),
+    "ULF_MAG": ("https://swarmhandbook.earth.esa.int/catalogue/SW_ULFxMAG_2F",),
+    "PC1_MAG": ("https://swarmhandbook.earth.esa.int/catalogue/SW_PC1xMAG_2F",),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
@@ -653,14 +649,13 @@ class SwarmRequest(ClientRequest):
         "MM_CON_EPH_2_:crossover": ["MM_OPER_CON_EPH_2_:crossover"],
         "MM_CON_EPH_2_:plane_alignment": ["MM_OPER_CON_EPH_2_:plane_alignment"],
         # ULF and PC1 products
-        "ULF_MAG": [
-            f"SW_OPER_ULF{spacecraft}MAG_2F" for spacecraft in "ABC"
-        ],
+        "ULF_MAG": [f"SW_OPER_ULF{spacecraft}MAG_2F" for spacecraft in "ABC"],
         "ULF_MAG:event": [
             f"SW_OPER_ULF{spacecraft}MAG_2F:event" for spacecraft in "ABC"
         ],
         "ULF_MAG:event_mean": [
-            f"SW_OPER_ULF{spacecraft}MAG_2F:event_mean" for spacecraft in "ABC"],
+            f"SW_OPER_ULF{spacecraft}MAG_2F:event_mean" for spacecraft in "ABC"
+        ],
         "PC1_MAG:event": [
             *(f"SW_OPER_PC1{spacecraft}MAG_2F:Bp_event" for spacecraft in "ABC"),
             *(f"SW_OPER_PC1{spacecraft}MAG_2F:Br_event" for spacecraft in "ABC"),
@@ -1319,7 +1314,7 @@ class SwarmRequest(ClientRequest):
             "Flag_Pc4",
             "Flag_Pi2",
             "Flag_EPB",
-            "Flag_FAC"
+            "Flag_FAC",
         ],
         "ULF_MAG:event": [
             "Timestamp",

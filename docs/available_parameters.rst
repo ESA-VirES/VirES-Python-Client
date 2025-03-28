@@ -116,7 +116,7 @@ MM_CON_SPH_2\_:plane_alignment                  Conjunction information (times w
 `ULF wave products <https://earth.esa.int/eogateway/activities/swarm-ulf-ionosphere>`_ are provided as:
 
 ================================= ===================
-Collection full name              Collection type     
+Collection full name              Collection type
 ================================= ===================
 SW_OPER_ULFxMAG_2F                ULF_MAG
 SW_OPER_ULFxMAG_2F:event          ULF_MAG:event
