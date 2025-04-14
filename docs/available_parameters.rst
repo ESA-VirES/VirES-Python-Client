@@ -5,15 +5,23 @@ Available parameters for Swarm
 
 .. tip::
 
-  Try the new `Query builder interactive tool <https://dev.swarmdisc.org/dashboards/>`_ to explore the available parameters and create your own queries. This is a great way to get started with the data and see what is available.
+  There are several ways to discover and learn more about the available data and models:
 
-.. tip::
+  - Try the new `Query builder interactive dashboard`_ to explore the catalogue and generate your own viresclient queries
+  - `Swarm Handbook`_: scentific metadata and related links for each product
+  - `Swarm Notebooks`_: a collection of Jupyter notebooks providing recipes to help use the data
 
-  Did you know? The *VirES for Swarm* service provides data not only from Swarm but also INTERMAGNET ground observatories (search below for ``AUX_OBS``), and recalibrated platform magnetometer data from selected LEO missions (search below for ``MAG_``) and other "multi-mission" data.
+.. _`Query builder interactive dashboard`: https://dev.swarmdisc.org/dashboards/
+
+.. _`Swarm Handbook`: https://swarmhandbook.earth.esa.int/catalogue/index
+
+.. _`Swarm Notebooks`: https://notebooks.vires.services/notebooks/02b__viresclient-available-data
 
 .. note::
 
-  | `See also: Jupyter notebook about data and model availability <https://notebooks.vires.services/notebooks/02b__viresclient-available-data>`_ - check out the other demo notebooks there too.
+  Did you know? The *VirES for Swarm* service provides data not only from Swarm but also INTERMAGNET ground observatories (search below for ``AUX_OBS``), recalibrated platform magnetometer data from selected LEO missions (search below for ``MAG_``), and other "multi-mission" data such as total electron content (TEC), electron densities, temperatures, and their gradients. These are derived from spacecraft such as GOCE, CryoSat, GRACE, GRACE-FO, and more.
+
+----
 
 You can check which parameters are available with:
 
@@ -28,14 +36,6 @@ You can check which parameters are available with:
   request.available_auxiliaries()
 
 The available measurements are segregated according to the "collection" (essentially Swarm products): each ``collection`` has a number of ``measurements`` associated with it, and the appropriate collection must be set in order to access the measurements. ``auxiliaries`` are available together with any set ``collection``. ``models`` provide magnetic model evaluation on demand, at the locations of the time series which is being accessed (when accessing magnetic field data such as ``MAG`` or ``MAG_HR``). Standard positional variables always returned, such as Timestamp, Spacecraft, geocentric Latitude, Longitude, Radius.
-
-----
-
-See the `Swarm Data Handbook`_ for details about the products and `Swarm Product Demos`_ (Jupyter notebooks) for basic recipes to get started.
-
-.. _`Swarm Data Handbook`: https://earth.esa.int/eogateway/missions/swarm/product-data-handbook
-
-.. _`Swarm Product Demos`: https://notebooks.vires.services/notebooks/03a1_demo-magx_lr_1b
 
 ----
 
