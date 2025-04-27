@@ -5,18 +5,8 @@ Introduction
 
 .. toctree::
   :hidden:
-  :caption: Virtual Research Environments
-
-  VirES for Swarm <https://vires.services>
-  Swarm Notebooks <https://notebooks.vires.services>
-  VirES for Aeolus <https://aeolus.services>
-  Aeolus Notebooks <https://notebooks.aeolus.services>
-
-
-.. toctree::
-  :hidden:
   :maxdepth: 2
-  :caption: Information on viresclient
+  :caption: viresclient Documentation
 
   self
   installation
