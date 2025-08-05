@@ -262,6 +262,7 @@ class SwarmWPSInputs(WPSInputs):
         "response_type",
         "custom_shc",
         "ignore_cached_models",
+        "do_not_interpolate_models",
     ]
 
     def __init__(
@@ -276,6 +277,7 @@ class SwarmWPSInputs(WPSInputs):
         response_type=None,
         custom_shc=None,
         ignore_cached_models=False,
+        do_not_interpolate_models=False,
     ):
         # Set up default values
         # Obligatory - these must be replaced before the request is made
@@ -291,6 +293,7 @@ class SwarmWPSInputs(WPSInputs):
         self.sampling_step = None if sampling_step is None else sampling_step
         self.custom_shc = None if custom_shc is None else custom_shc
         self.ignore_cached_models = ignore_cached_models
+        self.do_not_interpolate_models = do_not_interpolate_models
 
     @property
     def collection_ids(self):
@@ -352,6 +355,17 @@ class SwarmWPSInputs(WPSInputs):
     def ignore_cached_models(self, value):
         if isinstance(value, bool):
             self._ignore_cached_models = value
+        else:
+            raise TypeError
+
+    @property
+    def do_not_interpolate_models(self):
+        return self._do_not_interpolate_models
+
+    @do_not_interpolate_models.setter
+    def do_not_interpolate_models(self, value):
+        if isinstance(value, bool):
+            self._do_not_interpolate_models = value
         else:
             raise TypeError
 
@@ -1932,6 +1946,7 @@ class SwarmRequest(ClientRequest):
         residuals=False,
         sampling_step=None,
         ignore_cached_models=False,
+        do_not_interpolate_models=False,
     ):
         """Set the combination of products to retrieve.
 
@@ -1946,6 +1961,7 @@ class SwarmRequest(ClientRequest):
             residuals (bool): True if only returning measurement-model residual
             sampling_step (str): ISO_8601 duration, e.g. 10 seconds: PT10S, 1 minute: PT1M
             ignore_cached_models (bool): True if cached models should be ignored and calculated on-the-fly
+            do_not_interpolate_models (bool): True if the models for HR collection should not be interpolated from the LR collection
 
         """
         if self._collection_list is None:
@@ -2045,6 +2061,7 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.sampling_step = sampling_step
         self._request_inputs.custom_shc = custom_shc
         self._request_inputs.ignore_cached_models = ignore_cached_models
+        self._request_inputs.do_not_interpolate_models = do_not_interpolate_models
 
         return self
 
