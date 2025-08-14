@@ -105,6 +105,9 @@ def retry(n_retries, retry_time_seconds, label):
                 try:
                     return method(self, *args, **kwargs)
 
+                except WPSError:
+                    raise
+
                 except Exception as error:
                     if index < n_retries:
                         self.logger.error(
