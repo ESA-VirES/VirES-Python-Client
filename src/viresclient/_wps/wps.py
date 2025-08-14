@@ -112,6 +112,7 @@ def retry(n_retries, retry_time_seconds, label):
                     if index < n_retries:
                         self.logger.error(
                             "%s failed. Retrying in %s seconds. %s: %s",
+                            label,
                             self.RETRY_TIME,
                             error.__class__.__name__,
                             error,
@@ -119,6 +120,7 @@ def retry(n_retries, retry_time_seconds, label):
                     else:
                         self.logger.error(
                             "%s failed. No more retries. %s: %s",
+                            label,
                             error.__class__.__name__,
                             error,
                         )
@@ -349,7 +351,7 @@ class WPS10Service:
             xml = ElementTree.parse(http_error)
             ows_exception, namespace = cls.find_exception(xml)
         except ElementTree.ParseError:
-            raise http_error
+            raise http_error from None
         raise cls.parse_ows_exception(ows_exception, namespace)
 
     @classmethod
