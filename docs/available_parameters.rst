@@ -299,7 +299,7 @@ Models are evaluated along the satellite track at the positions of the time seri
   ``models=["'CHAOS-full' = 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'"]``
   `(click for more info) <https://github.com/klaundal/notebooks/blob/master/get_external_field.ipynb>`_
 
-  This composed model can also be accessed by an alias: ``models=["CHAOS"]`` which represents the full CHAOS model
+  This composed model (core + crust + magnetosphere) can also be accessed by an alias: ``models=["CHAOS"]``. Note that this does not include the ionospheric part (``"CHAOS-MIO"``) which was added to the CHAOS series in `CHAOS-8 <http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/>`_.
 
   See `Magnetic Earth <https://magneticearth.org/pages/models.html>`_ for an introduction to geomagnetic models.
 
@@ -326,6 +326,7 @@ Models are evaluated along the satellite track at the positions of the time seri
   CHAOS-Core,                                # Core
   CHAOS-Static,                              # Lithosphere
   CHAOS-MMA-Primary, CHAOS-MMA-Secondary     # Magnetosphere
+  CHAOS-MIO                                  # Polar ionosphere
 
   # Other lithospheric models:
   MF7, LCS-1
