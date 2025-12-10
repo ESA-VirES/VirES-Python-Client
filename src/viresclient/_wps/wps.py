@@ -89,6 +89,50 @@ class AuthenticationError(Exception):
         )
 
 
+def retry(n_retries, retry_time_seconds, label):
+    """ Request re-try decorator. """
+
+    def _retry(method):
+
+        def _retry_wrapper(self, *args, **kwargs):
+
+            for index in range(n_retries + 1):
+                if index == 0:
+                    self.logger.debug("sending %s.", label)
+                else:
+                    self.logger.debug("sending %s. Retry attempt #%s.", label, index)
+
+                try:
+                    return method(self, *args, **kwargs)
+
+                except WPSError:
+                    raise
+
+                except Exception as error:
+                    if index < n_retries:
+                        self.logger.error(
+                            "%s failed. Retrying in %s seconds. %s: %s",
+                            label,
+                            self.RETRY_TIME,
+                            error.__class__.__name__,
+                            error,
+                        )
+                    else:
+                        self.logger.error(
+                            "%s failed. No more retries. %s: %s",
+                            label,
+                            error.__class__.__name__,
+                            error,
+                        )
+                        raise
+
+                sleep(retry_time_seconds)
+
+        return _retry_wrapper
+
+    return _retry
+
+
 class WPS10Service:
     """WPS 1.0 service proxy class.
 
@@ -101,8 +145,8 @@ class WPS10Service:
     """
 
     DEFAULT_CONTENT_TYPE = "application/xml; charset=utf-8"
-    RETRY_TIME = 20  # seconds
-    STATUS_POLL_RETRIES = 3  # re-try attempts
+    RETRY_TIME = 20  # re-try wait period in seconds
+    REQUEST_RETRIES = 3  # re-try attempts
 
     STATUS = {
         "{http://www.opengis.net/wps/1.0.0}ProcessAccepted": "ACCEPTED",
@@ -204,6 +248,7 @@ class WPS10Service:
 
         return output
 
+    @retry(REQUEST_RETRIES, RETRY_TIME, "asynchronous output request")
     def retrieve_async_output(self, status_url, output_name, handler=None):
         """Retrieve asynchronous job output reference."""
         self.logger.debug("Retrieving asynchronous job output '%s'.", output_name)
@@ -244,40 +289,12 @@ class WPS10Service:
             self.error_handler,
         )
 
+    @retry(REQUEST_RETRIES, RETRY_TIME, "status poll request")
     def poll_status(self, status_url):
         """Poll status of an asynchronous WPS job."""
-        self.logger.debug("Polling asynchronous job status.")
-
-        for index in range(self.STATUS_POLL_RETRIES + 1):
-
-            if index == 0:
-                self.logger.debug("Polling asynchronous job status.")
-            else:
-                self.logger.debug(
-                    "Polling asynchronous job status. Retry attempt #%s.", index
-                )
-
-            try:
-                return self._retrieve(
-                    Request(status_url, None, self.headers), self.parse_status
-                )
-            except Exception as error:
-                if index < self.STATUS_POLL_RETRIES:
-                    self.logger.error(
-                        "Status poll failed. Retrying in %s seconds. %s: %s",
-                        self.RETRY_TIME,
-                        error.__class__.__name__,
-                        error,
-                    )
-                else:
-                    self.logger.error(
-                        "Status poll failed. No more retries. %s: %s",
-                        error.__class__.__name__,
-                        error,
-                    )
-                    raise
-
-            sleep(self.RETRY_TIME)
+        return self._retrieve(
+            Request(status_url, None, self.headers), self.parse_status
+        )
 
     @classmethod
     def parse_status(cls, response):
@@ -334,7 +351,7 @@ class WPS10Service:
             xml = ElementTree.parse(http_error)
             ows_exception, namespace = cls.find_exception(xml)
         except ElementTree.ParseError:
-            raise http_error
+            raise http_error from None
         raise cls.parse_ows_exception(ows_exception, namespace)
 
     @classmethod

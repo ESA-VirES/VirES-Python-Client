@@ -23,6 +23,14 @@
       </wps:Data>
     </wps:Input>
     {% endif -%}
+    {% if do_not_interpolate_models -%}
+    <wps:Input>
+      <ows:Identifier>do_not_interpolate_models</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>true</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    {% endif -%}
     {% endif -%}
     {% if custom_shc -%}
     <wps:Input>

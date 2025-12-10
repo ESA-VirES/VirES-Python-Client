@@ -13,6 +13,7 @@ Coinciding with `VirES server version 3.16 <https://vires.services/changelog>`_
 - Support for new feature to evaluate models at arbitrary coordinates. See:
   - :py:meth:`viresclient.SwarmRequest.eval_model`
   - :py:meth:`viresclient.SwarmRequest.eval_model_for_cdf_file`
+- Added support for spline interpolation of magnetic models when requesting ``MAGx_HR`` data. Can be disabled with the ``do_not_interpolate_models`` option in :py:meth:`viresclient.SwarmRequest.set_products`
 
 Changes from 0.12.3 to 0.13.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
