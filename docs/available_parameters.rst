@@ -291,7 +291,9 @@ SW_OPER_VOBS_1M_2\_:SecularVariation ``SiteCode,B_SV,sigma_SV``
 ``models``
 ----------
 
-Models are evaluated along the satellite track at the positions of the time series that has been requested. These must be used together with one of the MAG collections, and one or both of the "F" and "B_NEC" measurements. This can yield either the model values together with the measurements, or the data-model residuals.
+When requesting a MAG-type collection, geomagnetic models can be evaluated on-demand along the satellite track (i.e. at the same times and positions as the data). You have the choice of receiving either the model values together with the measurements (i.e. ``B_NEC`` & ``B_NEC_Model``), or simply the data-model residuals (i.e. ``B_NEC_res_Model``).
+
+To evaluate models at arbitrary coordinates (i.e. without a data request), see :py:meth:`viresclient.SwarmRequest.eval_model` and :py:meth:`viresclient.SwarmRequest.eval_model_for_cdf_file`.
 
 .. note::
 
