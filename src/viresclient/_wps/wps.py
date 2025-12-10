@@ -90,7 +90,7 @@ class AuthenticationError(Exception):
 
 
 def retry(n_retries, retry_time_seconds, label):
-    """ Request re-try decorator. """
+    """Request re-try decorator."""
 
     def _retry(method):
 
@@ -405,7 +405,5 @@ class WPS10Service:
             if isinstance(value, bytes):
                 return value
             return str(value).encode(encoding)
-        return {
-            _to_bytes(key): _to_bytes(value)
-            for key, value in headers.items()
-        }
+
+        return {_to_bytes(key): _to_bytes(value) for key, value in headers.items()}

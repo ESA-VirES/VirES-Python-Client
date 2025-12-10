@@ -491,13 +491,15 @@ class ClientRequest:
                         )
                 else:
                     return self._wps_service.retrieve_async(
-                        request, handler=response_handler,
+                        request,
+                        handler=response_handler,
                         content_type=content_type,
                         headers=headers,
                     )
             else:
                 return self._wps_service.retrieve(
-                    request, handler=response_handler,
+                    request,
+                    handler=response_handler,
                     content_type=content_type,
                     headers=headers,
                 )

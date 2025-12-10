@@ -28,14 +28,14 @@
 
 from io import BytesIO
 
-CHUNK_SIZE = 64 * 1024 # 64kB chunk-size
+CHUNK_SIZE = 64 * 1024  # 64kB chunk-size
 SEEK_SET = 0
 SEEK_END = 2
 CRLF = b"\r\n"
 
 
 def generate_multipart_request(parts, boundary, chunksize=CHUNK_SIZE):
-    """ Generate multi-part payload from the given parts (pairs of the part
+    """Generate multi-part payload from the given parts (pairs of the part
     payload and header dictionaries) and boundary string.
     """
     for part, headers in parts:
@@ -45,13 +45,13 @@ def generate_multipart_request(parts, boundary, chunksize=CHUNK_SIZE):
 
 
 def get_multipart_request_size(parts, boundary):
-    """ Get byte-size of the multi-part payload for the given parts
+    """Get byte-size of the multi-part payload for the given parts
     (pairs of the part payload and header dictionaries) and boundary string.
     """
     size = 0
     for part, headers in parts:
         size += len(_get_part_head(boundary, part, headers))
-        size +=_get_part_byte_size(part)
+        size += _get_part_byte_size(part)
     size += len(_get_multipart_tail(boundary))
     return size
 
@@ -61,6 +61,7 @@ def _get_part_head(boundary, part, headers):
         **headers,
         "Content-Length": _get_part_byte_size(part),
     }
+
     def _generate_part_head():
         yield ""
         yield f"--{boundary}"
@@ -68,6 +69,7 @@ def _get_part_head(boundary, part, headers):
             yield f"{key}: {value}"
         yield ""
         yield ""
+
     return CRLF.join(s.encode("ascii") for s in _generate_part_head())
 
 
@@ -76,6 +78,7 @@ def _get_multipart_tail(boundary):
         yield ""
         yield f"--{boundary}--"
         yield ""
+
     return CRLF.join(s.encode("ascii") for s in _generate_multipart_tail())
 
 

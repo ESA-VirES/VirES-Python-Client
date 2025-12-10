@@ -1,12 +1,12 @@
 # pylint: disable=missing-docstring, invalid-name,line-too-long
 
 import datetime
+import io
 import json
 import os
-import io
+import shutil
 import sys
 import uuid
-import shutil
 from collections import OrderedDict
 from io import StringIO
 from textwrap import dedent
@@ -21,11 +21,11 @@ from ._client import DEFAULT_LOGGING_LEVEL, TEMPLATE_FILES, ClientRequest, WPSIn
 from ._data import CONFIG_SWARM
 from ._data_handling import ReturnedDataFile
 from ._wps.environment import JINJA2_ENVIRONMENT
-from ._wps.time_util import parse_datetime
 from ._wps.multipart import (
     generate_multipart_request,
     get_multipart_request_size,
 )
+from ._wps.time_util import parse_datetime
 
 TEMPLATE_FILES = {
     **TEMPLATE_FILES,
@@ -2685,9 +2685,14 @@ class SwarmRequest(ClientRequest):
         def _write_hdf5_file(filename, data):
             with h5py.File(filename, "w") as hdf:
                 for key, array in data.items():
-                    options = {} if array.ndim == 0 else {
-                        "compression": "gzip", "compression_opts": 9,
-                    }
+                    options = (
+                        {}
+                        if array.ndim == 0
+                        else {
+                            "compression": "gzip",
+                            "compression_opts": 9,
+                        }
+                    )
                     hdf.create_dataset(key, data=array, **options)
 
         def _read_hdf5_file(filename):
@@ -2698,13 +2703,14 @@ class SwarmRequest(ClientRequest):
                 data["Timestamp"] = data["Timestamp"].astype(time_type)
             return data, sources
 
-        def _response_handler(filename, chunksize=1024*1024):
+        def _response_handler(filename, chunksize=1024 * 1024):
             def _handler(file_obj):
                 # save received received HDF5 file
                 with open(filename, "wb") as file:
                     shutil.copyfileobj(file_obj, file, chunksize)
                 # read results from the HDF5 file
                 return _read_hdf5_file(filename)
+
             return _handler
 
         # FIXME: temp. file handling
@@ -2739,29 +2745,38 @@ class SwarmRequest(ClientRequest):
 
         try:
             # write input HDF5 file
-            _write_hdf5_file(input_filename, {
-                "Timestamp": time.astype("int64"),
-                "Latitude": latitude,
-                "Longitude": longitude,
-                "Radius": radius,
-            })
+            _write_hdf5_file(
+                input_filename,
+                {
+                    "Timestamp": time.astype("int64"),
+                    "Latitude": latitude,
+                    "Longitude": longitude,
+                    "Radius": radius,
+                },
+            )
 
             # streaming request from the input HDF5 file
             with open(input_filename, "rb") as input_file:
                 parts = [
-                    (request, {
-                        "Content-Type": "application/xml; charset=utf-8",
-                    }),
-                    (input_file, {
-                        "Content-Id": request_id,
-                        "Content-Type": "application/x-hdf5",
-                    }),
+                    (
+                        request,
+                        {
+                            "Content-Type": "application/xml; charset=utf-8",
+                        },
+                    ),
+                    (
+                        input_file,
+                        {
+                            "Content-Id": request_id,
+                            "Content-Type": "application/x-hdf5",
+                        },
+                    ),
                 ]
 
                 # Due to the Django limitations we must aggregate the request
                 # chunks in one block.
-                #payload_size = get_multipart_request_size(parts, multipart_boundary)
-                #payload = generate_multipart_request(parts, multipart_boundary)
+                # payload_size = get_multipart_request_size(parts, multipart_boundary)
+                # payload = generate_multipart_request(parts, multipart_boundary)
                 payload = b"".join(
                     generate_multipart_request(parts, multipart_boundary)
                 )
@@ -2771,12 +2786,10 @@ class SwarmRequest(ClientRequest):
                     response_handler=_response_handler(output_filename),
                     asynchronous=False,
                     show_progress=show_progress,
-                    content_type=(
-                        f"multipart/related; boundary={multipart_boundary}"
-                    ),
-                    headers = {
+                    content_type=(f"multipart/related; boundary={multipart_boundary}"),
+                    headers={
                         "MIME-Version": "1.0",
-                        #"Content-Length": payload_size,
+                        # "Content-Length": payload_size,
                     },
                 )
 
@@ -2786,7 +2799,6 @@ class SwarmRequest(ClientRequest):
                     os.remove(filename)
 
         return result, sources
-
 
     def eval_model_for_cdf_file(
         self,
@@ -2809,12 +2821,13 @@ class SwarmRequest(ClientRequest):
         """
         # FIXME show download progress
 
-        def _response_handler(filename, chunksize=1024*1024):
+        def _response_handler(filename, chunksize=1024 * 1024):
             def _handler(file_obj):
                 # save received received file
                 with open(filename, "wb") as file:
                     shutil.copyfileobj(file_obj, file, chunksize)
                 return filename
+
             return _handler
 
         request_id = uuid.uuid4()
@@ -2846,20 +2859,26 @@ class SwarmRequest(ClientRequest):
             # streaming request from the input HDF5 file
             with open(input_cdf_filename, "rb") as input_file:
                 parts = [
-                    (request, {
-                        "Content-Type": "application/xml; charset=utf-8",
-                    }),
-                    (input_file, {
-                        "Content-Id": request_id,
-                        "Content-Type": "application/x-cdf",
-                    }),
+                    (
+                        request,
+                        {
+                            "Content-Type": "application/xml; charset=utf-8",
+                        },
+                    ),
+                    (
+                        input_file,
+                        {
+                            "Content-Id": request_id,
+                            "Content-Type": "application/x-cdf",
+                        },
+                    ),
                 ]
 
                 # Due to the Django limitations we must aggregate the request
                 # chunks in one block.
 
-                #payload_size = get_multipart_request_size(parts, multipart_boundary)
-                #payload = generate_multipart_request(parts, multipart_boundary)
+                # payload_size = get_multipart_request_size(parts, multipart_boundary)
+                # payload = generate_multipart_request(parts, multipart_boundary)
                 payload = b"".join(
                     generate_multipart_request(parts, multipart_boundary)
                 )
@@ -2869,12 +2888,10 @@ class SwarmRequest(ClientRequest):
                     response_handler=_response_handler(temp_cdf_filename),
                     asynchronous=False,
                     show_progress=show_progress,
-                    content_type=(
-                        f"multipart/related; boundary={multipart_boundary}"
-                    ),
-                    headers = {
+                    content_type=(f"multipart/related; boundary={multipart_boundary}"),
+                    headers={
                         "MIME-Version": "1.0",
-                        #"Content-Length": payload_size,
+                        # "Content-Length": payload_size,
                     },
                 )
 
