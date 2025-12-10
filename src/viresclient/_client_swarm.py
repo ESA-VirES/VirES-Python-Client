@@ -70,6 +70,10 @@ MODEL_REFERENCES = {
         "CHAOS-8 Secondary (internal) magnetospheric field",
         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
+    "CHAOS-MIO": (
+        "CHAOS-8 Ionospheric field",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
+    ),
     "MF7": (
         "MF7 crustal field model, derived from CHAMP satellite observations",
         " http://geomag.org/models/MF7.html",
@@ -1559,6 +1563,7 @@ class SwarmRequest(ClientRequest):
         "CHAOS-Static",
         "CHAOS-MMA-Primary",
         "CHAOS-MMA-Secondary",
+        "CHAOS-MIO",
         "MCO_SHA_2C",
         "MCO_SHA_2D",
         "MLI_SHA_2C",
