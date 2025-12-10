@@ -1,7 +1,6 @@
 # pylint: disable=missing-docstring, invalid-name,line-too-long
 
 import datetime
-import io
 import json
 import os
 import shutil
@@ -21,10 +20,7 @@ from ._client import DEFAULT_LOGGING_LEVEL, TEMPLATE_FILES, ClientRequest, WPSIn
 from ._data import CONFIG_SWARM
 from ._data_handling import ReturnedDataFile
 from ._wps.environment import JINJA2_ENVIRONMENT
-from ._wps.multipart import (
-    generate_multipart_request,
-    get_multipart_request_size,
-)
+from ._wps.multipart import generate_multipart_request
 from ._wps.time_util import parse_datetime
 
 TEMPLATE_FILES = {
