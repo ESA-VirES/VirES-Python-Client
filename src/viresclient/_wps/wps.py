@@ -164,17 +164,15 @@ class WPS10Service:
         self.headers = headers or {}
         self.logger = self._LoggerAdapter(logger or getLogger(__name__), {})
 
-
-    @retry(REQUEST_RETRIES, RETRY_TIME, "synchronous data request")
-    def retrieve(self, request, handler=None, content_type=None):
+    def retrieve(self, request, handler=None, content_type=None, headers=None):
         """Send a synchronous POST WPS request to a server and retrieve
         the output.
         """
         headers = {
             **self.headers,
+            **self._headers_to_bytes(headers or {}),
             "Content-Type": content_type or self.DEFAULT_CONTENT_TYPE,
         }
-
         return self._retrieve(
             Request(self.url, request, headers), handler, self.error_handler
         )
@@ -188,6 +186,7 @@ class WPS10Service:
         polling_interval=1,
         output_name="output",
         content_type=None,
+        headers=None,
     ):
         """Send an asynchronous POST WPS request to a server and retrieve
         the output.
@@ -196,6 +195,7 @@ class WPS10Service:
         status, percentCompleted, status_url, execute_response = self.submit_async(
             request,
             content_type=content_type,
+            headers=headers,
         )
         wpsstatus = WPSStatus()
         wpsstatus.update(
@@ -273,14 +273,14 @@ class WPS10Service:
                     or elm_reference.attrib["href"]
                 )
 
-    @retry(REQUEST_RETRIES, RETRY_TIME, "asynchronous data request")
-    def submit_async(self, request, content_type=None):
+    def submit_async(self, request, content_type=None, headers=None):
         """Send a POST WPS asynchronous request to a server and retrieve
         the status URL.
         """
         self.logger.debug("Submitting asynchronous job.")
         headers = {
             **self.headers,
+            **self._headers_to_bytes(headers or {}),
             "Content-Type": content_type or self.DEFAULT_CONTENT_TYPE,
         }
         return self._retrieve(
@@ -398,3 +398,14 @@ class WPS10Service:
     @staticmethod
     def _default_handler(file_obj):
         return file_obj.read()
+
+    @staticmethod
+    def _headers_to_bytes(headers, encoding="ascii"):
+        def _to_bytes(value):
+            if isinstance(value, bytes):
+                return value
+            return str(value).encode(encoding)
+        return {
+            _to_bytes(key): _to_bytes(value)
+            for key, value in headers.items()
+        }

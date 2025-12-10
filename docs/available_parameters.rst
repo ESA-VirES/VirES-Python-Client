@@ -291,7 +291,9 @@ SW_OPER_VOBS_1M_2\_:SecularVariation ``SiteCode,B_SV,sigma_SV``
 ``models``
 ----------
 
-Models are evaluated along the satellite track at the positions of the time series that has been requested. These must be used together with one of the MAG collections, and one or both of the "F" and "B_NEC" measurements. This can yield either the model values together with the measurements, or the data-model residuals.
+When requesting a MAG-type collection, geomagnetic models can be evaluated on-demand along the satellite track (i.e. at the same times and positions as the data). You have the choice of receiving either the model values together with the measurements (i.e. ``B_NEC`` & ``B_NEC_Model``), or simply the data-model residuals (i.e. ``B_NEC_res_Model``).
+
+To evaluate models at arbitrary coordinates (i.e. without a data request), see :py:meth:`viresclient.SwarmRequest.eval_model` and :py:meth:`viresclient.SwarmRequest.eval_model_for_cdf_file`.
 
 .. note::
 
@@ -299,7 +301,7 @@ Models are evaluated along the satellite track at the positions of the time seri
   ``models=["'CHAOS-full' = 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'"]``
   `(click for more info) <https://github.com/klaundal/notebooks/blob/master/get_external_field.ipynb>`_
 
-  This composed model can also be accessed by an alias: ``models=["CHAOS"]`` which represents the full CHAOS model
+  This composed model (core + crust + magnetosphere) can also be accessed by an alias: ``models=["CHAOS"]``. Note that this does not include the ionospheric part (``"CHAOS-MIO"``) which was added to the CHAOS series in `CHAOS-8 <http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/>`_.
 
   See `Magnetic Earth <https://magneticearth.org/pages/models.html>`_ for an introduction to geomagnetic models.
 
@@ -326,6 +328,7 @@ Models are evaluated along the satellite track at the positions of the time seri
   CHAOS-Core,                                # Core
   CHAOS-Static,                              # Lithosphere
   CHAOS-MMA-Primary, CHAOS-MMA-Secondary     # Magnetosphere
+  CHAOS-MIO                                  # Polar ionosphere
 
   # Other lithospheric models:
   MF7, LCS-1

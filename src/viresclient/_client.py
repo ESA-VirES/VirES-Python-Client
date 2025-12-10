@@ -462,6 +462,8 @@ class ClientRequest:
         message=None,
         show_progress=True,
         leave_progress_bar=True,
+        content_type=None,
+        headers=None,
     ):
         """Make a request and handle response according to response_handler
 
@@ -484,13 +486,21 @@ class ClientRequest:
                             request,
                             handler=response_handler,
                             status_handler=progressbar.update,
+                            content_type=content_type,
+                            headers=headers,
                         )
                 else:
                     return self._wps_service.retrieve_async(
-                        request, handler=response_handler
+                        request, handler=response_handler,
+                        content_type=content_type,
+                        headers=headers,
                     )
             else:
-                return self._wps_service.retrieve(request, handler=response_handler)
+                return self._wps_service.retrieve(
+                    request, handler=response_handler,
+                    content_type=content_type,
+                    headers=headers,
+                )
         except WPSError:
             raise RuntimeError(
                 "Server error. Or perhaps the request is invalid? "
