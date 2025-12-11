@@ -3,12 +3,16 @@
 import datetime
 import json
 import os
+import shutil
 import sys
+import uuid
 from collections import OrderedDict
 from io import StringIO
 from textwrap import dedent
 from warnings import warn
 
+import h5py
+from numpy import asarray
 from pandas import read_csv
 from tqdm import tqdm
 
@@ -16,6 +20,7 @@ from ._client import DEFAULT_LOGGING_LEVEL, TEMPLATE_FILES, ClientRequest, WPSIn
 from ._data import CONFIG_SWARM
 from ._data_handling import ReturnedDataFile
 from ._wps.environment import JINJA2_ENVIRONMENT
+from ._wps.multipart import generate_multipart_request
 from ._wps.time_util import parse_datetime
 
 TEMPLATE_FILES = {
@@ -27,6 +32,7 @@ TEMPLATE_FILES = {
     "get_observatories": "vires_get_observatories.xml",
     "get_conjunctions": "vires_get_conjunctions.xml",
     "get_collection_info": "vires_get_collection_info.xml",
+    "eval_model_mp": "model_eval_multipart_payload.xml",
 }
 
 REFERENCES = {
@@ -58,6 +64,10 @@ MODEL_REFERENCES = {
     ),
     "CHAOS-MMA-Secondary": (
         "CHAOS-8 Secondary (internal) magnetospheric field",
+        " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
+    ),
+    "CHAOS-MIO": (
+        "CHAOS-8 Ionospheric field",
         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "MF7": (
@@ -262,6 +272,7 @@ class SwarmWPSInputs(WPSInputs):
         "response_type",
         "custom_shc",
         "ignore_cached_models",
+        "do_not_interpolate_models",
     ]
 
     def __init__(
@@ -276,6 +287,7 @@ class SwarmWPSInputs(WPSInputs):
         response_type=None,
         custom_shc=None,
         ignore_cached_models=False,
+        do_not_interpolate_models=False,
     ):
         # Set up default values
         # Obligatory - these must be replaced before the request is made
@@ -291,6 +303,7 @@ class SwarmWPSInputs(WPSInputs):
         self.sampling_step = None if sampling_step is None else sampling_step
         self.custom_shc = None if custom_shc is None else custom_shc
         self.ignore_cached_models = ignore_cached_models
+        self.do_not_interpolate_models = do_not_interpolate_models
 
     @property
     def collection_ids(self):
@@ -352,6 +365,17 @@ class SwarmWPSInputs(WPSInputs):
     def ignore_cached_models(self, value):
         if isinstance(value, bool):
             self._ignore_cached_models = value
+        else:
+            raise TypeError
+
+    @property
+    def do_not_interpolate_models(self):
+        return self._do_not_interpolate_models
+
+    @do_not_interpolate_models.setter
+    def do_not_interpolate_models(self, value):
+        if isinstance(value, bool):
+            self._do_not_interpolate_models = value
         else:
             raise TypeError
 
@@ -1549,6 +1573,7 @@ class SwarmRequest(ClientRequest):
         "CHAOS-Static",
         "CHAOS-MMA-Primary",
         "CHAOS-MMA-Secondary",
+        "CHAOS-MIO",
         "MCO_SHA_2C",
         "MCO_SHA_2D",
         "MLI_SHA_2C",
@@ -1932,6 +1957,7 @@ class SwarmRequest(ClientRequest):
         residuals=False,
         sampling_step=None,
         ignore_cached_models=False,
+        do_not_interpolate_models=False,
     ):
         """Set the combination of products to retrieve.
 
@@ -1946,6 +1972,7 @@ class SwarmRequest(ClientRequest):
             residuals (bool): True if only returning measurement-model residual
             sampling_step (str): ISO_8601 duration, e.g. 10 seconds: PT10S, 1 minute: PT1M
             ignore_cached_models (bool): True if cached models should be ignored and calculated on-the-fly
+            do_not_interpolate_models (bool): True if the models for HR collection should not be interpolated from the LR collection
 
         """
         if self._collection_list is None:
@@ -2045,6 +2072,7 @@ class SwarmRequest(ClientRequest):
         self._request_inputs.sampling_step = sampling_step
         self._request_inputs.custom_shc = custom_shc
         self._request_inputs.ignore_cached_models = ignore_cached_models
+        self._request_inputs.do_not_interpolate_models = do_not_interpolate_models
 
         return self
 
@@ -2620,3 +2648,253 @@ class SwarmRequest(ClientRequest):
         )
 
         return response
+
+    def eval_model(
+        self,
+        models,
+        time,
+        latitude,
+        longitude,
+        radius,
+        time_precision="ns",
+        show_progress=True,
+        temp_dir=".",
+        input_prefix="_model_eval_input_",
+        output_prefix="_model_eval_output_",
+    ):
+        """Evaluate models for the given times and locations.
+
+        Args:
+            models (list(str)/dict): from .available_models() or defineable with custom expressions
+            time        (datetime64) array of times
+            latitude    (float64) array of geocentric latitudes (deg)
+            longitude   (float64) array of geocentric longitudes (deg)
+            radius      (float64) array of radii (m)
+            time_precision (str) optional time precision: ns* | us | ms | s
+            show_progress (bool) show download progress True
+
+        Returns:
+            dictionary of arrays with the model values
+        """
+        # FIXME show download progress
+
+        def _write_hdf5_file(filename, data):
+            with h5py.File(filename, "w") as hdf:
+                for key, array in data.items():
+                    options = (
+                        {}
+                        if array.ndim == 0
+                        else {
+                            "compression": "gzip",
+                            "compression_opts": 9,
+                        }
+                    )
+                    hdf.create_dataset(key, data=array, **options)
+
+        def _read_hdf5_file(filename):
+            with h5py.File(filename, "r") as hdf:
+                data = {key: hdf[key][...] for key in hdf}
+                sources = hdf.attrs["sources"].tolist()
+            if "Timestamp" in data:
+                data["Timestamp"] = data["Timestamp"].astype(time_type)
+            return data, sources
+
+        def _response_handler(filename, chunksize=1024 * 1024):
+            def _handler(file_obj):
+                # save received received HDF5 file
+                with open(filename, "wb") as file:
+                    shutil.copyfileobj(file_obj, file, chunksize)
+                # read results from the HDF5 file
+                return _read_hdf5_file(filename)
+
+            return _handler
+
+        # FIXME: temp. file handling
+        request_id = uuid.uuid4()
+        input_filename = os.path.join(temp_dir, f"{input_prefix}{request_id}.hdf5")
+        output_filename = os.path.join(temp_dir, f"{output_prefix}{request_id}.hdf5")
+
+        _, model_expression_string = self._parse_models_input(models)
+
+        time_type = f"datetime64[{time_precision}]"
+
+        time = asarray(time, time_type)
+        latitude = asarray(latitude, "float64")
+        longitude = asarray(longitude, "float64")
+        radius = asarray(radius, "float64")
+
+        # the XML request and binary data are sent as multipart/related request
+        # see https://en.wikipedia.org/wiki/MIME#Multipart_messages
+        multipart_boundary = "part-delimiter"
+
+        # build XML request
+        templatefile = TEMPLATE_FILES["eval_model_mp"]
+        template = JINJA2_ENVIRONMENT.get_template(templatefile)
+        request = template.render(
+            model_expression=model_expression_string,
+            input_content_id=request_id,
+            input_time_format=time_type,
+            input_mime_type="application/x-hdf5",
+            output_time_format=time_type,
+            output_mime_type="application/x-hdf5",
+        ).encode("UTF-8")
+
+        try:
+            # write input HDF5 file
+            _write_hdf5_file(
+                input_filename,
+                {
+                    "Timestamp": time.astype("int64"),
+                    "Latitude": latitude,
+                    "Longitude": longitude,
+                    "Radius": radius,
+                },
+            )
+
+            # streaming request from the input HDF5 file
+            with open(input_filename, "rb") as input_file:
+                parts = [
+                    (
+                        request,
+                        {
+                            "Content-Type": "application/xml; charset=utf-8",
+                        },
+                    ),
+                    (
+                        input_file,
+                        {
+                            "Content-Id": request_id,
+                            "Content-Type": "application/x-hdf5",
+                        },
+                    ),
+                ]
+
+                # Due to the Django limitations we must aggregate the request
+                # chunks in one block.
+                # payload_size = get_multipart_request_size(parts, multipart_boundary)
+                # payload = generate_multipart_request(parts, multipart_boundary)
+                payload = b"".join(
+                    generate_multipart_request(parts, multipart_boundary)
+                )
+
+                result, sources = self._get(
+                    payload,
+                    response_handler=_response_handler(output_filename),
+                    asynchronous=False,
+                    show_progress=show_progress,
+                    content_type=(f"multipart/related; boundary={multipart_boundary}"),
+                    headers={
+                        "MIME-Version": "1.0",
+                        # "Content-Length": payload_size,
+                    },
+                )
+
+        finally:
+            for filename in [input_filename, output_filename]:
+                if os.path.exists(filename):
+                    os.remove(filename)
+
+        return result, sources
+
+    def eval_model_for_cdf_file(
+        self,
+        models,
+        input_cdf_filename,
+        output_cdf_filename,
+        show_progress=True,
+    ):
+        """Evaluate models for the coordinates given in a Swarm-like CDF file.
+
+        Args:
+            models (list(str)/dict): from .available_models() or defineable with custom expressions
+            input_cdf_filename, (str) input CDF file.
+            output_cdf_filename, (str) output CDF file.
+            show_progress (bool) show download progress True
+
+        Returns:
+            copy of output_cdf_filename
+
+        """
+        # FIXME show download progress
+
+        def _response_handler(filename, chunksize=1024 * 1024):
+            def _handler(file_obj):
+                # save received received file
+                with open(filename, "wb") as file:
+                    shutil.copyfileobj(file_obj, file, chunksize)
+                return filename
+
+            return _handler
+
+        request_id = uuid.uuid4()
+
+        _, model_expression_string = self._parse_models_input(models)
+
+        # the XML request and binary data are sent as multipart/related request
+        # see https://en.wikipedia.org/wiki/MIME#Multipart_messages
+        multipart_boundary = "part-delimiter"
+
+        # build XML request
+        templatefile = TEMPLATE_FILES["eval_model_mp"]
+        template = JINJA2_ENVIRONMENT.get_template(templatefile)
+        request = template.render(
+            model_expression=model_expression_string,
+            input_content_id=request_id,
+            input_time_format="format specific default",
+            input_mime_type="application/x-cdf",
+            output_time_format="input time format",
+            output_mime_type="application/x-cdf",
+        ).encode("UTF-8")
+
+        temp_cdf_filename = ".{output_cdf_filename}.tmp.cdf"
+
+        if os.path.exists(temp_cdf_filename):
+            os.remove(temp_cdf_filename)
+
+        try:
+            # streaming request from the input HDF5 file
+            with open(input_cdf_filename, "rb") as input_file:
+                parts = [
+                    (
+                        request,
+                        {
+                            "Content-Type": "application/xml; charset=utf-8",
+                        },
+                    ),
+                    (
+                        input_file,
+                        {
+                            "Content-Id": request_id,
+                            "Content-Type": "application/x-cdf",
+                        },
+                    ),
+                ]
+
+                # Due to the Django limitations we must aggregate the request
+                # chunks in one block.
+
+                # payload_size = get_multipart_request_size(parts, multipart_boundary)
+                # payload = generate_multipart_request(parts, multipart_boundary)
+                payload = b"".join(
+                    generate_multipart_request(parts, multipart_boundary)
+                )
+
+                self._get(
+                    payload,
+                    response_handler=_response_handler(temp_cdf_filename),
+                    asynchronous=False,
+                    show_progress=show_progress,
+                    content_type=(f"multipart/related; boundary={multipart_boundary}"),
+                    headers={
+                        "MIME-Version": "1.0",
+                        # "Content-Length": payload_size,
+                    },
+                )
+
+                os.rename(temp_cdf_filename, output_cdf_filename)
+
+        finally:
+            if os.path.exists(temp_cdf_filename):
+                os.remove(temp_cdf_filename)
+
+        return output_cdf_filename
