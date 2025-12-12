@@ -7,12 +7,18 @@ Change log
 Changes from 0.13.0 to 0.14.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Coinciding with `VirES server version 3.16 <https://vires.services/changelog>`_
+.. important::
+
+  **As of 2025-12-10, viresclient versions lower than 0.12.2 no longer function**
+
+  This coincides with `VirES server version 3.16.0 <https://vires.services/changelog>`_ enforcing fixes that were introduced in the client in `PR#121 <https://github.com/ESA-VirES/VirES-Python-Client/pull/121>`_
 
 - Added ``"CHAOS-MIO"`` magnetic model - the new ionospheric part of CHAOS. Note that the alias ``"CHAOS"`` does not include this ``"CHAOS-MIO"``
 - Support for new feature to evaluate models at arbitrary coordinates. See:
+
   - :py:meth:`viresclient.SwarmRequest.eval_model`
   - :py:meth:`viresclient.SwarmRequest.eval_model_for_cdf_file`
+
 - Added support for spline interpolation of magnetic models when requesting ``MAGx_HR`` data. Can be disabled with the ``do_not_interpolate_models`` option in :py:meth:`viresclient.SwarmRequest.set_products`
 
 Changes from 0.12.3 to 0.13.0
