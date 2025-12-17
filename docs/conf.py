@@ -16,7 +16,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "viresclient"
-copyright = "2018, Ashley Smith"
+copyright = "2025, Ashley Smith"
 author = "Ashley Smith"
 
 

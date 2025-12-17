@@ -3,41 +3,123 @@ Installation and First Usage
 
 .. note:: For VRE users (it's free! read more: `Swarm <https://notebooks.vires.services>`_, `Aeolus <https://notebooks.aeolus.services>`_), viresclient is already installed and configured so skip these steps
 
-1. Installation
----------------
+1. Installation and updating
+----------------------------
 
-Python ≥ 3.6 is required. Testing is primarily on Linux, but macOS and Windows should also work. Available through both pip and conda (conda-forge).
+The package is available through both pip (PyPI) and conda (conda-forge). To add viresclient to an existing environment, use your preferred tool:
 
 .. tabs::
 
   .. group-tab:: pip
 
+    To install:
+
     .. code-block:: sh
 
-      pip install viresclient
+      python -m pip install viresclient
+
+    To update:
+
+    .. code-block:: sh
+
+      python -m pip install --upgrade viresclient
+
+    .. tip::
+
+      If you are using an online notebook (e.g. Jupyter, Google Colab), you can run (in a notebook cell):
+
+      .. code-block:: sh
+
+        %pip install --upgrade viresclient
+
+  .. group-tab:: uv
+
+    To install:
+
+    (Assuming you use a `uv project <https://docs.astral.sh/uv/guides/projects/>`_)
+
+    .. code-block:: sh
+
+      uv add viresclient
+
+    To update:
+
+    .. code-block:: sh
+
+      uv lock --upgrade-package viresclient
 
   .. group-tab:: conda
+
+    To install:
 
     .. code-block:: sh
 
       conda install --channel conda-forge viresclient
 
+    To update:
+
+    .. code-block:: sh
+
+      conda update --channel conda-forge viresclient
+
   .. group-tab:: mamba
+
+    To install:
 
     .. code-block:: sh
 
       mamba install --channel conda-forge viresclient
 
+    To update:
+
+    .. code-block:: sh
+
+      mamba update --channel conda-forge viresclient
+
+
 Recommended setup if starting without Python already
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-There are many ways to work with Python. We recommend using conda/mamba to manage your programming environment because of the availability of many data science packages through conda.
+There are many ways to work with Python. Depending on your computing environment, we recommend using either:
+
+- `uv <https://docs.astral.sh/uv/>`_: if your project relies specifically on Python packages (available via `PyPI <https://pypi.org/>`_) and you can use a system package manager (e.g. apt) to manage non-Python dependencies
+- `Mamba <https://mamba.readthedocs.io/>`_ or `conda <https://docs.conda.io/projects/conda/>`_: which also manage non-Python dependencies (from `conda-forge <https://conda-forge.org/>`_)
+
+  - Use mamba preferably. It is a drop-in replacement for conda and is separate from Anaconda Inc.
+  - Use conda if you have an existing Anaconda or Miniconda installation
+- `Pixi <https://pixi.sh/>`_: a newer tool that provides reproducible environments with lock files; works with both conda and pip packages (integrates with uv)
+
+This guidance is appropriate for unix-like platforms (macOS & Linux & WSL). If you are using Windows, we recommend using `Windows Subsystem for Linux (WSL) <https://learn.microsoft.com/en-us/windows/wsl/>`_. While viresclient is compatible with Windows, you will get a more consistent experience with the scientific Python ecosystem by using WSL.
 
 .. tabs::
 
+  .. group-tab:: uv
+
+    1. `Install uv <https://docs.astral.sh/uv/getting-started/installation>`_
+    2. Create a new `project <https://docs.astral.sh/uv/guides/projects/>`_::
+
+        uv init --python 3.12 my-science-project
+
+    3. Enter the project and add some packages (including viresclient)::
+
+        cd my-science-project
+        uv add viresclient scipy matplotlib cartopy
+
+    4. Run code within the uv-managed environment. Either:
+
+       - Use `uv run <https://docs.astral.sh/uv/guides/scripts/>`_ to run scripts
+       - Activate the environment manually (``source .venv/bin/activate``)
+       - Configure your IDE to use this environment
+       - `Launch JupyterLab together with your project's dependencies <https://docs.astral.sh/uv/guides/integration/jupyter/>`_::
+
+          cd my-science-project
+          uv run --with jupyter jupyter lab
+
+    You should avoid using pip to install or update packages. By instead using ``uv add <package>``, or ``uv lock --upgrade-package <package>``, this lets uv track your project's dependencies (via the ``pyproject.toml`` file) and the exact versions used (via the ``uv.lock`` file) to help with safer updates and additions to the environment, and to ensure reproducibility.
+
   .. group-tab:: conda
 
-    1. Install Miniconda: https://docs.conda.io/en/latest/miniconda.html
+    1. (If you do not have conda already) Install Miniconda: https://docs.conda.io/en/latest/miniconda.html
 
     2. Set the conda-forge channel as the priority to install packages from::
 
@@ -46,28 +128,55 @@ There are many ways to work with Python. We recommend using conda/mamba to manag
 
     You should do this to avoid mixing packages from the anaconda channel (which can result in broken environments), and try to get all packages from conda-forge where available for consistency.
 
-    3. Create a new conda environment with some recommended packages, including viresclient::
+    3. Create a new environment with some packages (including viresclient)::
 
-        conda create --name myenv python=3.10 jupyterlab scipy matplotlib pandas xarray cartopy h5py netCDF4 pytables ipywidgets viresclient
+        conda create --name myenv python=3.12 jupyterlab scipy matplotlib cartopy viresclient
 
     4. Activate the new environment (you do this each time you want to use it)::
 
         conda activate myenv
 
+    5. Or run a command directly from within the environment (without needing to activate it), e.g.::
+
+        conda run -n myenv jupyter lab
+
   .. group-tab:: mamba
 
-    `Mamba <https://mamba.readthedocs.io/>`_ is a drop-in replacement for conda. You can install it into an existing (base) conda environment (``conda install -c conda-forge mamba``) and then just use ``mamba`` in place of ``conda`` in any commands - mamba is significantly faster. You can also install *mambaforge* directly to get mamba and conda-forge immediately configured in the base environment.
+    1. Download and install `Miniforge <https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html>`_
 
-    1. Download and install the `mambaforge installer <https://github.com/conda-forge/miniforge#mambaforge>`_ or check the `mamba documentation <https://mamba.readthedocs.io/en/latest/installation.html>`_
+    2. Create a new environment with some packages (including viresclient)::
 
-    2. Create a new environment for your development work::
+        mamba create --name myenv python=3.12 jupyterlab scipy matplotlib cartopy viresclient
 
-        mamba create --name myenv python=3.10 jupyterlab scipy matplotlib pandas xarray cartopy h5py netCDF4 pytables ipywidgets viresclient
-
-    3. Activate it to use it::
+    3. Activate the new environment (you do this each time you want to use it)::
 
         mamba activate myenv
 
+    4. Or run a command directly from within the environment (without needing to activate it), e.g.::
+
+        mamba run -n myenv jupyter lab
+
+
+  .. group-tab:: docker
+
+    viresclient is available in several publicly available (experimental) Docker images:
+
+    - `Swarm DISC SwarmPAL processor (swarmpal-processor) <https://github.com/Swarm-DISC/SwarmPAL-processor/pkgs/container/swarmpal-processor>`_
+    - `Python in Heliophysics Community environment (pyhc-environment) <https://hub.docker.com/r/spolson/pyhc-environment>`_
+
+  .. group-tab:: cloud / online
+
+    Online services provide access to a range of scientific software within a Jupyter environment. viresclient may be pre-installed or can be added as above.
+
+    - `ESA Swarm VRE <https://vre.vires.services/>`_
+
+      - Run by us in connection with VirES (free self-signup, included with your VirES account)
+    - `ESA Datalabs <https://datalabs.esa.int/>`_
+
+      - Requires an authorised ESA Cosmos account
+    - `HelioCloud <https://heliocloud.org/>`_
+
+      - In development
 
 2. First usage / Configuration
 ------------------------------
