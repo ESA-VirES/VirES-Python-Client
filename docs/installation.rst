@@ -46,7 +46,7 @@ The package is available through both pip (PyPI) and conda (conda-forge). To add
 
     .. code-block:: sh
 
-      uv lock --upgrade-package viresclient
+      uv sync --upgrade-package viresclient
 
   .. group-tab:: conda
 
@@ -115,7 +115,7 @@ This guidance is appropriate for unix-like platforms (macOS & Linux & WSL). If y
           cd my-science-project
           uv run --with jupyter jupyter lab
 
-    You should avoid using pip to install or update packages. By instead using ``uv add <package>``, or ``uv lock --upgrade-package <package>``, this lets uv track your project's dependencies (via the ``pyproject.toml`` file) and the exact versions used (via the ``uv.lock`` file) to help with safer updates and additions to the environment, and to ensure reproducibility.
+    You should avoid using pip to install or update packages. By instead using ``uv add <package>``, or ``uv sync --upgrade-package <package>``, this lets uv track your project's dependencies (via the ``pyproject.toml`` file) and the exact versions used (via the ``uv.lock`` file) to help with safer updates and additions to the environment, and to ensure reproducibility.
 
   .. group-tab:: conda
 
