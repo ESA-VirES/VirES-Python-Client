@@ -4,6 +4,27 @@ Release notes
 Change log
 ----------
 
+Changes from 0.14.0 to 0.14.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+(2025-12-18) Coinciding with `Swarm Level 1B processor upgrade <https://earth.esa.int/eogateway/news/swarm-level-1b-operational-processor-transfer-to-operations-successfully-completed-on-17-december-2025>`_
+
+- Changes to `EFIx_LP <https://swarmhandbook.earth.esa.int/catalogue/sw_efix_lp_1b>`_ products:
+
+  - Operational chain: ``SW_OPER_EFIA_LP_1B, SW_OPER_EFIB_LP_1B, SW_OPER_EFIC_LP_1B``:
+
+    | Switched to new baseline version 07
+    | The old parameters no longer available:
+    | ``Ne, Te, Flags_Ne, Flags_Te, Ne_error, Te_error``
+    | have been renamed / changed to:
+    | ``N_ion, T_elec, Flags_N_ion, Flags_T_elec, dN_ion, N_ion_error, dT_elec, T_elec_error``
+    | with new parameters:
+    | ``N_elec, Flags_N_elec, N_elec_error, Flagbits1, Flagbits2, Gamma1, Gamma2``
+  - FAST chain: ``SW_FAST_EFIA_LP_1B, SW_FAST_EFIB_LP_1B, SW_FAST_EFIC_LP_1B``:
+
+    | Currently Remaining on the old baseline version 06
+    | Scheduled to be switched to new version 07 around mid-January 2026
+
 Changes from 0.13.0 to 0.14.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
