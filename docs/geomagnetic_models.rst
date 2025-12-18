@@ -8,9 +8,11 @@ The geomagnetic models provided by VirES are all based on spherical harmonics, t
 
 In VirES, we provide model evaluations calculated at the same sample points as the data products. This means that the spherical harmonic expansion is made at the time and location of each datapoint (e.g. in the case of ``MAGx_LR``, at every second). The main purpose is to provide the data-model residuals, or magnetic perturbations, useful for studying the external magnetic field, typically ionospheric in origin.
 
-*Pending:* In a future VirES release, some interpolation will be used to provide the magnetic model predictions along the 50Hz ``MAGx_HR`` products (to improve speed). The predictions at the 1Hz (``MAGx_LR``) locations will be used and a cubic interpolation performed to provide the predictions at the 50Hz locations.
+The magnetic data products provide the magnetic field vector as the parameter ``B_NEC`` in the geocentric NEC (North, East, Centre) frame, as well as the magnetic field intensity/magnitude (scalar), ``F``. When requesting models from VirES (by supplying the ``models`` kwarg to :py:meth:`viresclient.SwarmRequest.set_products`), the corresponding model predictions will be returned in parameters named ``B_NEC_<model-name>`` or ``F_<model-name>``. Alternatively, the data-model residual alone, named ``B_NEC_res_<model-name>`` or ``F_res_<model-name>`` can be returned directly by also supplying the kwarg ``residuals=True``. Models should be provided as a list, like ``models=["CHAOS", "IGRF"]``.
 
-The magnetic data products provide the magnetic field vector as the parameter ``B_NEC`` in the NEC (North, East, Centre) frame, as well as the magnetic field intensity/magnitude (scalar), ``F``. When also requesting models from VirES (by supplying the ``models`` kwarg to :py:meth:`viresclient.SwarmRequest.set_products`), the corresponding model predictions will be returned in parameters named ``B_NEC_<model-name>`` or ``F_<model-name>``. Alternatively, the data-model residual alone, named ``B_NEC_res_<model-name>`` or ``F_res_<model-name>`` can be returned directly by also supplying the kwarg ``residuals=True``. Models should be provided as a list, like ``models=["CHAOS", "IGRF"]``.
+When using high rate 50Hz ``MAGx_HR`` products, interpolatation is used to improve speed. The predictions at the 1Hz (``MAGx_LR``) locations are used and a cubic interpolation performed to provide the predictions at the 50Hz locations. This should be accurate enough for applications that we are aware of. To disable this interpolation, use ``do_not_interpolate_models=True`` in :py:meth:`viresclient.SwarmRequest.set_products`.
+
+To evaluate models at arbitrary times and locations, see: :py:meth:`viresclient.SwarmRequest.eval_model` and :py:meth:`viresclient.SwarmRequest.eval_model_for_cdf_file`.
 
 Available models
 ----------------
@@ -88,7 +90,8 @@ The predictions for these models are cached only at the positions and times defi
 
 The logic describing when the cache is used is as follows:
 
-.. image:: https://mermaid.ink/img/pako:eNqFkk1v2zAMhv8KoVMLND20PRlDiyYxugKxW6wekCAeBkZiEgGyFEhUt6Dpf5_8kSw7zQdDfvnyISnzQ0inSGRibdwvuUXPUE1rC-l5vChSyIB0dq030SNrZx8uhyCMRveHN0ar0KsDjM_lSQzsmgMsenF8UemGjLaUWO_kScFqDxLllh6-rPz9pD21ZRi1DWCQKTA0bfFjuXHHXVA4wPxcKd2pSv-eL78H6tk_emWxzN_RxATtkUkerC0B5jfD183fLpWjANYx0G-UbPbQIMvtWcd0vblOBjsqHp9-zr7BzjsVJUMgQ5JJXR6ZXZMvvCV_9KQBbv-JtoivJ0RLf83L6XP5lEH5UsEir-C5eJ3lRV5W-TSl3w3pt8tZahY9aMvkd850P6gFxKDtBvrehluY3y0ncaUlhF034v9yxJVoyDeoVdqNj5ZRizRGQ7XI0lHRGqPhWtT2M1njTqX7zZVm50W2RhPoSmBk97a3UmTsIx1NU40bj83JRV1S0S9ht4uffwB28dYw?type=png
+.. image:: https://mermaid.ink/img/pako:eNqFUstu2zAQ_BWCpwSQDT0jWwgSxE7QHuIGSFLAjlUUNLmWCEikwUca1_a_l3ql7qk6EOTM7sysyAOmkgHO8LaSv2hJlEGv97lA7ru7WDiqQlSKLS-sIoZLcXvZk2g0ujm-GCIYUeyIZufw3Goj6yNadeDs4pXXUHEBTusdFDC02SNKaAm31xt1M292jY0hXGhUEQPaoLoxH-xmre4K9BEtz5Fv8tOlW5fr7xo67R8dslo_vJPKOtFO0sF9aaOAlmF_Cv-mZBI0EtIg-CDUVHtUE0PLs8QwLsauQIwWd19-Pj6jnZLMUoM0VEANsMtBsw35ZEpQQ40bIPqHbSS-Pp_RcU9H60cXhijEhQG1k1V7AY291VwUqPPup1zG67ndcIr0rh3hfz3YwzWomnDm7v7QaOTYxawhx5nbMtgSW5kc5-LkSok18mUvKM6MsuBhJW1R4mxLKu1Odsfc373npFCk_kR3RLxJWQ8thWqs-nYQDNRcWmFwduW3tTg74A-cBUE6TtMoTdJpFCepHwUe3js49cdX08T30yiMw2CSJicP_27lHRH7gR8nwXQyjf0wnngYGDdSLbqX3T7wIeVDy_QhT38AUx3zUQ?type=png
+  https://mermaid.live/edit#pako:
     :alt: Flowchart showing the cache usage logic
 
 *Custom* configured models, e.g. ``CHAOS-Static(max_degree=80)``, are not cached and must be evaluated directly.

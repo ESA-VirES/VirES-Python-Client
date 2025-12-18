@@ -22,11 +22,22 @@ VirES provides more than just *access* to data. Some operations can be peformed 
       | :py:meth:`viresclient.SwarmRequest.get_orbit_number`
       | :py:meth:`viresclient.SwarmRequest.get_times_for_orbits`
       | :py:meth:`viresclient.SwarmRequest.get_collection_info`
+    **Auxiliary information**
+      | e.g. geomagnetic coordinates (``QDLat``), orbit ascending/descending (``OrbitDirection``), geomagnetic activity (``Kp, Dst, dDst``), solar position (``SunZenithAngle``), ...
+      | See :ref:`Swarm auxiliaries<Swarm auxiliaries>`
     **Geomagnetic model evaluation**
-      | Forwards evaluation of magnetic field models when a magnetic dataset is selected (e.g. ``MAGx_LR``). For more detail, see :ref:`Geomagnetic model handling`.
-      | :py:meth:`viresclient.SwarmRequest.available_models`
-      | :py:meth:`viresclient.SwarmRequest.get_model_info`
-      | `models` option in :py:meth:`viresclient.SwarmRequest.set_products`
+
+    - Forward evaluation of magnetic field models when a magnetic dataset is selected (e.g. ``MAGx_LR``) and using the `models` option in :py:meth:`viresclient.SwarmRequest.set_products`
+    - Model evaluation at user-provided coordinates. See:
+
+      - :py:meth:`viresclient.SwarmRequest.eval_model`
+      - :py:meth:`viresclient.SwarmRequest.eval_model_for_cdf_file`
+
+    - For more detail, see :ref:`Geomagnetic model handling`, and:
+
+      - :py:meth:`viresclient.SwarmRequest.available_models`
+      - :py:meth:`viresclient.SwarmRequest.get_model_info`
+
     **Identifying conjunctions between spacecraft**
       | :py:meth:`viresclient.SwarmRequest.get_conjunctions`
     **Synchronous and asynchronous processing**

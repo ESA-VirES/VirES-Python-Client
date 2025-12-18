@@ -1,3 +1,6 @@
+.. image:: https://img.shields.io/pypi/pyversions/viresclient
+   :target: https://pypi.org/project/viresclient/
+   :alt: Python Version
 
 .. image:: https://img.shields.io/pypi/v/viresclient
    :target: https://pypi.org/project/viresclient/
@@ -14,27 +17,36 @@
 .. image:: https://zenodo.org/badge/138034133.svg
    :target: https://zenodo.org/badge/latestdoi/138034133
 
-::
+``viresclient`` is a Python package which provides access to products (including on-demand processing) from two of ESA's Earth Explorer missions: `Swarm`_ and `Aeolus`_. This service is provided for ESA by EOX_. For enquiries about the service and problems with accessing your account, please email info@vires.services. For help with usage, please email ashley.smith@ed.ac.uk or `raise an issue on GitHub`_.
 
-  pip install viresclient
-
-::
-
-  conda install -c conda-forge viresclient
-
-viresclient_ is a Python package which connects to a VirES server, of which there are two: *VirES for Swarm* (https://vires.services) and *VirES for Aeolus* (https://aeolus.services), through the WPS_ interface. This package handles product requests and downloads, enabling easy access to data and models from ESA's Earth Explorer missions, Swarm_ and Aeolus_. This service is provided for ESA by EOX_. For enquiries about the service and problems with accessing your account, please email info@vires.services. For help with usage, please email ashley.smith@ed.ac.uk (for Swarm data) or `raise an issue on GitHub`_.
-
-.. _viresclient: https://github.com/ESA-VirES/VirES-Python-Client
 .. _WPS: http://www.opengeospatial.org/standards/wps
 .. _Swarm: https://earth.esa.int/eogateway/missions/swarm
 .. _Aeolus: https://earth.esa.int/eogateway/missions/aeolus
-.. _EOX: https://eox.at/category/vires/
+.. _EOX: https://eox.at/tag/vires/
 .. _`raise an issue on GitHub`: https://github.com/ESA-VirES/VirES-Python-Client/issues
 
-For code recipes and more, see `Swarm Notebooks`_ & `Aeolus Notebooks`_. To start experimenting right away, *viresclient* is installed on the "Virtual Research Environment" (VRE), which is a managed Jupyter-based system provided for ESA by EOX. The service is free and open to all, accessible through your VirES account - check the notebooks to read more and get started.
+There are two VirES services (Virtual environments for Earth Scientists) which *viresclient* can communicate with:
 
-.. _`Swarm Notebooks`: https://notebooks.vires.services
-.. _`Aeolus Notebooks`: https://notebooks.aeolus.services
+- *VirES for Swarm:*
+
+  - Interact with the `VirES for Swarm graphical interface (web client) <https://vires.services>`_
+  - Browse code recipes: `Swarm Notebooks <https://notebooks.vires.services>`_
+  - JupyterHub: `Swarm VRE (Virtual Research Environment) <https://vre.vires.services>`_
+  - Swarm data documentation: `Swarm handbook <https://swarmhandbook.earth.esa.int>`_
+  - *Note that this service is not only for Swarm*:
+
+    - Multi-mission products including magnetometry from CHAMP, CryoSat-2, and more
+    - INTERMAGNET ground magnetometers via the ``AUX_OBS`` collection
+    - Custom geomagnetic model evaluation
+
+  - Read more about the ecosystem: `Python tools for ESA's Swarm mission: VirES for Swarm and surrounding ecosystem <https://doi.org/10.3389/fspas.2022.1002697>`_
+
+- *VirES for Aeolus:*
+
+  - Interact with the `VirES for Aeolus graphical interface (web client) <https://aeolus.services>`_
+  - Browse code recipes: `Aeolus Notebooks <https://notebooks.aeolus.services>`_
+  - JupterHub: `Aeolus VRE <https://vre.aeolus.services>`_
+  - `Aeolus data documentation <https://earth.esa.int/eogateway/missions/aeolus/data>`_
 
 Data and models are processed on demand on the VirES server - a combination of measurements from any time interval can be accessed. These are the same data that can be accessed by the VirES GUI. *viresclient* handles the returned data to allow direct loading as a single pandas.DataFrame_, or xarray.Dataset_.
 
@@ -109,3 +121,7 @@ You can reference *viresclient* directly using the DOI of our zenodo_ record. Vi
     | "We use the Python package, viresclient [1], to access [...] from ESA's VirES for Swarm service [2]"
     | [1] https://doi.org/10.5281/zenodo.2554162
     | [2] https://vires.services
+
+You can also cite this paper:
+
+   | Smith A.R.A., Pačes M. and Swarm DISC (2022) Python tools for ESA’s Swarm mission: VirES for Swarm and surrounding ecosystem. Front. Astron. Space Sci. 9:1002697. doi: 10.3389/fspas.2022.1002697

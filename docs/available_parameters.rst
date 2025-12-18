@@ -361,6 +361,8 @@ NB: When using model names containing a hyphen (``-``) then extra single (``'``)
 
 ----
 
+.. _Swarm auxiliaries:
+
 ``auxiliaries``
 ---------------
 
