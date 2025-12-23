@@ -190,7 +190,6 @@ COLLECTION_REFERENCES = {
     "MAG": (" https://swarmhandbook.earth.esa.int/catalogue/sw_magx_lr_1b ",),
     "MAG_HR": (" https://swarmhandbook.earth.esa.int/catalogue/sw_magx_hr_1b ",),
     "EFI": (" https://swarmhandbook.earth.esa.int/catalogue/sw_efix_lp_1b ",),
-    "EFI:B06": (" https://swarmhandbook.earth.esa.int/catalogue/sw_efix_lp_1b ",),
     "IBI": (" https://swarmhandbook.earth.esa.int/catalogue/sw_ibixtms_2f ",),
     "TEC": (" https://swarmhandbook.earth.esa.int/catalogue/sw_tecxtms_2f ",),
     "FAC": (" https://swarmhandbook.earth.esa.int/catalogue/sw_facxtms_2f ",),
@@ -546,8 +545,6 @@ class SwarmRequest(ClientRequest):
         ],
         "EFI": [
             *(f"SW_OPER_EFI{x}_LP_1B" for x in "ABC"),
-        ],
-        "EFI:B06": [
             *(f"SW_FAST_EFI{x}_LP_1B" for x in "ABC"),
         ],
         "EFI_IDM": [f"SW_PREL_EFI{x}IDM_2_" for x in "ABC"],
@@ -767,7 +764,6 @@ class SwarmRequest(ClientRequest):
         "MAG": "PT1S",
         "MAG_HR": "PT0.019S",  # approx 50Hz (the sampling is not exactly 50Hz)
         "EFI": "PT0.5S",
-        "EFI:B06": "PT0.5S",
         "EFI_IDM": "PT0.5S",
         "EFI_TIE": "PT0.5S",
         "EFI_TCT02": "PT0.5S",
@@ -884,19 +880,6 @@ class SwarmRequest(ClientRequest):
             "Flagbits2",
             "Gamma1",
             "Gamma2",
-        ],
-        "EFI:B06": [
-            "U_orbit",
-            "Ne",
-            "Ne_error",
-            "Te",
-            "Te_error",
-            "Vs",
-            "Vs_error",
-            "Flags_LP",
-            "Flags_Ne",
-            "Flags_Te",
-            "Flags_Vs",
         ],
         "EFI_IDM": [
             "Latitude_GD",
