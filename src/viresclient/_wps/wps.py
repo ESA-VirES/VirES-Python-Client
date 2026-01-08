@@ -30,7 +30,7 @@
 from contextlib import closing
 from logging import LoggerAdapter, getLogger
 from time import sleep
-from urllib.error import HTTPError
+from urllib.error import URLError, HTTPError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree
@@ -89,7 +89,7 @@ class AuthenticationError(Exception):
         )
 
 
-def retry(n_retries, retry_time_seconds, label):
+def retry(n_retries, retry_time_seconds, label, exception_type=Exception):
     """Request re-try decorator."""
 
     def _retry(method):
@@ -108,7 +108,7 @@ def retry(n_retries, retry_time_seconds, label):
                 except WPSError:
                     raise
 
-                except Exception as error:
+                except exception_type as error:
                     if index < n_retries:
                         self.logger.error(
                             "%s failed. Retrying in %s seconds. %s: %s",
@@ -164,6 +164,7 @@ class WPS10Service:
         self.headers = headers or {}
         self.logger = self._LoggerAdapter(logger or getLogger(__name__), {})
 
+    @retry(REQUEST_RETRIES, RETRY_TIME, "synchronous request", exception_type=URLError)
     def retrieve(self, request, handler=None, content_type=None, headers=None):
         """Send a synchronous POST WPS request to a server and retrieve
         the output.
@@ -273,6 +274,7 @@ class WPS10Service:
                     or elm_reference.attrib["href"]
                 )
 
+    @retry(REQUEST_RETRIES, RETRY_TIME, "asynchronous request", exception_type=URLError)
     def submit_async(self, request, content_type=None, headers=None):
         """Send a POST WPS asynchronous request to a server and retrieve
         the status URL.
