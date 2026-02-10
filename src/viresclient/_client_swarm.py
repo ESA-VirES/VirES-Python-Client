@@ -37,7 +37,7 @@ TEMPLATE_FILES = {
 
 REFERENCES = {
     "General Swarm": (
-        " Swarm Data Handbook, https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook ",
+        " Swarm Data Handbook, https://swarmhandbook.earth.esa.int/ ",
         " The Swarm Satellite Constellation Application and Research Facility (SCARF) and Swarm data products, https://doi.org/10.5047/eps.2013.07.001 ",
         " Swarm Science Data Processing and Products (2013), https://link.springer.com/journal/40623/65/11/page/1 ",
         " Special issue “Swarm science results after 2 years in space (2016), https://www.springeropen.com/collections/swsr ",
@@ -80,51 +80,63 @@ MODEL_REFERENCES = {
     ),
     "MCO_SHA_2C": (
         "[Comprehensive Inversion]: Core field of CIY4",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mco_sha_2c",
         " A comprehensive model of Earth’s magnetic field determined from 4 years of Swarm satellite observations, https://doi.org/10.1186/s40623-018-0896-3 ",
         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MCO/SW_OPER_MCO_VAL_2C_20131201T000000_20180101T000000_0401.ZIP ",
     ),
     "MCO_SHA_2D": (
         "[Dedicated Chain]: Core field",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mco_sha_2d",
         "An algorithm for deriving core magnetic field models from the Swarm data set, https://doi.org/10.5047/eps.2013.07.005 ",
         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MCO/SW_OPER_MCO_VAL_2D_20131126T000000_20180101T000000_0401.ZIP ",
     ),
     "MLI_SHA_2C": (
         "[Comprehensive Inversion]: Lithospheric field of CIY4",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mli_sha_2c",
         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2C_00000000T000000_99999999T999999_0401.ZIP",
     ),
     "MLI_SHA_2D": (
         "[Dedicated Chain]: Lithospheric field",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mli_sha_2d",
         " Swarm SCARF Dedicated Lithospheric Field Inversion chain, https://doi.org/10.5047/eps.2013.07.008 ",
         " Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2D_00000000T000000_99999999T999999_0401.ZIP ",
     ),
     "MLI_SHA_2E": (
         "[Extended dedicated chain]: Lithospheric field",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mli_sha_2e",
         " Joint inversion of Swarm, CHAMP, and WDMAM data ",
         " https://swarm-diss.eo.esa.int/?do=download&file=swarm%2FLevel2longterm%2FMLI%2FSW_OPER_MLI_VAL_2E_00000000T000000_99999999T999999_0502.ZIP ",
     ),
     "MMA_SHA_2C-Primary": (
         "[Comprehensive Inversion]: Primary (external) magnetospheric field of CIY4",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2c",
         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MMA/SW_OPER_MMA_VAL_2C_20131201T000000_20180101T000000_0401.ZIP",
     ),
     "MMA_SHA_2C-Secondary": (
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2c",
         "[Comprehensive Inversion]: Secondary (internal/induced) magnetospheric field of CIY4",
     ),
     "MMA_SHA_2F-Primary": (
         "[Fast-Track Product]: Primary (external) magnetospheric field",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2f",
         " Rapid modelling of the large-scale magnetospheric field from Swarm satellite data, https://doi.org/10.5047/eps.2013.09.003 ",
     ),
     "MMA_SHA_2F-Secondary": (
         "[Fast-Track Product]: Secondary (internal/induced) magnetospheric field",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2f",
     ),
     "MIO_SHA_2C-Primary": (
         "[Comprehensive Inversion]: Primary (external) ionospheric field of CIY4",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2c",
         "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MIO/SW_OPER_MIO_VAL_2C_00000000T000000_99999999T999999_0401.ZIP ",
     ),
     "MIO_SHA_2C-Secondary": (
         "[Comprehensive Inversion]: Secondary (external/induced) ionospheric field of CIY4",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2c",
     ),
     "MIO_SHA_2D-Primary": (
         "[Dedicated Chain]: Primary (external) ionospheric field, DIFI",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2d",
         " Swarm SCARF dedicated ionospheric field inversion chain, https://doi.org/10.5047/eps.2013.08.006 ",
         " First results from the Swarm Dedicated Ionospheric Field Inversion chain, https://doi.org/10.1186/s40623-016-0481-6 ",
         " http://geomag.colorado.edu/difi-3 ",
@@ -132,19 +144,20 @@ MODEL_REFERENCES = {
     ),
     "MIO_SHA_2D-Secondary": (
         "[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2d",
     ),
-    "AMPS": ("AMPS - associated magnetic field, https://github.com/klaundal/pyAMPS",),
-    "MCO_SHA_2X": ("Alias for 'CHAOS-Core'",),
+    "AMPS": ("AMPS - associated magnetic field, https://github.com/klaundal/pyAMPS", "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2e"),
+    "MCO_SHA_2X": ("Alias for 'CHAOS-Core'", "https://swarmhandbook.earth.esa.int/catalogue/sw_mco_sha_2x"),
     "CHAOS": (
-        "Alias for 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'",
+        "Alias for 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'", "https://www.spacecenter.dk/files/magnetic-models/CHAOS-8/"
     ),
-    "CHAOS-MMA": ("Alias for 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'",),
-    "MMA_SHA_2C": ("Alias for 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'",),
-    "MMA_SHA_2F": ("Alias for 'MMA_SHA_2F-Primary' + 'MMA_SHA_2F-Secondary'",),
-    "MIO_SHA_2C": ("Alias for 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary'",),
-    "MIO_SHA_2D": ("Alias for 'MIO_SHA_2D-Primary' + 'MIO_SHA_2D-Secondary'",),
+    "CHAOS-MMA": ("Alias for 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'", "https://www.spacecenter.dk/files/magnetic-models/CHAOS-8/"),
+    "MMA_SHA_2C": ("Alias for 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'", "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2c"),
+    "MMA_SHA_2F": ("Alias for 'MMA_SHA_2F-Primary' + 'MMA_SHA_2F-Secondary'", "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2f"),
+    "MIO_SHA_2C": ("Alias for 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary'", "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2c"),
+    "MIO_SHA_2D": ("Alias for 'MIO_SHA_2D-Primary' + 'MIO_SHA_2D-Secondary'", "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2d"),
     "SwarmCI": (
-        "Alias for 'MCO_SHA_2C' + 'MLI_SHA_2C' + 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary' + 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'",
+        "Alias for 'MCO_SHA_2C' + 'MLI_SHA_2C' + 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary' + 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'", "https://swarmhandbook.earth.esa.int/catalogue/sw_mco_sha_2c"
     ),
 }
 
@@ -152,74 +165,68 @@ DEPRECATED_MODELS = {}
 
 COLLECTION_REFERENCES = {
     "MAG": (
-        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#MAGX_LR_1B_Product ",
+        " https://swarmhandbook.earth.esa.int/catalogue/sw_magx_lr_1b ",
     ),
     "MAG_HR": (
-        "https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#MAGX_HR_1B_Product ",
+        " https://swarmhandbook.earth.esa.int/catalogue/sw_magx_hr_1b ",
     ),
     "EFI": (
-        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#EFIX_LP_1B_Product ",
+        " https://swarmhandbook.earth.esa.int/catalogue/sw_efix_lp_1b ",
     ),
     "EFI:B06": (
-        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-1b-product-definitions#EFIX_LP_1B_Product ",
+        " https://swarmhandbook.earth.esa.int/catalogue/sw_efix_lp_1b ",
     ),
     "IBI": (
-        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#IBIxTMS_2F ",
-        " https://earth.esa.int/documents/10174/1514862/Swarm_L2_IBI_product_description ",
+        " https://swarmhandbook.earth.esa.int/catalogue/sw_ibixtms_2f ",
     ),
     "TEC": (
-        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#TECxTMS_2F ",
-        " https://earth.esa.int/documents/10174/1514862/Swarm_Level-2_TEC_Product_Description ",
+        " https://swarmhandbook.earth.esa.int/catalogue/sw_tecxtms_2f ",
     ),
     "FAC": (
-        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#FAC_TMS_2F ",
-        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#FACxTMS_2F ",
-        " https://earth.esa.int/documents/10174/1514862/Swarm_L2_FAC_single_product_description ",
-        " https://earth.esa.int/documents/10174/1514862/Swarm-L2-FAC-Dual-Product-Description ",
+        " https://swarmhandbook.earth.esa.int/catalogue/sw_facxtms_2f ",
     ),
     "EEF": (
-        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#EEFxTMS_2F ",
-        " https://earth.esa.int/documents/10174/1514862/Swarm-Level-2-EEF-Product-Description ",
+        " https://swarmhandbook.earth.esa.int/catalogue/sw_eefxtms_2f ",
     ),
     "IPD": (
-        " https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/data-handbook/level-2-product-definitions#IPDxIPR_2F ",
+        " https://swarmhandbook.earth.esa.int/catalogue/sw_ipdxirr_2f ",
     ),
     "AUX_OBSH": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSM": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSS": ("https://doi.org/10.5047/eps.2013.07.011",),
-    "VOBS_SW_1M": ("https://earth.esa.int/eogateway/activities/gvo",),
-    "AEJ_LPL": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
-    "AEJ_LPS": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
-    "AEJ_PBL": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
-    "AEJ_PBS": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
-    "AOB_FAC": ("https://earth.esa.int/eogateway/activities/swarm-aebs",),
+    "VOBS_SW_1M": ("https://swarmhandbook.earth.esa.int/catalogue/sw_vobs_1m_2_",),
+    "AEJ_LPL": ("https://swarmhandbook.earth.esa.int/catalogue/sw_aejxlpl_2f",),
+    "AEJ_LPS": ("https://swarmhandbook.earth.esa.int/catalogue/sw_aejxlps_2f",),
+    "AEJ_PBL": ("https://swarmhandbook.earth.esa.int/catalogue/sw_aejxpbl_2f",),
+    "AEJ_PBS": ("https://swarmhandbook.earth.esa.int/catalogue/sw_aejxpbs_2f",),
+    "AOB_FAC": ("https://swarmhandbook.earth.esa.int/catalogue/sw_aobxfac_2f",),
     "MIT_LP": (
-        "https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mitx_lp_2f",
     ),
     "MIT_TEC": (
-        "https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mitxtec_2f",
     ),
     "PPI_FAC": (
-        "https://earth.esa.int/eogateway/activities/plasmapause-related-boundaries-in-the-topside-ionosphere-as-derived-from-swarm-measurements",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_ppixfac_2f",
     ),
     "MAG_CHAMP": ("https://doi.org/10.5880/GFZ.2.3.2019.004",),
-    "MAG_CS": ("https://doi.org/10.1186/s40623-020-01171-9",),
-    "MAG_GRACE": ("https://doi.org/10.1186/s40623-021-01373-9",),
-    "MAG_GFO": ("https://doi.org/10.1186/s40623-021-01364-w",),
+    "MAG_CS": ("https://swarmhandbook.earth.esa.int/catalogue/cs_mag", "https://doi.org/10.1186/s40623-020-01171-9",),
+    "MAG_GRACE": ("https://swarmhandbook.earth.esa.int/catalogue/grace_x_mag", "https://doi.org/10.1186/s40623-021-01373-9",),
+    "MAG_GFO": ("https://swarmhandbook.earth.esa.int/catalogue/gfx_fgm_acal_corr", "https://doi.org/10.1186/s40623-021-01364-w",),
     "MAG_GFO_ML": ("https://doi.org/10.5880/GFZ.2.3.2023.001",),
     "EFI_IDM": (
-        "https://earth.esa.int/eogateway/documents/20142/2860886/SLIDEM_Product_Definition.pdf",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_efixidm_2_",
     ),
-    "MAG_GOCE": ("https://doi.org/10.5880/GFZ.2.3.2022.001",),
+    "MAG_GOCE": ("https://swarmhandbook.earth.esa.int/catalogue/go_mag_acal_corr", "https://doi.org/10.5880/GFZ.2.3.2022.001",),
     "MAG_GOCE_ML": ("https://doi.org/10.5880/GFZ.2.3.2022.002",),
     "EFI_TIE": (
-        "https://earth.esa.int/eogateway/activities/swarm-ion-temperature-estimation",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_efixtie_2_",
     ),
     "EFI_TCT02": (
-        "https://earth.esa.int/eogateway/documents/20142/37627/swarm-EFI-TII-cross-track-flow-dataset-release-notes.pdf",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_efix_tct02",
     ),
     "EFI_TCT16": (
-        "https://earth.esa.int/eogateway/documents/20142/37627/swarm-EFI-TII-cross-track-flow-dataset-release-notes.pdf",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_efix_tct16",
     ),
     "DNS_POD": ("https://swarmhandbook.earth.esa.int/catalogue/SW_DNSxPOD_2_",),
     "DNS_ACC": ("https://swarmhandbook.earth.esa.int/catalogue/SW_DNSxACC_2_",),
@@ -2834,9 +2841,9 @@ class SwarmRequest(ClientRequest):
 
         Args:
             models (list(str)/dict): from .available_models() or defineable with custom expressions
-            input_cdf_filename, (str) input CDF file.
-            output_cdf_filename, (str) output CDF file.
-            show_progress (bool) show download progress True
+            input_cdf_filename (str): input CDF file.
+            output_cdf_filename (str): output CDF file.
+            show_progress (bool): show download progress True
 
         Returns:
             copy of output_cdf_filename

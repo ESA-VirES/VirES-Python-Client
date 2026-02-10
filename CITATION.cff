@@ -4,8 +4,18 @@
 cff-version: 1.2.0
 title: ESA-VirES/VirES-Python-Client
 message: >-
-  If you use this software, please cite it using the
-  metadata from this file.
+  Example citation:
+
+  “We use the Python package, viresclient [1], to access [ name the datasets ] from ESA's VirES for Swarm service [2]"
+
+  [1] Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client. Zenodo. Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client. Zenodo. Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client (v0.14.1). Zenodo. Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client (v0.14.1). Zenodo. https://doi.org/10.5281/zenodo.2554162
+  [2] https://vires.services
+
+  You may also wish to cite this paper:
+
+  Smith A.R.A., Pačes M. and Swarm DISC (2022) Python tools for ESA's Swarm mission: VirES for Swarm and surrounding ecosystem. Front. Astron. Space Sci. 9:1002697. https://doi.org/10.3389/fspas.2022.1002697
+
+  Please refer to the Swarm handbook for product references: https://swarmhandbook.earth.esa.int/
 type: software
 authors:
   - given-names: Ashley R. A.

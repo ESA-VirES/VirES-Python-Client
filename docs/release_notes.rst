@@ -4,6 +4,24 @@ Release notes
 Change log
 ----------
 
+Changes from 0.14.1 to 0.15.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Changes to `EEFxTMS <https://swarmhandbook.earth.esa.int/catalogue/sw_eefxtms_2f>`_ products (introduced in product version 0502):
+
+  | Old: ``["EEF", "EEJ", "RelErr", "Flags"]``
+  | New: ``["EEF", "EEJ_meast", "EEJ_mnorth", "RelErr", "Flags"]``
+  | NB: This does not yet include the additional variables in version 0502
+
+- Improved reliability of long duration requests. If there are short network issues while a job is being processed, the client attempts to stay connected. The connection is retried 3 times, pausing 20 seconds between each attempt.
+
+- Fixed a bug where loading an empty dataframe/dataset would fail when requesting long time periods of data (where chunking of requests occurs)
+
+- Removed unnecessary pytables dependency
+
+- Fixed support for Python 3.14
+
+
 Changes from 0.14.0 to 0.14.1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
