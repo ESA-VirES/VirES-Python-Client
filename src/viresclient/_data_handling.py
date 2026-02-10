@@ -463,6 +463,22 @@ class ReturnedDataFile:
             + "\nLoad it as an xarray dataset with .as_xarray()"
         )
 
+    def close(self):
+        """Close the underlying temporary file."""
+        file_obj = getattr(self, "_file", None)
+        if file_obj is None:
+            return
+        try:
+            file_obj.close()
+        except Exception:
+            pass
+
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            pass
+
     def open_cdf(self):
         """Returns the opened file as cdflib.CDF"""
         return FileReader._open_cdf(self._file.name)
@@ -716,6 +732,20 @@ class ReturnedData:
             + "\nLoad it as a pandas dataframe with .as_dataframe()"
             + "\nLoad it as an xarray dataset with .as_xarray()"
         )
+
+    def close(self):
+        """Close any temporary files held by this object."""
+        for item in getattr(self, "_contents", []) or []:
+            try:
+                item.close()
+            except Exception:
+                pass
+
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            pass
 
     @property
     def filetype(self):
