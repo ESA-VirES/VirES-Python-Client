@@ -55,7 +55,7 @@ FRAME_NAMES = {
     "VFM": ["B_VFM", "dB_Sun", "dB_AOCS", "dB_other", "B_error"],
     "quaternion": ["q_NEC_CRF"],
     "WGS84": ["GPS_Position", "LEO_Position"],
-    "EEJ_QDLat": ["EEJ"],
+    "EEJ_QDLat": ["EEJ_meast", "EEJ_mnorth"],
     "NE": ["J_NE", "J_CF_NE", "J_DF_NE", "B_NE"],
 }
 # Reverse mapping of the above

@@ -1052,7 +1052,7 @@ class SwarmRequest(ClientRequest):
             "Flags_B",
             "Flags_q",
         ],
-        "EEF": ["EEF", "EEJ", "RelErr", "Flags"],
+        "EEF": ["EEF", "EEJ_meast", "EEJ_mnorth", "RelErr", "Flags"],
         "IPD": [
             "Ne",
             "Te",
