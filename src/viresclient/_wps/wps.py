@@ -30,7 +30,7 @@
 from contextlib import closing
 from logging import LoggerAdapter, getLogger
 from time import sleep
-from urllib.error import URLError, HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree

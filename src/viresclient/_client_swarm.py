@@ -146,51 +146,56 @@ MODEL_REFERENCES = {
         "[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2d",
     ),
-    "AMPS": ("AMPS - associated magnetic field, https://github.com/klaundal/pyAMPS", "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2e"),
-    "MCO_SHA_2X": ("Alias for 'CHAOS-Core'", "https://swarmhandbook.earth.esa.int/catalogue/sw_mco_sha_2x"),
-    "CHAOS": (
-        "Alias for 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'", "https://www.spacecenter.dk/files/magnetic-models/CHAOS-8/"
+    "AMPS": (
+        "AMPS - associated magnetic field, https://github.com/klaundal/pyAMPS",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2e",
     ),
-    "CHAOS-MMA": ("Alias for 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'", "https://www.spacecenter.dk/files/magnetic-models/CHAOS-8/"),
-    "MMA_SHA_2C": ("Alias for 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'", "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2c"),
-    "MMA_SHA_2F": ("Alias for 'MMA_SHA_2F-Primary' + 'MMA_SHA_2F-Secondary'", "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2f"),
-    "MIO_SHA_2C": ("Alias for 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary'", "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2c"),
-    "MIO_SHA_2D": ("Alias for 'MIO_SHA_2D-Primary' + 'MIO_SHA_2D-Secondary'", "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2d"),
+    "MCO_SHA_2X": (
+        "Alias for 'CHAOS-Core'",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mco_sha_2x",
+    ),
+    "CHAOS": (
+        "Alias for 'CHAOS-Core' + 'CHAOS-Static' + 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'",
+        "https://www.spacecenter.dk/files/magnetic-models/CHAOS-8/",
+    ),
+    "CHAOS-MMA": (
+        "Alias for 'CHAOS-MMA-Primary' + 'CHAOS-MMA-Secondary'",
+        "https://www.spacecenter.dk/files/magnetic-models/CHAOS-8/",
+    ),
+    "MMA_SHA_2C": (
+        "Alias for 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2c",
+    ),
+    "MMA_SHA_2F": (
+        "Alias for 'MMA_SHA_2F-Primary' + 'MMA_SHA_2F-Secondary'",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2f",
+    ),
+    "MIO_SHA_2C": (
+        "Alias for 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary'",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2c",
+    ),
+    "MIO_SHA_2D": (
+        "Alias for 'MIO_SHA_2D-Primary' + 'MIO_SHA_2D-Secondary'",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2d",
+    ),
     "SwarmCI": (
-        "Alias for 'MCO_SHA_2C' + 'MLI_SHA_2C' + 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary' + 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'", "https://swarmhandbook.earth.esa.int/catalogue/sw_mco_sha_2c"
+        "Alias for 'MCO_SHA_2C' + 'MLI_SHA_2C' + 'MIO_SHA_2C-Primary' + 'MIO_SHA_2C-Secondary' + 'MMA_SHA_2C-Primary' + 'MMA_SHA_2C-Secondary'",
+        "https://swarmhandbook.earth.esa.int/catalogue/sw_mco_sha_2c",
     ),
 }
 
 DEPRECATED_MODELS = {}
 
 COLLECTION_REFERENCES = {
-    "MAG": (
-        " https://swarmhandbook.earth.esa.int/catalogue/sw_magx_lr_1b ",
-    ),
-    "MAG_HR": (
-        " https://swarmhandbook.earth.esa.int/catalogue/sw_magx_hr_1b ",
-    ),
-    "EFI": (
-        " https://swarmhandbook.earth.esa.int/catalogue/sw_efix_lp_1b ",
-    ),
-    "EFI:B06": (
-        " https://swarmhandbook.earth.esa.int/catalogue/sw_efix_lp_1b ",
-    ),
-    "IBI": (
-        " https://swarmhandbook.earth.esa.int/catalogue/sw_ibixtms_2f ",
-    ),
-    "TEC": (
-        " https://swarmhandbook.earth.esa.int/catalogue/sw_tecxtms_2f ",
-    ),
-    "FAC": (
-        " https://swarmhandbook.earth.esa.int/catalogue/sw_facxtms_2f ",
-    ),
-    "EEF": (
-        " https://swarmhandbook.earth.esa.int/catalogue/sw_eefxtms_2f ",
-    ),
-    "IPD": (
-        " https://swarmhandbook.earth.esa.int/catalogue/sw_ipdxirr_2f ",
-    ),
+    "MAG": (" https://swarmhandbook.earth.esa.int/catalogue/sw_magx_lr_1b ",),
+    "MAG_HR": (" https://swarmhandbook.earth.esa.int/catalogue/sw_magx_hr_1b ",),
+    "EFI": (" https://swarmhandbook.earth.esa.int/catalogue/sw_efix_lp_1b ",),
+    "EFI:B06": (" https://swarmhandbook.earth.esa.int/catalogue/sw_efix_lp_1b ",),
+    "IBI": (" https://swarmhandbook.earth.esa.int/catalogue/sw_ibixtms_2f ",),
+    "TEC": (" https://swarmhandbook.earth.esa.int/catalogue/sw_tecxtms_2f ",),
+    "FAC": (" https://swarmhandbook.earth.esa.int/catalogue/sw_facxtms_2f ",),
+    "EEF": (" https://swarmhandbook.earth.esa.int/catalogue/sw_eefxtms_2f ",),
+    "IPD": (" https://swarmhandbook.earth.esa.int/catalogue/sw_ipdxirr_2f ",),
     "AUX_OBSH": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSM": ("https://doi.org/10.5047/eps.2013.07.011",),
     "AUX_OBSS": ("https://doi.org/10.5047/eps.2013.07.011",),
@@ -200,34 +205,32 @@ COLLECTION_REFERENCES = {
     "AEJ_PBL": ("https://swarmhandbook.earth.esa.int/catalogue/sw_aejxpbl_2f",),
     "AEJ_PBS": ("https://swarmhandbook.earth.esa.int/catalogue/sw_aejxpbs_2f",),
     "AOB_FAC": ("https://swarmhandbook.earth.esa.int/catalogue/sw_aobxfac_2f",),
-    "MIT_LP": (
-        "https://swarmhandbook.earth.esa.int/catalogue/sw_mitx_lp_2f",
-    ),
-    "MIT_TEC": (
-        "https://swarmhandbook.earth.esa.int/catalogue/sw_mitxtec_2f",
-    ),
-    "PPI_FAC": (
-        "https://swarmhandbook.earth.esa.int/catalogue/sw_ppixfac_2f",
-    ),
+    "MIT_LP": ("https://swarmhandbook.earth.esa.int/catalogue/sw_mitx_lp_2f",),
+    "MIT_TEC": ("https://swarmhandbook.earth.esa.int/catalogue/sw_mitxtec_2f",),
+    "PPI_FAC": ("https://swarmhandbook.earth.esa.int/catalogue/sw_ppixfac_2f",),
     "MAG_CHAMP": ("https://doi.org/10.5880/GFZ.2.3.2019.004",),
-    "MAG_CS": ("https://swarmhandbook.earth.esa.int/catalogue/cs_mag", "https://doi.org/10.1186/s40623-020-01171-9",),
-    "MAG_GRACE": ("https://swarmhandbook.earth.esa.int/catalogue/grace_x_mag", "https://doi.org/10.1186/s40623-021-01373-9",),
-    "MAG_GFO": ("https://swarmhandbook.earth.esa.int/catalogue/gfx_fgm_acal_corr", "https://doi.org/10.1186/s40623-021-01364-w",),
+    "MAG_CS": (
+        "https://swarmhandbook.earth.esa.int/catalogue/cs_mag",
+        "https://doi.org/10.1186/s40623-020-01171-9",
+    ),
+    "MAG_GRACE": (
+        "https://swarmhandbook.earth.esa.int/catalogue/grace_x_mag",
+        "https://doi.org/10.1186/s40623-021-01373-9",
+    ),
+    "MAG_GFO": (
+        "https://swarmhandbook.earth.esa.int/catalogue/gfx_fgm_acal_corr",
+        "https://doi.org/10.1186/s40623-021-01364-w",
+    ),
     "MAG_GFO_ML": ("https://doi.org/10.5880/GFZ.2.3.2023.001",),
-    "EFI_IDM": (
-        "https://swarmhandbook.earth.esa.int/catalogue/sw_efixidm_2_",
+    "EFI_IDM": ("https://swarmhandbook.earth.esa.int/catalogue/sw_efixidm_2_",),
+    "MAG_GOCE": (
+        "https://swarmhandbook.earth.esa.int/catalogue/go_mag_acal_corr",
+        "https://doi.org/10.5880/GFZ.2.3.2022.001",
     ),
-    "MAG_GOCE": ("https://swarmhandbook.earth.esa.int/catalogue/go_mag_acal_corr", "https://doi.org/10.5880/GFZ.2.3.2022.001",),
     "MAG_GOCE_ML": ("https://doi.org/10.5880/GFZ.2.3.2022.002",),
-    "EFI_TIE": (
-        "https://swarmhandbook.earth.esa.int/catalogue/sw_efixtie_2_",
-    ),
-    "EFI_TCT02": (
-        "https://swarmhandbook.earth.esa.int/catalogue/sw_efix_tct02",
-    ),
-    "EFI_TCT16": (
-        "https://swarmhandbook.earth.esa.int/catalogue/sw_efix_tct16",
-    ),
+    "EFI_TIE": ("https://swarmhandbook.earth.esa.int/catalogue/sw_efixtie_2_",),
+    "EFI_TCT02": ("https://swarmhandbook.earth.esa.int/catalogue/sw_efix_tct02",),
+    "EFI_TCT16": ("https://swarmhandbook.earth.esa.int/catalogue/sw_efix_tct16",),
     "DNS_POD": ("https://swarmhandbook.earth.esa.int/catalogue/SW_DNSxPOD_2_",),
     "DNS_ACC": ("https://swarmhandbook.earth.esa.int/catalogue/SW_DNSxACC_2_",),
     "DNS_ACC_CHAMP": ("https://swarmhandbook.earth.esa.int/catalogue/CH_DNS_ACC_2_",),
