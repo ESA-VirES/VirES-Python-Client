@@ -786,10 +786,11 @@ class ReturnedData:
 
         """
         dataframes = [data.as_dataframe(expand=expand) for data in self.contents]
-        if len(dataframes) > 1:
-            return pandas.concat([df for df in dataframes if not df.empty])
-        else:
+        if len(dataframes) == 0:
+            return None
+        if (len(dataframes) == 1) or all([df.empty for df in dataframes]):
             return dataframes[0]
+        return pandas.concat([df for df in dataframes if not df.empty])
 
     def as_xarray(self, reshape=False):
         """Convert the data to an xarray Dataset.
@@ -822,7 +823,7 @@ class ReturnedData:
 
         if ds_list == []:
             return None
-        elif len(ds_list) == 1:
+        elif (len(ds_list) == 1) or all([ds["Timestamp"].size == 0 for ds in ds_list]):
             ds = ds_list[0]
         elif self._time_variable in ds_list[0].dims:
             # Address simpler concatenation case for VirES for Swarm
