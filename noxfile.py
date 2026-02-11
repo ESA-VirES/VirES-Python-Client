@@ -1,5 +1,7 @@
 import nox
 
+nox.options.default_venv_backend = "uv"
+
 
 @nox.session
 def lint(session):
@@ -10,10 +12,9 @@ def lint(session):
     session.run("pre-commit", "run", "--all-files", *session.posargs)
 
 
-@nox.session(python=["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13"])
+@nox.session(python=["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"])
 def tests(session):
-    session.install(".")
-    session.install("pytest")
+    session.install(".[test]")
     session.run("pytest")
 
 
