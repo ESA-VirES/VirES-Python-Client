@@ -327,46 +327,39 @@ class FileReader:
         return ds
 
     def reshape_dataset(self, ds):
-        if "SiteCode" in ds.data_vars:
-            codevar = "SiteCode"
-        elif "IAGA_code" in ds.data_vars:
-            codevar = "IAGA_code"
-        else:
+        has_site = "SiteCode" in ds.data_vars
+        has_iaga = "IAGA_code" in ds.data_vars
+        has_obs_index = "ObsIndex" in ds.data_vars
+        if not has_site and not has_iaga:
             raise NotImplementedError(
-                """
-                Only available for GVO dataset where the "SiteCode"
-                parameter has been requested, or OBS dataset with "IAGA_code"
-                """
+                "reshape requires 'IAGA_code' (for OBS) or 'SiteCode' (for GVO) "
+                "to be included in measurements"
             )
-        # Create integer "Site" identifier based on SiteCode / IAGA_code
-        sites = dict(enumerate(sorted(set(ds[codevar].values))))
-        sites_inv = {v: k for k, v in sites.items()}
-        if len(sites) == 0:
-            _ds_locs = ds
-        else:
-            # Identify (V)OBS locations and mapping from integer "Site" identifier
-            pos_vars = ["Longitude", "Latitude", "Radius", codevar]
-            _ds_locs = next(iter(ds[pos_vars].groupby(self._time_variable)))[1]
-            if len(sites) > 1:
-                _ds_locs = _ds_locs.drop(self._time_variable).rename(
-                    {self._time_variable: "Site"}
-                )
-            else:
-                _ds_locs = _ds_locs.drop(self._time_variable).expand_dims("Site")
-            _ds_locs["Site"] = [
-                sites_inv.get(code) for code in _ds_locs[codevar].values
-            ]
-            _ds_locs = _ds_locs.sortby("Site")
-        # Create dataset initialised with the (V)OBS positional info as coords
-        # and datavars (empty) reshaped to (Site, Timestamp, ...)
+        if has_iaga and has_obs_index:
+            return self._reshape_two_codes(ds)
+        return self._reshape_one_code(ds, "SiteCode" if has_site else "IAGA_code")
+
+    def _reshape_one_code(self, ds, codevar):
+        # Build position lookup and site ordering from per-site groupby.
+        # (Using the first-timestamp approach would miss sites absent at t=0.)
+        pos_lookup = {}
+        for code, _sub in ds.groupby(codevar):
+            pos_lookup[code] = {
+                "Latitude": float(_sub["Latitude"].values[0]),
+                "Longitude": float(_sub["Longitude"].values[0]),
+                "Radius": float(_sub["Radius"].values[0]),
+            }
+        site_keys = sorted(pos_lookup.keys())
+        sites_inv = {code: i for i, code in enumerate(site_keys)}
+        N_sites = len(site_keys)
         t = numpy.unique(ds[self._time_variable])
         ds2 = xarray.Dataset(
             coords={
                 self._time_variable: t,
-                codevar: (("Site"), _ds_locs[codevar].data),
-                "Latitude": ("Site", _ds_locs["Latitude"].data),
-                "Longitude": ("Site", _ds_locs["Longitude"].data),
-                "Radius": ("Site", _ds_locs["Radius"].data),
+                codevar: ("Site", site_keys),
+                "Latitude": ("Site", [pos_lookup[c]["Latitude"] for c in site_keys]),
+                "Longitude": ("Site", [pos_lookup[c]["Longitude"] for c in site_keys]),
+                "Radius": ("Site", [pos_lookup[c]["Radius"] for c in site_keys]),
                 "NEC": ["N", "E", "C"],
             },
         )
@@ -378,22 +371,37 @@ class FileReader:
             codevar,
             "Spacecraft",
         }
-        N_sites = len(_ds_locs[codevar])
         # Create empty data variables to be infilled
         for var in data_vars:
             shape = [N_sites, len(t), *ds[var].shape[1:]]
             ds2[var] = ("Site", *ds[var].dims), numpy.empty(shape, dtype=ds[var].dtype)
-            ds2[var][...] = None
-        # Loop through each (V)OBS site to infill the data
-        if N_sites != 0:
-            for k, _ds in dict(ds.groupby(codevar)).items():
-                site = sites_inv.get(k)
-                for var in data_vars:
-                    ds2[var][site, ...] = _ds[var].values
+            if numpy.issubdtype(ds[var].dtype, numpy.floating):
+                ds2[var][...] = numpy.nan
+        # Loop through each site to infill the data
+        for k, _ds in dict(ds.groupby(codevar)).items():
+            site = sites_inv[k]
+            _ds = _ds.sortby(self._time_variable)
+            t_mask = numpy.isin(t, _ds[self._time_variable].values)
+            for var in data_vars:
+                ds2[var][site, t_mask, ...] = _ds[var].values
         # Revert to using only the "SiteCode"/"IAGA_code" identifier
         ds2 = ds2.set_index({"Site": codevar})
         ds2 = ds2.rename({"Site": codevar})
         return ds2
+
+    def _reshape_two_codes(self, ds):
+        """Reshape dataset with both IAGA_code and ObsIndex.
+
+        Merges IAGA_code and ObsIndex into a single SiteCode variable
+        (e.g. "ABG0", "ALE1"), then delegates to _reshape_one_code.
+        """
+        site_codes = numpy.array([
+            f"{iaga}{obs}"
+            for iaga, obs in zip(ds["IAGA_code"].values, ds["ObsIndex"].values)
+        ])
+        keep = [v for v in ds.data_vars if v not in {"IAGA_code", "ObsIndex"}]
+        ds = ds[keep].assign(SiteCode=((self._time_variable,), site_codes))
+        return self._reshape_one_code(ds, "SiteCode")
 
 
 def make_pandas_DataFrame_from_csv(csv_filename, time_variable="Timestamp"):
