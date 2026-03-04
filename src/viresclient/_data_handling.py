@@ -395,10 +395,12 @@ class FileReader:
         Merges IAGA_code and ObsIndex into a single SiteCode variable
         (e.g. "ABG0", "ALE1"), then delegates to _reshape_one_code.
         """
-        site_codes = numpy.array([
-            f"{iaga}{obs}"
-            for iaga, obs in zip(ds["IAGA_code"].values, ds["ObsIndex"].values)
-        ])
+        site_codes = numpy.array(
+            [
+                f"{iaga}{obs}"
+                for iaga, obs in zip(ds["IAGA_code"].values, ds["ObsIndex"].values)
+            ]
+        )
         keep = [v for v in ds.data_vars if v not in {"IAGA_code", "ObsIndex"}]
         ds = ds[keep].assign(SiteCode=((self._time_variable,), site_codes))
         return self._reshape_one_code(ds, "SiteCode")

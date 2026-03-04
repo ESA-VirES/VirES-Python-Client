@@ -8,7 +8,7 @@ message: >-
 
   “We use the Python package, viresclient [1], to access [ name the datasets ] from ESA's VirES for Swarm service [2]"
 
-  [1] Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client. Zenodo. Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client. Zenodo. Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client (v0.14.1). Zenodo. Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client (v0.14.1). Zenodo. https://doi.org/10.5281/zenodo.2554162
+  [1] Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client. Zenodo. https://doi.org/10.5281/zenodo.2554162
   [2] https://vires.services
 
   You may also wish to cite this paper:
