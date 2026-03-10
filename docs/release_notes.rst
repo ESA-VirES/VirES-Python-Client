@@ -4,6 +4,11 @@ Release notes
 Change log
 ----------
 
+Changes from 0.15.0 to 0.15.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Completed transition to new ``EFIx_LP`` products version 07 (now supporting the FAST variants)
+
 Changes from 0.14.1 to 0.15.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
