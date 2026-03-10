@@ -4,10 +4,15 @@ Release notes
 Change log
 ----------
 
-Changes from 0.15.0 to 0.16.0
+Changes from 0.15.1 to 0.16.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Fix usage of ``reshape=True`` when using ``AUX_OBSH`` collection (via creating an additional ``SiteCode`` data variable)
+
+Changes from 0.15.0 to 0.15.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Completed transition to new ``EFIx_LP`` products version 07 (now supporting the FAST variants)
 
 Changes from 0.14.1 to 0.15.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
