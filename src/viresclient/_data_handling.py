@@ -55,7 +55,7 @@ FRAME_NAMES = {
     "VFM": ["B_VFM", "dB_Sun", "dB_AOCS", "dB_other", "B_error"],
     "quaternion": ["q_NEC_CRF"],
     "WGS84": ["GPS_Position", "LEO_Position"],
-    "EEJ_QDLat": ["EEJ"],
+    "EEJ_QDLat": ["EEJ_meast", "EEJ_mnorth"],
     "NE": ["J_NE", "J_CF_NE", "J_DF_NE", "B_NE"],
 }
 # Reverse mapping of the above
@@ -463,6 +463,22 @@ class ReturnedDataFile:
             + "\nLoad it as an xarray dataset with .as_xarray()"
         )
 
+    def close(self):
+        """Close the underlying temporary file."""
+        file_obj = getattr(self, "_file", None)
+        if file_obj is None:
+            return
+        try:
+            file_obj.close()
+        except Exception:
+            pass
+
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            pass
+
     def open_cdf(self):
         """Returns the opened file as cdflib.CDF"""
         return FileReader._open_cdf(self._file.name)
@@ -717,6 +733,20 @@ class ReturnedData:
             + "\nLoad it as an xarray dataset with .as_xarray()"
         )
 
+    def close(self):
+        """Close any temporary files held by this object."""
+        for item in getattr(self, "_contents", []) or []:
+            try:
+                item.close()
+            except Exception:
+                pass
+
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            pass
+
     @property
     def filetype(self):
         """Filetype string"""
@@ -786,10 +816,11 @@ class ReturnedData:
 
         """
         dataframes = [data.as_dataframe(expand=expand) for data in self.contents]
-        if len(dataframes) > 1:
-            return pandas.concat([df for df in dataframes if not df.empty])
-        else:
+        if len(dataframes) == 0:
+            return None
+        if (len(dataframes) == 1) or all([df.empty for df in dataframes]):
             return dataframes[0]
+        return pandas.concat([df for df in dataframes if not df.empty])
 
     def as_xarray(self, reshape=False):
         """Convert the data to an xarray Dataset.
@@ -822,7 +853,7 @@ class ReturnedData:
 
         if ds_list == []:
             return None
-        elif len(ds_list) == 1:
+        elif (len(ds_list) == 1) or all([ds["Timestamp"].size == 0 for ds in ds_list]):
             ds = ds_list[0]
         elif self._time_variable in ds_list[0].dims:
             # Address simpler concatenation case for VirES for Swarm

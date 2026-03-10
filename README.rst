@@ -118,10 +118,15 @@ You can reference *viresclient* directly using the DOI of our zenodo_ record. Vi
 
 .. _zenodo: https://doi.org/10.5281/zenodo.2554162
 
-    | "We use the Python package, viresclient [1], to access [...] from ESA's VirES for Swarm service [2]"
-    | [1] https://doi.org/10.5281/zenodo.2554162
-    | [2] https://vires.services
+  “We use the Python package, viresclient [1], to access [ name the datasets... ] from ESA's VirES for Swarm service [2]"
 
-You can also cite this paper:
+  [1] Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client. Zenodo. Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client. Zenodo. https://doi.org/10.5281/zenodo.2554162
+  [2] https://vires.services
 
-   | Smith A.R.A., Pačes M. and Swarm DISC (2022) Python tools for ESA’s Swarm mission: VirES for Swarm and surrounding ecosystem. Front. Astron. Space Sci. 9:1002697. doi: 10.3389/fspas.2022.1002697
+(To follow best practices you should cite the specific version that you used - refer to the Zenodo page to find the correct DOI for that version)
+
+Please refer to the Swarm handbook for product references: https://swarmhandbook.earth.esa.int/
+
+You may also wish to cite this paper:
+
+   | Smith A.R.A., Pačes M. and Swarm DISC (2022) Python tools for ESA's Swarm mission: VirES for Swarm and surrounding ecosystem. Front. Astron. Space Sci. 9:1002697. doi: 10.3389/fspas.2022.1002697
