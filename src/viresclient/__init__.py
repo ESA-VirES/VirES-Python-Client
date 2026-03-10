@@ -35,4 +35,4 @@ from ._client_swarm import SwarmRequest
 from ._config import ClientConfig, set_token
 from ._data_handling import ReturnedData, ReturnedDataFile
 
-__version__ = "0.15.0-fix"
+__version__ = "0.15.0.post1"
