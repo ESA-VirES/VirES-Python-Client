@@ -2869,7 +2869,7 @@ class SwarmRequest(ClientRequest):
 
         temp_cdf_filename = os.path.join(
             os.path.dirname(output_cdf_filename),
-            f".{os.path.basename(output_cdf_filename)}.tmp.cdf"
+            f".{os.path.basename(output_cdf_filename)}.tmp.cdf",
         )
 
         if os.path.exists(temp_cdf_filename):
