@@ -2867,7 +2867,10 @@ class SwarmRequest(ClientRequest):
             output_mime_type="application/x-cdf",
         ).encode("UTF-8")
 
-        temp_cdf_filename = ".{output_cdf_filename}.tmp.cdf"
+        temp_cdf_filename = os.path.join(
+            os.path.dirname(output_cdf_filename),
+            f".{os.path.basename(output_cdf_filename)}.tmp.cdf"
+        )
 
         if os.path.exists(temp_cdf_filename):
             os.remove(temp_cdf_filename)
