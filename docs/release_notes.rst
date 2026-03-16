@@ -4,6 +4,11 @@ Release notes
 Change log
 ----------
 
+Changes from 0.15.1 to 0.15.2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed bug in file handling in :py:meth:`viresclient.SwarmRequest.eval_model_for_cdf_file`
+
 Changes from 0.15.0 to 0.15.1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
