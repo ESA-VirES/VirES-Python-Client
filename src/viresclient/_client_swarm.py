@@ -563,16 +563,28 @@ class SwarmRequest(ClientRequest):
         ],
         "EEF": [f"SW_OPER_EEF{x}TMS_2F" for x in "ABC"],
         "IPD": [f"SW_OPER_IPD{x}IRR_2F" for x in "ABC"],
-        "AEJ_LPL": [f"SW_OPER_AEJ{x}LPL_2F" for x in "ABC"],
-        "AEJ_LPL:Quality": [f"SW_OPER_AEJ{x}LPL_2F:Quality" for x in "ABC"],
+        "AEJ_LPL": [
+            *(f"SW_OPER_AEJ{x}LPL_2F" for x in "ABC"),
+            *(f"SW_FAST_AEJ{x}LPL_2F" for x in "ABC"),
+        ],
+        "AEJ_LPL:Quality": [
+            *(f"SW_OPER_AEJ{x}LPL_2F:Quality" for x in "ABC"),
+            *(f"SW_FAST_AEJ{x}LPL_2F:Quality" for x in "ABC"),
+        ],
         "AEJ_LPS": [f"SW_OPER_AEJ{x}LPS_2F" for x in "ABC"],
         "AEJ_LPS:Quality": [f"SW_OPER_AEJ{x}LPS_2F:Quality" for x in "ABC"],
-        "AEJ_PBL": [f"SW_OPER_AEJ{x}PBL_2F" for x in "ABC"],
+        "AEJ_PBL": [
+            *(f"SW_OPER_AEJ{x}PBL_2F" for x in "ABC"),
+            *(f"SW_FAST_AEJ{x}PBL_2F" for x in "ABC"),
+        ],
         "AEJ_PBS": [f"SW_OPER_AEJ{x}PBS_2F" for x in "ABC"],
         "AEJ_PBS:GroundMagneticDisturbance": [
             f"SW_OPER_AEJ{x}PBS_2F:GroundMagneticDisturbance" for x in "ABC"
         ],
-        "AOB_FAC": [f"SW_OPER_AOB{x}FAC_2F" for x in "ABC"],
+        "AOB_FAC": [
+            *(f"SW_OPER_AOB{x}FAC_2F" for x in "ABC"),
+            *(f"SW_FAST_AOB{x}FAC_2F" for x in "ABC"),
+        ],
         "AUX_OBSH": [
             "SW_OPER_AUX_OBSH2_",
             *[f"SW_OPER_AUX_OBSH2_:{code}" for code in IAGA_CODES],
