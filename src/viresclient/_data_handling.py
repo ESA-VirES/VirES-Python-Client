@@ -401,8 +401,7 @@ class FileReader:
                 for iaga, obs in zip(ds["IAGA_code"].values, ds["ObsIndex"].values)
             ]
         )
-        keep = [v for v in ds.data_vars if v not in {"IAGA_code", "ObsIndex"}]
-        ds = ds[keep].assign(SiteCode=((self._time_variable,), site_codes))
+        ds = ds.assign(SiteCode=((self._time_variable,), site_codes))
         return self._reshape_one_code(ds, "SiteCode")
 
 
