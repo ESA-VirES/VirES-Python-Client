@@ -120,7 +120,7 @@ You can reference *viresclient* directly using the DOI of our zenodo_ record. Vi
 
   “We use the Python package, viresclient [1], to access [ name the datasets... ] from ESA's VirES for Swarm service [2]"
 
-  [1] Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client. Zenodo. Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client. Zenodo. https://doi.org/10.5281/zenodo.2554162
+  [1] Smith, A. R. A., Pačes, M., & Santillan, D. (2025). ESA-VirES/VirES-Python-Client. Zenodo. https://doi.org/10.5281/zenodo.2554162
   [2] https://vires.services
 
 (To follow best practices you should cite the specific version that you used - refer to the Zenodo page to find the correct DOI for that version)
