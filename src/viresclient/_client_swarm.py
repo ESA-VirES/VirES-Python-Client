@@ -51,23 +51,23 @@ MODEL_REFERENCES = {
         " https://www.ncei.noaa.gov/products/international-geomagnetic-reference-field ",
     ),
     "CHAOS-Core": (
-        "CHAOS-8 Core field (SH degrees 1-20)",
+        "CHAOS Core field (SH degrees 1-20)",
         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "CHAOS-Static": (
-        "CHAOS-8 crust field (SH degrees 21-185)",
+        "CHAOS crust field (SH degrees 21-185)",
         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "CHAOS-MMA-Primary": (
-        "CHAOS-8 Primary (external) magnetospheric field",
+        "CHAOS Primary (external) magnetospheric field",
         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "CHAOS-MMA-Secondary": (
-        "CHAOS-8 Secondary (internal) magnetospheric field",
+        "CHAOS Secondary (internal) magnetospheric field",
         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "CHAOS-MIO": (
-        "CHAOS-8 Ionospheric field",
+        "CHAOS Ionospheric field",
         " http://www.spacecenter.dk/files/magnetic-models/CHAOS-8/ ",
     ),
     "MF7": (
@@ -79,75 +79,59 @@ MODEL_REFERENCES = {
         " http://www.spacecenter.dk/files/magnetic-models/LCS-1/",
     ),
     "MCO_SHA_2C": (
-        "[Comprehensive Inversion]: Core field of CIY4",
+        "[Comprehensive Inversion]: Core field",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mco_sha_2c",
-        " A comprehensive model of Earth’s magnetic field determined from 4 years of Swarm satellite observations, https://doi.org/10.1186/s40623-018-0896-3 ",
-        "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MCO/SW_OPER_MCO_VAL_2C_20131201T000000_20180101T000000_0401.ZIP ",
     ),
     "MCO_SHA_2D": (
         "[Dedicated Chain]: Core field",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mco_sha_2d",
-        "An algorithm for deriving core magnetic field models from the Swarm data set, https://doi.org/10.5047/eps.2013.07.005 ",
-        "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MCO/SW_OPER_MCO_VAL_2D_20131126T000000_20180101T000000_0401.ZIP ",
     ),
     "MLI_SHA_2C": (
-        "[Comprehensive Inversion]: Lithospheric field of CIY4",
+        "[Comprehensive Inversion]: Lithospheric field",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mli_sha_2c",
-        "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2C_00000000T000000_99999999T999999_0401.ZIP",
     ),
     "MLI_SHA_2D": (
         "[Dedicated Chain]: Lithospheric field",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mli_sha_2d",
-        " Swarm SCARF Dedicated Lithospheric Field Inversion chain, https://doi.org/10.5047/eps.2013.07.008 ",
-        " Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MLI/SW_OPER_MLI_VAL_2D_00000000T000000_99999999T999999_0401.ZIP ",
     ),
     "MLI_SHA_2E": (
         "[Extended dedicated chain]: Lithospheric field",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mli_sha_2e",
-        " Joint inversion of Swarm, CHAMP, and WDMAM data ",
-        " https://swarm-diss.eo.esa.int/?do=download&file=swarm%2FLevel2longterm%2FMLI%2FSW_OPER_MLI_VAL_2E_00000000T000000_99999999T999999_0502.ZIP ",
     ),
     "MMA_SHA_2C-Primary": (
-        "[Comprehensive Inversion]: Primary (external) magnetospheric field of CIY4",
+        "[Comprehensive Inversion]: Primary (external) magnetospheric field",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2c",
-        "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MMA/SW_OPER_MMA_VAL_2C_20131201T000000_20180101T000000_0401.ZIP",
     ),
     "MMA_SHA_2C-Secondary": (
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2c",
-        "[Comprehensive Inversion]: Secondary (internal/induced) magnetospheric field of CIY4",
+        "[Comprehensive Inversion]: Secondary (internal/induced) magnetospheric field",
     ),
     "MMA_SHA_2F-Primary": (
         "[Fast-Track Product]: Primary (external) magnetospheric field",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2f",
-        " Rapid modelling of the large-scale magnetospheric field from Swarm satellite data, https://doi.org/10.5047/eps.2013.09.003 ",
     ),
     "MMA_SHA_2F-Secondary": (
         "[Fast-Track Product]: Secondary (internal/induced) magnetospheric field",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mma_sha_2f",
     ),
     "MIO_SHA_2C-Primary": (
-        "[Comprehensive Inversion]: Primary (external) ionospheric field of CIY4",
+        "[Comprehensive Inversion]: Primary (external) ionospheric field",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2c",
-        "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MIO/SW_OPER_MIO_VAL_2C_00000000T000000_99999999T999999_0401.ZIP ",
     ),
     "MIO_SHA_2C-Secondary": (
-        "[Comprehensive Inversion]: Secondary (external/induced) ionospheric field of CIY4",
+        "[Comprehensive Inversion]: Secondary (external/induced) ionospheric field",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2c",
     ),
     "MIO_SHA_2D-Primary": (
         "[Dedicated Chain]: Primary (external) ionospheric field, DIFI",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2d",
-        " Swarm SCARF dedicated ionospheric field inversion chain, https://doi.org/10.5047/eps.2013.08.006 ",
-        " First results from the Swarm Dedicated Ionospheric Field Inversion chain, https://doi.org/10.1186/s40623-016-0481-6 ",
-        " http://geomag.colorado.edu/difi-3 ",
-        "Validation: ftp://swarm-diss.eo.esa.int/Level2longterm/MIO/SW_OPER_MIO_VAL_2D_20131201T000000_20171231T235959_0402.ZIP ",
     ),
     "MIO_SHA_2D-Secondary": (
         "[Dedicated Chain]: Secondary (external/induced) ionospheric field, DIFI",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2d",
     ),
     "AMPS": (
-        "AMPS - associated magnetic field, https://github.com/klaundal/pyAMPS",
+        "AMPS - Polar currents magnetic field, https://github.com/klaundal/pyAMPS",
         "https://swarmhandbook.earth.esa.int/catalogue/sw_mio_sha_2e",
     ),
     "MCO_SHA_2X": (
@@ -261,9 +245,9 @@ for mission in ("SW", "OR", "CH", "CR", "CO"):
         )
 
 DATA_CITATIONS = {
-    "AUX_OBSH": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/hour/README",
-    "AUX_OBSM": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/minute/README",
-    "AUX_OBSS": "ftp://ftp.nerc-murchison.ac.uk/geomag/Swarm/AUX_OBS/second/README",
+    "AUX_OBSH": "https://auxobs-api.bgs.ac.uk/docs",
+    "AUX_OBSM": "https://auxobs-api.bgs.ac.uk/docs",
+    "AUX_OBSS": "https://auxobs-api.bgs.ac.uk/docs",
 }
 
 IAGA_CODES = CONFIG_SWARM.get("IAGA_CODES")
@@ -563,16 +547,28 @@ class SwarmRequest(ClientRequest):
         ],
         "EEF": [f"SW_OPER_EEF{x}TMS_2F" for x in "ABC"],
         "IPD": [f"SW_OPER_IPD{x}IRR_2F" for x in "ABC"],
-        "AEJ_LPL": [f"SW_OPER_AEJ{x}LPL_2F" for x in "ABC"],
-        "AEJ_LPL:Quality": [f"SW_OPER_AEJ{x}LPL_2F:Quality" for x in "ABC"],
+        "AEJ_LPL": [
+            *(f"SW_OPER_AEJ{x}LPL_2F" for x in "ABC"),
+            *(f"SW_FAST_AEJ{x}LPL_2F" for x in "ABC"),
+        ],
+        "AEJ_LPL:Quality": [
+            *(f"SW_OPER_AEJ{x}LPL_2F:Quality" for x in "ABC"),
+            *(f"SW_FAST_AEJ{x}LPL_2F:Quality" for x in "ABC"),
+        ],
         "AEJ_LPS": [f"SW_OPER_AEJ{x}LPS_2F" for x in "ABC"],
         "AEJ_LPS:Quality": [f"SW_OPER_AEJ{x}LPS_2F:Quality" for x in "ABC"],
-        "AEJ_PBL": [f"SW_OPER_AEJ{x}PBL_2F" for x in "ABC"],
+        "AEJ_PBL": [
+            *(f"SW_OPER_AEJ{x}PBL_2F" for x in "ABC"),
+            *(f"SW_FAST_AEJ{x}PBL_2F" for x in "ABC"),
+        ],
         "AEJ_PBS": [f"SW_OPER_AEJ{x}PBS_2F" for x in "ABC"],
         "AEJ_PBS:GroundMagneticDisturbance": [
             f"SW_OPER_AEJ{x}PBS_2F:GroundMagneticDisturbance" for x in "ABC"
         ],
-        "AOB_FAC": [f"SW_OPER_AOB{x}FAC_2F" for x in "ABC"],
+        "AOB_FAC": [
+            *(f"SW_OPER_AOB{x}FAC_2F" for x in "ABC"),
+            *(f"SW_FAST_AOB{x}FAC_2F" for x in "ABC"),
+        ],
         "AUX_OBSH": [
             "SW_OPER_AUX_OBSH2_",
             *[f"SW_OPER_AUX_OBSH2_:{code}" for code in IAGA_CODES],

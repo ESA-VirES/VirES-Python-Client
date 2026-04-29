@@ -4,6 +4,12 @@ Release notes
 Change log
 ----------
 
+Changes from 0.15.2 to 0.16.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Fix usage of ``reshape=True`` when using ``AUX_OBSH`` collection (via creating an additional ``SiteCode`` data variable)
+- Add more FAST product variants: ``SW_FAST_AEJxLPL_2F``, ``SW_FAST_AEJxPBL_2F``, ``SW_FAST_AOBxFAC_2F``
+
 Changes from 0.15.1 to 0.15.2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
