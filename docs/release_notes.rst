@@ -4,6 +4,12 @@ Release notes
 Change log
 ----------
 
+Changes from 0.16.0 to 0.17.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added new `STRxEPF <https://swarmhandbook.earth.esa.int/catalogue/SW_STRXEPF_1B>`_ product
+- Per-CHU variables in ``STR_EPF`` are given a shared ``CHU`` dimension (labelled 1, 2, 3) in xarray, and expanded to ``<var>_1``, ``<var>_2``, ``<var>_3`` in pandas with ``expand=True``
+
 Changes from 0.15.2 to 0.16.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

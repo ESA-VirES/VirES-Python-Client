@@ -57,6 +57,16 @@ FRAME_NAMES = {
     "WGS84": ["GPS_Position", "LEO_Position"],
     "EEJ_QDLat": ["EEJ_meast", "EEJ_mnorth"],
     "NE": ["J_NE", "J_CF_NE", "J_DF_NE", "B_NE"],
+    "CHU": [
+        "EPF",
+        "EPD",
+        "T_CHU",
+        "RA",
+        "Dec",
+        "EPD_Dens_corr",
+        "EPD_T_corr",
+        "Flags_EPF",
+    ],
 }
 # Reverse mapping of the above
 DATANAMES_TO_FRAME_NAMES = {}
@@ -72,12 +82,14 @@ FRAME_LABELS = {
     "WGS84": ["X", "Y", "Z"],
     "EEJ_QDLat": numpy.linspace(-20, 20, 81),
     "NE": ["N", "E"],
+    "CHU": [1, 2, 3],
 }
 FRAME_DESCRIPTIONS = {
     "NEC": "NEC frame - North, East, Centre (down)",
     "NE": "Horizontal NE frame - North, East",
     "VFM": "Vector Field Magnetometer instrument frame",
     "EEJ_QDLat": "Quasi-dipole latitude profile between -20 and 20 degrees from the EEF product",
+    "CHU": "Star tracker Camera Head Unit (CHU) identifier",
 }
 
 
@@ -205,10 +217,13 @@ class FileReader:
         columns.remove(self._time_variable)
         # Split columns according to those to be expanded into multiple columns
         if expand:
+            # Only expand vector variables (e.g. not the scalar per-CHU
+            # variables in the STR_EPF:flattened collections)
             columns_to_expand = {
                 c
                 for c in columns
-                if c in DATANAMES_TO_FRAME_NAMES.keys() or "B_NEC" in c
+                if (c in DATANAMES_TO_FRAME_NAMES.keys() or "B_NEC" in c)
+                and self.get_variable_numdims(c) == 1
             }
             # Avoid conflict with 2D AOB_FAC Quality variable
             # when accessing AUX_OBS Quality
