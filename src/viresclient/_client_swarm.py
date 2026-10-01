@@ -238,7 +238,9 @@ COLLECTION_REFERENCES = {
     "ULF_MAG": ("https://swarmhandbook.earth.esa.int/catalogue/SW_ULFxMAG_2F",),
     "PC1_MAG": ("https://swarmhandbook.earth.esa.int/catalogue/SW_PC1xMAG_2F",),
     "STR_EPF": ("https://swarmhandbook.earth.esa.int/catalogue/SW_STRXEPF_1B",),
-    "STR_EPF:flattened": ("https://swarmhandbook.earth.esa.int/catalogue/SW_STRXEPF_1B",),
+    "STR_EPF:flattened": (
+        "https://swarmhandbook.earth.esa.int/catalogue/SW_STRXEPF_1B",
+    ),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):

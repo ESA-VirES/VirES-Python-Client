@@ -4,6 +4,11 @@ Release notes
 Change log
 ----------
 
+Changes from 0.16.0 to 0.17.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Added new `STRxEPF <https://swarmhandbook.earth.esa.int/catalogue/SW_STRXEPF_1B>`_ product
+
 Changes from 0.15.2 to 0.16.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

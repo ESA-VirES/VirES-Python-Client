@@ -55,6 +55,7 @@ The available measurements are segregated according to the "collection" (essenti
   - ``SW_FAST_AEJxLPL_2F``
   - ``SW_FAST_AEJxPBL_2F``
   - ``SW_FAST_AOBxFAC_2F``
+  - ``SW_FAST_STRxEPF_1B``
 
 Collections are grouped according to a type containing similar measurements (i.e. the same product from different spacecraft). The collection type can be given to :py:meth:`viresclient.SwarmRequest.available_collections` to retrieve the full collection names. These cover the Swarm data products as below (replace x with A, B, or C for Alpha, Bravo, or Charlie):
 
@@ -75,6 +76,7 @@ SW_OPER_FAC_TMS_2F       FAC              Field-aligned currents (dual-satellite
 SW_OPER_EEFxTMS_2F       EEF              Equatorial electric field
 SW_OPER_IBIxTMS_2F       IBI              Ionospheric bubble index
 SW_OPER_MODx_SC_1B       MOD_SC           Spacecraft positions at 1Hz
+SW_OPER_STRxEPF_1B       STR_EPF          Star tracker energetic particle flux
 ======================== ================ ==============================================================
 
 The AEBS (auroral electrojets and boundaries) products are a bit more complicated:
@@ -220,21 +222,23 @@ The ``measurements``, ``models``, and ``auxiliaries`` chosen will match the cade
 
 Choose combinations of measurements from one of the following sets, corresponding to the collection chosen above. The collection full name or collection type can be given to :py:meth:`viresclient.SwarmRequest.available_measurements` to retrieve the list of available measurements for a given collection (e.g. ``request.available_measurements("SW_OPER_MAGA_LR_1B")``)
 
-=============== ==============================================================================================================================================================================================================================================================================================
-Collection type Available measurement names
-=============== ==============================================================================================================================================================================================================================================================================================
-MAG             ``F,dF_Sun,dF_AOCS,dF_other,F_error,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_error,Flags_F,Flags_B,Flags_q,Flags_Platform,ASM_Freq_Dev``
-MAG_HR          ``F,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_error,Flags_B,Flags_q,Flags_Platform,ASM_Freq_Dev``
-EFI             ``U_orbit,Ne,Ne_error,Te,Te_error,Vs,Vs_error,Flags_LP,Flags_Ne,Flags_Te,Flags_Vs``
-EFI_TIE         ``Latitude_GD,Longitude_GD,Height_GD,Radius_GC,Latitude_QD,MLT_QD,Tn_msis,Te_adj_LP,Ti_meas_drift,Ti_model_drift,Flag_ti_meas,Flag_ti_model``
-EFI_TCTyy       ``VsatC,VsatE,VsatN,Bx,By,Bz,Ehx,Ehy,Ehz,Evx,Evy,Evz,Vicrx,Vicry,Vicrz,Vixv,Vixh,Viy,Viz,Vixv_error,Vixh_error,Viy_error,Viz_error,Latitude_QD,MLT_QD,Calibration_flags,Quality_flags``
-EFI_IDM         ``Latitude_GD,Longitude_GD,Height_GD,Radius_GC,Latitude_QD,MLT_QD,V_sat_nec,M_i_eff,M_i_eff_err,M_i_eff_Flags,M_i_eff_tbt_model,V_i,V_i_err,V_i_Flags,V_i_raw,N_i,N_i_err,N_i_Flags,A_fp,R_p,T_e,Phi_sc``
-IPD             ``Ne,Te,Background_Ne,Foreground_Ne,PCP_flag,Grad_Ne_at_100km,Grad_Ne_at_50km,Grad_Ne_at_20km,Grad_Ne_at_PCP_edge,ROD,RODI10s,RODI20s,delta_Ne10s,delta_Ne20s,delta_Ne40s,Num_GPS_satellites,mVTEC,mROT,mROTI10s,mROTI20s,IBI_flag,Ionosphere_region_flag,IPIR_index,Ne_quality_flag,TEC_STD``
-TEC             ``GPS_Position,LEO_Position,PRN,L1,L2,P1,P2,S1,S2,Elevation_Angle,Absolute_VTEC,Absolute_STEC,Relative_STEC,Relative_STEC_RMS,DCB,DCB_Error``
-FAC             ``IRC,IRC_Error,FAC,FAC_Error,Flags,Flags_F,Flags_B,Flags_q``
-EEF             ``EEF,EEJ,RelErr,Flags``
-IBI             ``Bubble_Index,Bubble_Probability,Flags_Bubble,Flags_F,Flags_B,Flags_q``
-=============== ==============================================================================================================================================================================================================================================================================================
+================== ==============================================================================================================================================================================================================================================================================================
+Collection type    Available measurement names
+================== ==============================================================================================================================================================================================================================================================================================
+MAG                ``F,dF_Sun,dF_AOCS,dF_other,F_error,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_error,Flags_F,Flags_B,Flags_q,Flags_Platform,ASM_Freq_Dev``
+MAG_HR             ``F,B_VFM,B_NEC,dB_Sun,dB_AOCS,dB_other,B_error,q_NEC_CRF,Att_error,Flags_B,Flags_q,Flags_Platform,ASM_Freq_Dev``
+EFI                ``U_orbit,Ne,Ne_error,Te,Te_error,Vs,Vs_error,Flags_LP,Flags_Ne,Flags_Te,Flags_Vs``
+EFI_TIE            ``Latitude_GD,Longitude_GD,Height_GD,Radius_GC,Latitude_QD,MLT_QD,Tn_msis,Te_adj_LP,Ti_meas_drift,Ti_model_drift,Flag_ti_meas,Flag_ti_model``
+EFI_TCTyy          ``VsatC,VsatE,VsatN,Bx,By,Bz,Ehx,Ehy,Ehz,Evx,Evy,Evz,Vicrx,Vicry,Vicrz,Vixv,Vixh,Viy,Viz,Vixv_error,Vixh_error,Viy_error,Viz_error,Latitude_QD,MLT_QD,Calibration_flags,Quality_flags``
+EFI_IDM            ``Latitude_GD,Longitude_GD,Height_GD,Radius_GC,Latitude_QD,MLT_QD,V_sat_nec,M_i_eff,M_i_eff_err,M_i_eff_Flags,M_i_eff_tbt_model,V_i,V_i_err,V_i_Flags,V_i_raw,N_i,N_i_err,N_i_Flags,A_fp,R_p,T_e,Phi_sc``
+IPD                ``Ne,Te,Background_Ne,Foreground_Ne,PCP_flag,Grad_Ne_at_100km,Grad_Ne_at_50km,Grad_Ne_at_20km,Grad_Ne_at_PCP_edge,ROD,RODI10s,RODI20s,delta_Ne10s,delta_Ne20s,delta_Ne40s,Num_GPS_satellites,mVTEC,mROT,mROTI10s,mROTI20s,IBI_flag,Ionosphere_region_flag,IPIR_index,Ne_quality_flag,TEC_STD``
+TEC                ``GPS_Position,LEO_Position,PRN,L1,L2,P1,P2,S1,S2,Elevation_Angle,Absolute_VTEC,Absolute_STEC,Relative_STEC,Relative_STEC_RMS,DCB,DCB_Error``
+FAC                ``IRC,IRC_Error,FAC,FAC_Error,Flags,Flags_F,Flags_B,Flags_q``
+EEF                ``EEF,EEJ,RelErr,Flags``
+IBI                ``Bubble_Index,Bubble_Probability,Flags_Bubble,Flags_F,Flags_B,Flags_q``
+STR_EPF            ``EPF,EPD,T_CHU,RA,Dec,EPD_Dens_corr,EPD_T_corr,Flags_EPF``
+STR_EPF:flattened  ``EPF,EPD,T_CHU,RA,Dec,EPD_Dens_corr,EPD_T_corr,Flags_EPF,SensorId``
+================== ==============================================================================================================================================================================================================================================================================================
 
 AEBS products:
 
