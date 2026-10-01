@@ -237,6 +237,10 @@ COLLECTION_REFERENCES = {
     ),
     "ULF_MAG": ("https://swarmhandbook.earth.esa.int/catalogue/SW_ULFxMAG_2F",),
     "PC1_MAG": ("https://swarmhandbook.earth.esa.int/catalogue/SW_PC1xMAG_2F",),
+    "STR_EPF": ("https://swarmhandbook.earth.esa.int/catalogue/SW_STRXEPF_1B",),
+    "STR_EPF:flattened": (
+        "https://swarmhandbook.earth.esa.int/catalogue/SW_STRXEPF_1B",
+    ),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
@@ -725,6 +729,14 @@ class SwarmRequest(ClientRequest):
             *(f"SW_OPER_PC1{spacecraft}MAG_2F:Br_event_mean" for spacecraft in "ABC"),
             *(f"SW_OPER_PC1{spacecraft}MAG_2F:Ba_event_mean" for spacecraft in "ABC"),
         ],
+        "STR_EPF": [
+            *(f"SW_OPER_STR{spacecraft}EPF_1B" for spacecraft in "ABC"),
+            *(f"SW_FAST_STR{spacecraft}EPF_1B" for spacecraft in "ABC"),
+        ],
+        "STR_EPF:flattened": [
+            *(f"SW_OPER_STR{spacecraft}EPF_1B:flattened" for spacecraft in "ABC"),
+            *(f"SW_FAST_STR{spacecraft}EPF_1B:flattened" for spacecraft in "ABC"),
+        ],
     }
 
     OBS_COLLECTIONS = [
@@ -820,6 +832,8 @@ class SwarmRequest(ClientRequest):
         "ULF_MAG:event_mean": "PT1M",  # irregular sampling
         "PC1_MAG:event": "PT1S",  # irregular sampling
         "PC1_MAG:event_mean": "PT1M",  # irregular sampling
+        "STR_EPF": "PT1S",
+        "STR_EPF:flattened": "PT1S",
     }
 
     PRODUCT_VARIABLES = {
@@ -1530,6 +1544,27 @@ class SwarmRequest(ClientRequest):
             "Prominence",
             "ROFC",
             "Quality",
+        ],
+        "STR_EPF": [
+            "EPF",
+            "EPD",
+            "T_CHU",
+            "RA",
+            "Dec",
+            "EPD_Dens_corr",
+            "EPD_T_corr",
+            "Flags_EPF",
+        ],
+        "STR_EPF:flattened": [
+            "EPF",
+            "EPD",
+            "T_CHU",
+            "RA",
+            "Dec",
+            "EPD_Dens_corr",
+            "EPD_T_corr",
+            "Flags_EPF",
+            "SensorId",
         ],
     }
 
