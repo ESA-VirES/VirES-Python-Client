@@ -237,6 +237,7 @@ COLLECTION_REFERENCES = {
     ),
     "ULF_MAG": ("https://swarmhandbook.earth.esa.int/catalogue/SW_ULFxMAG_2F",),
     "PC1_MAG": ("https://swarmhandbook.earth.esa.int/catalogue/SW_PC1xMAG_2F",),
+    "EFI_LP_FP": ("https://swarmhandbook.earth.esa.int/catalogue/SW_EFIx_LP_FP",),
 }
 for mission in ("SW", "OR", "CH", "CR", "CO"):
     for cadence in ("1M", "4M"):
@@ -725,6 +726,9 @@ class SwarmRequest(ClientRequest):
             *(f"SW_OPER_PC1{spacecraft}MAG_2F:Br_event_mean" for spacecraft in "ABC"),
             *(f"SW_OPER_PC1{spacecraft}MAG_2F:Ba_event_mean" for spacecraft in "ABC"),
         ],
+        "EFI_LP_FP": [
+            f"SW_EXTD_EFI{spacecraft}_LP_FP" for spacecraft in "ABC"
+        ],
     }
 
     OBS_COLLECTIONS = [
@@ -764,7 +768,7 @@ class SwarmRequest(ClientRequest):
         "EFI_IDM": "PT0.5S",
         "EFI_TIE": "PT0.5S",
         "EFI_TCT02": "PT0.5S",
-        "EFI_TCT16": "PT0.0625S",
+        "EFI_TCT16": "PT0.0625S", # 16Hz
         "IBI": "PT1S",
         "TEC": "PT1S",  # Actually more complicated - non-unique samples
         "FAC": "PT1S",
@@ -820,6 +824,7 @@ class SwarmRequest(ClientRequest):
         "ULF_MAG:event_mean": "PT1M",  # irregular sampling
         "PC1_MAG:event": "PT1S",  # irregular sampling
         "PC1_MAG:event_mean": "PT1M",  # irregular sampling
+        "EFI_LP_FP": "PT0.0625S", # 16Hz
     }
 
     PRODUCT_VARIABLES = {
@@ -1530,6 +1535,13 @@ class SwarmRequest(ClientRequest):
             "Prominence",
             "ROFC",
             "Quality",
+        ],
+        "EFI_LP_FP": [
+            "Latitude_GD",
+            "Longitude_GD",
+            "Height_GD",
+            "I_FP",
+            "N_FP",
         ],
     }
 
