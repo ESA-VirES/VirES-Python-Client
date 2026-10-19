@@ -1595,6 +1595,7 @@ class SwarmRequest(ClientRequest):
         "QDLon",
         "QDBasis",
         "MLT",
+        "LST",
         "SunDeclination",
         "SunHourAngle",
         "SunRightAscension",
