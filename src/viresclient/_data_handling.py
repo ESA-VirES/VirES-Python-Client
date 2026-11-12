@@ -448,7 +448,7 @@ def make_pandas_DataFrame_from_csv(csv_filename, time_variable="Timestamp"):
                     df[col] = df[col].apply(
                         lambda x: [float(y) for y in x.strip("{}").split(";")]
                     )
-    df.set_index(time_variable, inplace=True)
+    df = df.set_index(time_variable)
     return df
 
 

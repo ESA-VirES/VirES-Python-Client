@@ -9,6 +9,7 @@ Changes from 0.16.0 to 0.17.0
 
 - Added new `STRxEPF <https://swarmhandbook.earth.esa.int/catalogue/SW_STRXEPF_1B>`_ product
 - Per-CHU variables in ``STR_EPF`` are given a shared ``CHU`` dimension (labelled 1, 2, 3) in xarray, and expanded to ``<var>_1``, ``<var>_2``, ``<var>_3`` in pandas with ``expand=True``
+- Minor fix for pandas 4, `PDEP-8 <https://pandas.pydata.org/docs/dev/whatsnew/v3.1.0.html#deprecated-inplace-keyword-for-various-methods>`_
 
 Changes from 0.15.2 to 0.16.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
